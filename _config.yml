@@ -1,15 +1,13 @@
 title: "Teteva `s Notes"
 locale: ru-RU
-url: "https://teteva.github.io"
+url: "https://www.teteva.com"
 read_time: true
 words_per_minute: 100 # 200
 author:
   name: Vadim Teteva
   email: aaron@teteva.com
 description: > # this means to ignore newlines until "show_excerpts:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+  От украинца об украинском и околоукраинском.
 
 show_excerpts: true # set to true to show excerpts on the homepage
 permalink: /:title:output_ext
@@ -27,7 +25,7 @@ minima:
   # generate social links in footer
   social_links:
     twitter: tetyva
-    github:  teteva
+    # github:  teteva
     # devto: jekyll
     # dribbble: jekyll
     # facebook: jekyll
