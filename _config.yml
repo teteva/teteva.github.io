@@ -1,6 +1,10 @@
-title: teteva.com
+title: "Teteva `s Blog"
+locale: ru-RU
+url: "https://teteva.github.io"
+read_time: true
+words_per_minute: 100 # 200
 author:
-  name: GitHub User
+  name: Vadim Teteva
   email: aaron@teteva.com
 description: > # this means to ignore newlines until "show_excerpts:"
   Write an awesome description for your new site here. You can edit this
@@ -8,6 +12,12 @@ description: > # this means to ignore newlines until "show_excerpts:"
   Google search results) and in your feed.xml site description.
 
 show_excerpts: true # set to true to show excerpts on the homepage
+permalink: /:title:output_ext
+
+collections:
+ posts:
+    output: true
+    permalink: /:title:output_ext
 
 # Minima date format
 # refer to https://shopify.github.io/liquid/filters/date/ if you want to customize this
@@ -17,7 +27,7 @@ minima:
   # generate social links in footer
   social_links:
     twitter: tetyva
-    # github:  jekyll
+    github:  teteva
     # devto: jekyll
     # dribbble: jekyll
     # facebook: jekyll
@@ -53,7 +63,7 @@ minima:
 # - about.md
 
 # Build settings
-theme: jekyll-theme-minimal
+theme: minima
 
 plugins:
  - jekyll-feed
