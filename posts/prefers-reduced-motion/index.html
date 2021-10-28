@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> » Tatiana Mac</title>
-    <meta name="description" content="An independent American engineer, writer, and speaker who builds inclusive, accessible, and ethical products with thoughtful practices.">
-    <meta property="og:title" content="Tatiana Mac"/>
-    <meta property="og:url" content="" />
-    <meta property="og:description" content="An independent American engineer, writer, and speaker who builds inclusive, accessible, and ethical products with thoughtful practices." />
+    <title>prefers-reduced-motion: Taking a no-motion-first approach to animations » Tatiana Mac</title>
+    <meta name="description" content="Animations should be an enhancement, not critical to a user&#39;s understanding">
+    <meta property="og:title" content="prefers-reduced-motion: Taking a no-motion-first approach to animations"/>
+    <meta property="og:url" content="https://www.tatianamac.com/posts/prefers-reduced-motion" />
+    <meta property="og:description" content="Animations should be an enhancement, not critical to a user&#39;s understanding" />
     <meta property="og:image" content="https://www.tatianamac.com/assets/img/social-card.jpg" />
     <meta property="og:type" content="website">
     <meta name="twitter:site" content="@tatianatmac">
@@ -19,6 +19,8 @@
     <link rel="preload" href="assets/fonts/calibre-web-regular-subset.woff2" as="font" type="font/woff2" crossorigin="crossorigin">
     <link rel="preload" href="assets/fonts/calibre-web-bold-subset.woff2" as="font" type="font/woff2" crossorigin="crossorigin">
 
+    
+      <link rel="canonical" href="https://www.tatianamac.com/posts/prefers-reduced-motion" />
     
 
     
@@ -106,8 +108,130 @@
 </header>
     </div>
     <main class="content  bg-white " id="content">
-        <p>The page is not found.</p>
+        
+<div class="wrapper container">
+    <article class="grid-whole@xxs grid-whole@xs grid-whole@s grid-twothirds@m grid-twothirds@l grid-twothirds@xl padding-thinn@xs padding-thinn@s">
+    <p class="t-serif details">Animations should be an enhancement, not critical to a user&#39;s understanding</p>
+    <h1 class="t-serifweight t-ultrachonk t-height-tight">prefers-reduced-motion: Taking a no-motion-first approach to animations</h1>
 
+    <blockquote>
+<p>I recognise that my <code>pre</code> code needs a lot of work, so the code samples are difficult to read and ugly right now. I plan to update that code. Apologies in the meantime; hopefully the message is still understandable!</p>
+</blockquote>
+<p>Animations help to breathe life into interactive experiences. Animations, especially when overused and abused, can make people very ill. Through this article, I hope to provide you an approach and guidance to discussing how you/your company use animation thoughtfully and responsibly.</p>
+<h2 id="animations-can-make-people-sick">Animations can make people sick <a class="direct-link" href="#animations-can-make-people-sick">📌</a></h2>
+<p>I experience benign paroxysmal positional vertigo (BPPV), which is a fancy way of saying, the room can start spinning if I turn my head the wrong way. Another side effect is if a website <a href="https://www.sitepoint.com/scrolljacking-accessibility/">scrolljacks</a> or has too much animation, I can become dizzy and have to lay down often for the rest of the day. BPPV is one of many <a href="https://vestibular.org/article/what-is-vestibular/about-vestibular-disorders/">vestibular disorders</a> that impact millions of people.</p>
+<p>As you can imagine, this can be a problem when you're a frontend engineer and are animating lots of things.</p>
+<h2 id="user-settings-rule-all">User settings rule all <a class="direct-link" href="#user-settings-rule-all">📌</a></h2>
+<p>A core accessibility approach of mine is to let the user determine what's best for them and to enable as many user settings as I can. Most operating systems allow us to reduce the motion and have for a very long time.</p>
+<p><img src="../../assets/img/os-accessibility-reduce.png" alt="Mac OS Accessibility Settings with Reduce motion set"></p>
+<!-- (../../assets/img/os-accessibility-reduce.png) -->
+<p>The setting has been exposed now to most modern browsers using a media feature called <code>prefers-reduced-motion</code>. <code>prefers-reduced-motion</code> media query acts as any other media query with two possible options:</p>
+<ol>
+<li><code>no-preference</code> (the default): the user has not indicated to &quot;Reduce motion&quot; in their OS and will be served all animations and animations designated explicitly as <code>prefers-reduced-motion: no-preference</code>. [I want to make a critical note here that this is operating on a no-consent model. Ew. The user hasn't necessarily <em>opted into</em> animations. They just haven't checked &quot;Reduce motion.&quot; That could be because they like and can tolerate animations, or, it's equally possible the user <em>doesn't know about this setting.</em> So, I want us to make sure we're not assuming that these users necessarily <em>want</em> animations.]</li>
+<li><code>reduce</code>: the user has &quot;Reduce motion&quot; checked in their operating system's Accessibility settings and will be served whatever is in the media query for <code>prefers-reduced-motion: reduce</code>.</li>
+</ol>
+<p>What this means is that if we can use <code>prefers-reduced-motion</code> to customise our animations based on user settings.</p>
+<p>We will have two parts to our code:</p>
+<ol>
+<li>animation, and</li>
+<li><code>prefers-reduced-motion</code> media query.</li>
+</ol>
+<p>In CSS, it could look something like this:</p>
+<pre class="language-css"><code class="language-css"><span class="token comment">/*<br><span class="highlight-line">Part 1: Animation</span><br><span class="highlight-line">Here is where we would put our full animation.</span><br>*/</span><br><span class="highlight-line"></span><br><span class="highlight-line"><span class="token selector">.wordArtRotation</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">  <span class="token property">animation</span><span class="token punctuation">:</span> rotation 2s infinite linear<span class="token punctuation">;</span></span><br><span class="highlight-line"><span class="token punctuation">}</span></span><br><span class="highlight-line"></span><br><span class="token comment">/*<br><span class="highlight-line">Part 2: Media query</span><br><span class="highlight-line">Here is where we would put our partial or no animation.</span><br>*/</span><br><span class="highlight-line"><span class="token atrule"><span class="token rule">@media</span> <span class="token punctuation">(</span><span class="token property">prefers-reduced-motion</span><span class="token punctuation">:</span> reduce<span class="token punctuation">)</span></span> <span class="token punctuation">{</span></span><br><span class="highlight-line">  <span class="token selector">.wordArtRotation</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">    <span class="token property">animation</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span></span><br><span class="highlight-line">  <span class="token punctuation">}</span></span><br><span class="highlight-line"><span class="token punctuation">}</span></span></code></pre>
+<h2 id="start-with-no-motion">Start with No Motion <a class="direct-link" href="#start-with-no-motion">📌</a></h2>
+<p>When I collaborate with a designer/animator on an animation, I first ask, &quot;Is this animation <strong>critical</strong> to understanding the content?&quot;</p>
+<h3 id="when-the-answer-is-%22no%22">When the answer is &quot;No&quot; <a class="direct-link" href="#when-the-answer-is-%22no%22">📌</a></h3>
+<p>More often than not, the answer is &quot;no.&quot; (It might take some finessing of the conversation, so remember to emphasise that being <strong>critical</strong> isn't the same thing as being <strong>important</strong> or <strong>nice</strong> or <strong>aesthetic</strong>.) When conceived well, animations should be an <em>enhancement</em> to an explanation.</p>
+<p>If the animation isn't critical, then my default code is to include <code>animation: none</code> for all of my animations. In CSS, it could look something like this:</p>
+<pre class="language-css"><code class="language-css"><span class="highlight-line"><span class="token atrule"><span class="token rule">@media</span> <span class="token punctuation">(</span><span class="token property">prefers-reduced-motion</span><span class="token punctuation">:</span> reduce<span class="token punctuation">)</span></span> <span class="token punctuation">{</span></span><br>  <span class="token selector">.wordArtRotation,<br><span class="highlight-line">  .rainbowWave,</span><br>  .textFadeIn</span> <span class="token punctuation">{</span><br><span class="highlight-line">    <span class="token property">animation</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span></span><br><span class="highlight-line">  <span class="token punctuation">}</span></span><br><span class="highlight-line"><span class="token punctuation">}</span></span></code></pre>
+<p>Another way it could look is to reverse our thought process. Instead of defaulting to <em>adding</em> animations universally, we can instead <em>only add</em> them for people who have designated <code>no-preference</code>.</p>
+<p>The code could look something like this:</p>
+<pre class="language-css"><code class="language-css"><span class="token comment">/*<br><span class="highlight-line">Part 1: Animation</span><br><span class="highlight-line">Here is where we would put our full animation.</span><br>*/</span><br><span class="highlight-line"></span><br><span class="highlight-line"><span class="token selector">.wordArtRotation</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">  <span class="token property">animation</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span></span><br><span class="highlight-line"><span class="token punctuation">}</span></span><br><span class="highlight-line"></span><br><span class="token comment">/*<br><span class="highlight-line">Part 2: Media query</span><br><span class="highlight-line">Here is where we would put our partial or no animation.</span><br>*/</span><br><span class="highlight-line"><span class="token atrule"><span class="token rule">@media</span> <span class="token punctuation">(</span><span class="token property">prefers-reduced-motion</span><span class="token punctuation">:</span> no-preference<span class="token punctuation">)</span></span> <span class="token punctuation">{</span></span><br><span class="highlight-line">  <span class="token selector">.wordArtRotation</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">    <span class="token property">animation</span><span class="token punctuation">:</span> rotation 2s infinite linear<span class="token punctuation">;</span></span><br><span class="highlight-line">  <span class="token punctuation">}</span></span><br><span class="highlight-line"><span class="token punctuation">}</span></span></code></pre>
+<p>The difference between the first code block and the second one comes down to browser support. The support for <code>prefers-reduced-motion</code> is fairly strong, but still has some gaps (see <a href="https://caniuse.com/?search=prefers-reduced-motion">Can I Use: Prefers reduced motion</a>). Defaulting to this latter approach will mean that all users will default to no animation, including users whose browsers won't recognise the media query.</p>
+<p>The difference is not just in code, but in mindset shift. I won't tell you which one is right for you/your org, but I think this type of differentiation is important for your design system, for example. I find that sharing the technical approach with the designer gets them thinking about how they intend for their animations to exist in different environments (and getting them to cater their animations to user preferences).</p>
+<p>To turn these individual conversations into a systemic one, you could include animation principles with guidance around how your design system would like animations to be not only coded, but conceived. Providing this context in your documentation will help to guide better animator/designer-developer collaboration.</p>
+<p>Framer Motion sets a good tone for accessibilty in documentation with their <a href="https://www.framer.com/api/motion/guide-accessibility/">Guide to Accessibility</a>.</p>
+<h3 id="animation-specific-stylesheet">Animation-specific stylesheet <a class="direct-link" href="#animation-specific-stylesheet">📌</a></h3>
+<p>Since we've all agreed that our animations aren't critical to perceiving our page (winky face), we can take that one step further and <em>only</em> serve our users CSS if they are cool with <code>prefers-reduced-motion: no-preference</code>.</p>
+<p>Here's what you might include in your HTML file in the <code>&lt;head&gt;</code> tag:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span><br><span class="highlight-line">  <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span></span><br><span class="highlight-line">  <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>animations.css<span class="token punctuation">"</span></span></span><br><span class="highlight-line">  <span class="token attr-name">media</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>(prefers-reduced-motion: no-preference)<span class="token punctuation">"</span></span></span><br><span class="token punctuation">/></span></span></code></pre>
+<p><a href="https://web.dev/prefers-reduced-motion/">Code snippet from Web.dev: prefers-reduced-motion</a></p>
+<p>What this requires is we've placed all our animations into one CSS file. If our user has indicated &quot;Reduce motion&quot; (and thus, the media query <code>prefers-reduced-motion: reduce</code> is true), then the user isn't even served our stylesheet at all. Separating our CSS animations into its own stylesheet can be a very daunting task on a large codebase, so this could require some heavy refactoring. But if CSS animations is a large part of your codebase, it might also mean huge performance savings!</p>
+<p>I love this option because it is putting accessibility and performance on the same team—as they should be!</p>
+<h2 id="when-the-answer-is-%22yes%22">When the answer is &quot;Yes&quot; <a class="direct-link" href="#when-the-answer-is-%22yes%22">📌</a></h2>
+<p>If the animation is critical to understanding, then I ask what other ways we intend to serve up that information, because without alternates, we're excluding anyone who won't be able to see the animation (whether due to physical disability, data/technical restrictions, situational, etc).</p>
+<h3 id="questions-i-typically-ask-in-response">Questions I typically ask in response <a class="direct-link" href="#questions-i-typically-ask-in-response">📌</a></h3>
+<p>Sometimes this conversation between the person who conceived the animation and the person implementing it doesn't happen. That is a damn shame, because I find that's where we needlessly animate things that add exactly zero value to the conversation.</p>
+<p>I also ranked these questions in level of spiciness for <s>no other reason than my entertainment</s> to cater your communication to the context of your conversation.</p>
+<ul>
+<li>Why is this animation critical? 🌶</li>
+<li>What other ways can we serve up the critical animation? (e.g., through written text, through a static diagram, etc) 🌶🌶</li>
+<li>If the animation can't load for someone or they can't see it, what was your plan? 🌶🌶🌶</li>
+</ul>
+<p>Most of the time, I'm negotiating a way to get information to be served in <em>more</em> ways. Changing the answer from &quot;yes, this animation is critical to understanding&quot; to &quot;no, this animation is not critical but an enhancement.&quot; Remember, accessibility means giving the users as many, diversified options as possible, not determining which option works best for them.</p>
+<h2 id="beyond-css-animations">Beyond CSS animations <a class="direct-link" href="#beyond-css-animations">📌</a></h2>
+<h3 id="auto-playing-video">Auto-playing video <a class="direct-link" href="#auto-playing-video">📌</a></h3>
+<p>Auto-playing anything is cruel to both users who experience vestibular disorders <em>and</em> neurodivergent users for whom autoplay can cause major focus issues.</p>
+<p>CSS-tricks covers this well with <a href="https://css-tricks.com/reduced-motion-picture-technique-take-two/">Reduced motion picture technique: take two</a>.</p>
+<h3 id="javascript-animations">JavaScript animations <a class="direct-link" href="#javascript-animations">📌</a></h3>
+<p>Now while I am very pro-CSS animations (and think they can handle most standard animations), I recognise that CSS can't handle <strong>all</strong> types of animations, for example, <code>react-spring</code> animations. I'm not yet an expert in these areas. Instead of taking weeks to learn this all to regurgigate it back to you right now, I wanted to share some existing articles that already do a great job of distilling down this information.</p>
+<p><strong>Vanilla JS:</strong> <a href="https://web.dev/prefers-reduced-motion/#demo"><code>window.matchMedia</code> demo from web.dev</a></p>
+<p>React: <a href="https://github.com/infiniteluke/react-reduce-motion">useReduceMotion Hook by infiniteluke</a></p>
+<h2 id="further-reading">Further Reading <a class="direct-link" href="#further-reading">📌</a></h2>
+<p>Commentary on <code>prefers-reduced-motion</code> with authors covered that I did not. (Note there will be some introductory overlap)</p>
+<p><a href="https://alistapart.com/article/accessibility-for-vestibular/">A List Apart: Accessibility for vestibular disorders</a><br>
+Provides guidance to designing for vestibular disorders with tactical tips</p>
+<p><a href="https://www.a11ywithlindsey.com/blog/reducing-motion-improve-accessibility">A11y with Lindsey: Reducing motion to improve accessibility</a><br>
+Code snippets with brief rundown on adding a toggle to your page and using <code>localStorage</code> to preserve user setting</p>
+<p><a href="https://www.joshwcomeau.com/react/prefers-reduced-motion/">Josh Comeau: Accessible Animations in React</a><br>
+React Code snippets</p>
+<h2 id="questions-and-corrections">Questions and Corrections <a class="direct-link" href="#questions-and-corrections">📌</a></h2>
+<p>For questions, please <a href="https://www.twitter.com/TatianaTMac">reach out on Twitter</a>! I can't promise to answer all your questions, but I'll try my best!</p>
+<p>For corrections (typos, factual inaccuracies), please file a <a href="https://github.com/tatianamac/tm11ty/issues">GitHub issue</a>.</p>
+
+    </article>
+
+    <section class="grid-whole@xxs grid-whole@xs grid-whole@s grid-third@m grid-third@l grid-third@xl">
+    <div class="post-blob">
+        <p class="t-serifweight t-thinnfont">Use the prefers-reduced-motion media query to help guide your animation principles</p>
+        <p class="t-eyebrow t-typeweight">Thu Mar 18 2021 14:56:13 GMT+0200 (Eastern European Standard Time)</p>
+        
+        
+            
+      
+            
+      
+            
+        
+      
+        <a class="t-tag tag" href="/tags/tutorials/">tutorials</a>
+      
+        
+      
+            
+        
+      
+        <a class="t-tag tag" href="/tags/animation/">animation</a>
+      
+        
+      
+            
+        
+      
+        <a class="t-tag tag" href="/tags/accessibility/">accessibility</a>
+      
+        
+      
+            
+        
+      
+        <a class="t-tag tag" href="/tags/engineering/">engineering</a>
+      
+        
+      
+    </div>
+    </section>
+</div>
      </main>
 
     
@@ -174,6 +298,6 @@
     document.getElementById("year").innerHTML = new Date().getFullYear();
 </script>
 
-    <!-- Current page: /404.html -->
+    <!-- Current page: /posts/prefers-reduced-motion/ -->
   </body>
 </html>

@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> » Tatiana Mac</title>
-    <meta name="description" content="An independent American engineer, writer, and speaker who builds inclusive, accessible, and ethical products with thoughtful practices.">
-    <meta property="og:title" content="Tatiana Mac"/>
-    <meta property="og:url" content="" />
-    <meta property="og:description" content="An independent American engineer, writer, and speaker who builds inclusive, accessible, and ethical products with thoughtful practices." />
+    <title>Beginner&#39;s Guide to Eleventy [Part II] » Tatiana Mac</title>
+    <meta name="description" content="In the second instalment of a four part guide on Eleventy, I show you how to install it, explaining each gruelling step.">
+    <meta property="og:title" content="Beginner&#39;s Guide to Eleventy [Part II]"/>
+    <meta property="og:url" content="https://www.tatianamac.com/posts/beginner-eleventy-tutorial-partii" />
+    <meta property="og:description" content="In the second instalment of a four part guide on Eleventy, I show you how to install it, explaining each gruelling step." />
     <meta property="og:image" content="https://www.tatianamac.com/assets/img/social-card.jpg" />
     <meta property="og:type" content="website">
     <meta name="twitter:site" content="@tatianatmac">
@@ -19,6 +19,8 @@
     <link rel="preload" href="assets/fonts/calibre-web-regular-subset.woff2" as="font" type="font/woff2" crossorigin="crossorigin">
     <link rel="preload" href="assets/fonts/calibre-web-bold-subset.woff2" as="font" type="font/woff2" crossorigin="crossorigin">
 
+    
+      <link rel="canonical" href="https://www.tatianamac.com/posts/beginner-eleventy-tutorial-partii" />
     
 
     
@@ -106,8 +108,195 @@
 </header>
     </div>
     <main class="content  bg-white " id="content">
-        <p>The page is not found.</p>
+        
+<div class="wrapper container">
+    <article class="grid-whole@xxs grid-whole@xs grid-whole@s grid-twothirds@m grid-twothirds@l grid-twothirds@xl padding-thinn@xs padding-thinn@s">
+    <p class="t-serif details">In the second instalment of a four part guide on Eleventy, I show you how to install it, explaining each gruelling step.</p>
+    <h1 class="t-serifweight t-ultrachonk t-height-tight">Beginner&#39;s Guide to Eleventy [Part II]</h1>
 
+    <h2 id="welcome-to-part-ii">Welcome to Part II <a class="direct-link" href="#welcome-to-part-ii">📌</a></h2>
+<blockquote>
+<p>You are reading Part II of a IV part series.<br>
+<strong>Part I:</strong> <a href="https://www.tatianamac.com/posts/beginner-eleventy-tutorial-parti">What is a static site generator?</a> &gt; <strong>Part II: Installation</strong> 👈🏽 You are here<br>
+<strong>Part III:</strong> Structure/Basic Customisation (coming soon)<br>
+<strong>Part IV:</strong> Advanced Customisation (coming soon)<br>
+If you are confused or in need of context, please go <a href="https://www.tatianamac.com/posts/beginner-eleventy-tutorial-part">read Part I</a>—it is where I establish all the context of what static site generators are.</p>
+</blockquote>
+<p>As much as possible, I'm going to treat this part of the tutorial like a cookbook, except I won't make you read seven paragraphs about that one summer I spent in Emilia Romagna rolling the perfect tortellini as I had a torrid tryst with Paolo (sorry, reading too many romance novels).</p>
+<p>I will, however, tell you all of the &quot;ingredients&quot; you need, dirty my hands with the scary parts, take it step by step, and ensure that I provide ample resources to prevent you from hitting dead ends.</p>
+<p>Let's collectively admit something: We are not great at giving robust and clear installation instructions. More often than not, our package installation instructions look something like this:</p>
+<p><em>Installation:</em><br>
+<code>npm i luigis-castle</code><br>
+<em>You're set!</em></p>
+<p><em>I'm sorry, what? Where do I... put that? Then, what?</em> Even if I know where to put that, I now have this cyborg telling me that I'm missing <strong>several trillion dependencies</strong>? I'm sorry, are you telling me to go to therapy? I already do, and therapy is awesome, sucker.</p>
+<p>I want to prevent <em>that</em>.</p>
+<p>So, you might find that this guide is <code>--verbose</code>. It is intentionally so because most of the time we're overly concise and people give up at the very beginning. I've partitioned explanations into notes where I can, so you can choose to skip over them if you already know everything. Cool? Oh, you want a cookie. Here. 🍪</p>
+<p>Let's get started.</p>
+<h2 id="tools-required-for-eleventy">Tools Required for Eleventy <a class="direct-link" href="#tools-required-for-eleventy">📌</a></h2>
+<p>A developer's tools can be personal. To some degree, if you choose well <em>for you</em>, a tool can really help speed up rote tasks, give you fewer headaches (by providing more colour customisation and modes), and create a more pleasant developer experience (DX).</p>
+<p>Some developers have strange infatuations with tools and will insist some are better than others—10x developers might even make fun of you if you use the wrong tools. I think it's more personal than that. Picking out dev tools is like picking out a sports bra. Try out a bunch. See what sucks the least for you that you can get in and out of without breaking your arms. Learn how to customise them so you're less likely to have a uniboob. Abandon them in the back of a drawer if they don't work.</p>
+<h3 id="1a.-terminal-emulator">1a. <strong>Terminal Emulator</strong> <a class="direct-link" href="#1a.-terminal-emulator">📌</a></h3>
+<p>Terminal emulators (or Terminal or Term, if you're friends) are the bare bones text tools that make you look most like a hacker. If you've ever opened up Windows Terminal on Windows or Terminal.app on MacOS, you were in the terminal emulator. Terminal emulators are essentially stripped-down programs without much of a visual interface that can give you access to your own computer and connect you to other computers.</p>
+<p>Inside of the terminal emulator, you are using the <strong>Command Line Interface (CLI)</strong>. When people talk about running something in command line, this is what they’re usually referring to. By comparison, most programs that we use day to day, like Microsoft PowerPoint, Adobe Illustrator, Sketch, Microsoft Paint, are all considered <strong>Graphical User Interfaces (GUIs)</strong>. In GUIs, you can see a visualisation of what you're doing. When working in a CLI, you are using text commands and relying on text output, which can be harder for many to visualise. We’ll talk more about this later, but as with all things, your preference for CLI versus GUI (when both exist) is up to you.</p>
+<p>Terminal emulators can do a lot, but for the purposes of this tutorial, you'll mostly be using it to download and to run Eleventy, to manage your packages (heh), and to version control your code.</p>
+<p><strong>Examples:</strong> <a href="https://hyper.is/">Hyper</a>, <a href="https://iterm2.com/">iTerm2</a>, Terminal (default for MacOS and Windows).</p>
+<p><strong>Cues</strong>: Many tutorials are not always explicit about when you're using the Terminal. Usually if you're cued to <code>run</code>, <code>build</code>, <code>npm</code>, <code>npx</code>, <code>homebrew</code>, <code>yarn</code> etc, and you see a short block of text like this, often preceded by a <code>$</code> (which you should not copy):</p>
+<p><code>$ npm i make-me-a-sandwich-mario</code></p>
+<p>You're going to paste that in your Terminal and hit return/enter to <em>run</em> it.</p>
+<h3 id="1b.-shell-language">1b. <strong>Shell Language</strong> <a class="direct-link" href="#1b.-shell-language">📌</a></h3>
+<p>When you run scripts and commands in your terminal emulator, you do in a shell or command language. The default language for Linux and older MacOS (pre-Mojave) is Bash and newer MacOS is zsh. The differences in the language usually result in the commands differing slightly.</p>
+<p>I mention this here because this is a future potential &quot;gotcha&quot; where you can get slipped up because an installation guide for a package manager can presume you are using one or the other. While they are very similar, there are slight differences that can cause headaches. It's important to know which you're using and <a href="https://linuxhint.com/differences_between_bash_zsh/">general differences</a>.</p>
+<p>If you have never interacted with your terminal's shell language, I recommend figuring out which is your default. To do so, open your terminal emulator, and <em>run</em> (paste in this code and hit enter/return) this command:<br>
+<code>ps -p $$</code>.</p>
+<p>It should <em>return</em> (send you back) something like this below:</p>
+<p><img src="../../assets/img/eleventy-ii-shell.png" alt="Terminal window that reads ps -p $$ Then, returns PID of 10934 TTY of 0:00.10, TIME of 10934, and CMD of /usr/local/bin/zsh --login&quot;."></p>
+<p>The command <code>ps</code> is telling the command line to show all the processes that are running. The <code>-p</code> flag tells it inform more about the process, and the <code>$$</code> tells it to narrow this down to the current process.</p>
+<p>If you see <code>zsh</code>, <code>bash</code>, <code>tcsh</code>, <code>ksh</code> (anything ending in sh), that's your shell language. (If that didn't work for you, <a href="https://linuxhandbook.com/shell-using/">try some of the other commands</a>.)</p>
+<h3 id="1c.-installing-node.js-and-npm">1c. <strong>Installing Node.js and npm</strong> <a class="direct-link" href="#1c.-installing-node.js-and-npm">📌</a></h3>
+<p>Node is a <strong>environment</strong> you need to install onto your computer in order to run Node Package Manager (npm). (You need npm to install Eleventy—the whole point of this post. Did you forget? I sorta did!).</p>
+<p>To check if you already have node on your machine, run the following command in your terminal emulator:<br>
+<code>node -v</code> or <code>node --version</code>. (If one doesn't work, try the other).</p>
+<blockquote>
+<p>You may have noticed that sometimes flags have one hyphen and other times they have two. One hyphen flags (<code>-v</code>) are the short-name version of the command, and two-hyphen flags (<code>--version</code>) are the long-name version of the command. I find that when I'm starting out, I like to write out the long-name/two-hyphen version so I can talk myself through what I'm doing.</p>
+</blockquote>
+<p>If it returns <code>v</code> followed by numbers, something like <code>v12.13.1</code>, that means you have Node installed. Eleventy requires any version of Node newer than 10 (at time of writing, please check <a href="https://www.11ty.dev/docs/getting-started/">Eleventy Docs</a> to confirm), so if you've got that, you're set! Woohoo!</p>
+<p>If you get anything other than that, that means that you either don't have it on your computer and will need to install it or need to update it.</p>
+<p>Follow the instructions below for your operating system, and come back here once you do.</p>
+<p>For <a href="https://nodesource.com/blog/installing-nodejs-tutorial-mac-os-x/">MacOS</a>.<br>
+For <a href="https://nodesource.com/blog/installing-nodejs-tutorial-windows/">Windows</a>.</p>
+<p>Once you have Node.js installed, you can now install npm.</p>
+<h3 id="1d.-installing-npm">1d. <strong>Installing npm</strong> <a class="direct-link" href="#1d.-installing-npm">📌</a></h3>
+<p>npm is the main package manager for Node.js; they have a registry of all the packages and modules which is accessed by a command line interface. Think of it as the central library of code snippets that everyone can &quot;borrow&quot; at once. npm makes it so that you can search for specific features you need to add, like a React image carousel or a static site generator, like Eleventy!</p>
+<blockquote>
+<p>Packages can rely on other packages, which is called a dependency. You will come across that word <em>a lot</em>. A dependency means that a package (let's call it House Package) uses another package (let's call it Room Package). Sometimes, when Room Package makes an update, it can break House Package. Sometimes the maker of Room Package decides to remove it from the registry or make a change that isn't compatible with House Package. That means House Package can break. Now imagine this incepted from House, into Street, Neighbourhood, into City, into State, into Country, into Continent! One small change can impact many pieces of software, and frankly, take an entire sector of software down. So, it's important to be mindful when you're engineering of all the dependencies you invite in, and to monitor them.</p>
+</blockquote>
+<p>If you installed Node.js, then you should have npm installed. To check which version, in your terminal emulator, run:<br>
+<code>npm -v</code> or <code>npm --version</code>. (If one doesn't work, try the other).</p>
+<blockquote>
+<p>At time of writing, the current version of npm was 6.14.5. If you have something older, update your npm by running the following command:<br>
+<code>npm install npm@latest -g</code></p>
+</blockquote>
+<h3 id="2.-source-code-editor">2. <strong>Source-Code Editor</strong> <a class="direct-link" href="#2.-source-code-editor">📌</a></h3>
+<p>A source-code editor (or just code editor if you're friends) is where you edit code or <em>make the magic happen</em> as I like to say. The code editor is also where you can look like a hacker.</p>
+<p>Choosing a code editor can be really daunting, as everyone who has a four-letter name has a strong opinion about which is the best and is willing to go to great lengths to convince you.</p>
+<p>If you're starting out with code, my recommendation would be to pick the one that stresses you out the least. Look at the screenshots and read reviews. Consider what customisations are for your needs, say, like if <a href="https://www.reddit.com/r/Blind/comments/fjn9d9/code_editor/">you rely on a screen reader</a>. See what seems appealing to spend hours crying in front of. For many years, I wrote in Coda (RIP), Sublime Text, Atom, then now I'm in Microsoft Visual Studio Code (VSCode). However, I think if I started in VSCode, I would have been overwhelmed with all the bells and whistles.</p>
+<p><strong>Examples</strong>: GitHub's <a href="https://www.sublimetext.com/">Atom</a>, Adobe's <a href="http://brackets.io/">Brackets</a>, <a href="https://notepad-plus-plus.org/">Notepad++</a>, <a href="https://www.sublimetext.com/">Sublime</a>, <a href="https://vim.org/">Vim</a> if you hate yourself and wear purist badges proud (jk! No tool shaming), Microsoft's <a href="https://code.visualstudio.com/">Visual Studio Code (VSCode)</a></p>
+<p><strong>Cues</strong>: If you see longer blocks of code, you're going to likely edit that in your code editor.</p>
+<blockquote>
+<p>You might hear someone refer to their <strong>Integrated Development Environment (IDE)</strong>. People sometimes use IDE interchangeably with code editor, when they are not, in fact, interchangeable. By definition, IDEs comprise a code editor, build automation tool, and debugger. Sometimes they have GUIs integrated into them as well.<br>
+Most tools you hear about are code editors, including Microsoft's Visual Studio Code (VSCode or just Code if you're good friends), which, while robust and very full-featured with the help of extensions, is not an IDE. Microsoft's Visual Studio is their IDE, as it is a fully-integrated environment. Naming, am I right?<br>
+Also, because people tend to get their panties wound up in sailors' knots about this, you're not any &quot;less&quot; of a developer for using either a code editor or an IDE—use what you like and change it up if you change your mind. Neither is intrinsically better than the other; they're both valid for different developers in different contexts. Some IDEs and code editors have better support for certain languages, for instance. That's the sort of thing you should note for how you decide, not what some Chadwick tells you to decide. I've articulated the difference here for the pure purpose of education. And, as someone who writes and runs a dictionary, I think nuance is important. 🙂</p>
+</blockquote>
+<p>For the purposes of what we're doing, I'd recommend that you get a <strong>code editor</strong> as it will suffice for this project.</p>
+<h3 id="3.-browser">3. <strong>Browser</strong> <a class="direct-link" href="#3.-browser">📌</a></h3>
+<p>You probably already use a browser regularly. In fact, I would be willing to bet you're accessing this post from a browser. However, the browser that you use day to day to surf might be different than the one you choose to use when developing.</p>
+<p>While we should all test our sites across multiple browsers, I think most of us will conduct the majority of our build within the browser we feel most comfortable with initially. To me, the choice of what main browser to use to do the majority of my development comes down to what the audience is most likely to use (this is one of many areas where user research is critical!). If no compelling user-driven decision exists here, like if it's for my personal site, where I don't collect user data, it typically comes down to the Developer Tools and Extensions I care most about.</p>
+<p>Personally, I use Firefox equipped with DuckDuckGo as my search engine for most of my browsing (because security and privacy are very important to me for personal browsing), but I recognise that's a small user share. I sometimes use Firefox Nightly so I can take advantage of cutting-edge features. (Firefox Nightly is not stable, though, so it's only used for this purpose). I develop primarily in Firefox and Chrome. (I prefer Firefox's DevTools and Chrome performance tooling [Lighthouse]). Play around with the Developer Tools of multiple browsers. See which one's interface makes the most sense to you.</p>
+<p><strong>Examples</strong>: <strong>Desktop</strong>: Brave, Google Chrome, Microsoft Edge, Mozilla Firefox, Apple Safari, UCBrowser, etc. <strong>Mobile</strong> Google Chrome, Opera, Opera Mini, Apple Safari, Samsung Internet.</p>
+<h3 id="4.-git">4. <strong>Git</strong> <a class="direct-link" href="#4.-git">📌</a></h3>
+<p>Git is an open-source, free distributed version control system. Git enables you to take snapshots of your code, so that if you break it, you can revert to when your code was functioning. It's like the Delorean for code. It also allows you to share your code for collaboration, for multiple people to work on the same code without saving over each other’s work. It also allows for you to share your work, for someone else to download a copy, and to play around with it.</p>
+<p>When you think of Git, you might think of BitBucket, GitHub, or GitLab. Technically, all those products offer <strong>Git hosting as a service;</strong> providing storage to the code somewhere where many people can access—this is the underpinnings of what it means for the version controlling to be distributed. Git hosts also often provide a whole <em>slew</em> of other benefits, like helper tools (a desktop GUI or web interface that visualises what’s happening in the command line, for instance), allow you to create profiles, and find new projects and collaborators.</p>
+<p>Git can be accessed from an emulator, a desktop GUI, a web app, and is integrated into some code editors/IDEs (and a combination of all four). Most developers primarily rely on accessing it through their terminal emulator, as GUIs can be limiting (and not all Git hosts offer them), but I highly recommend you try them all and see what works best for you.</p>
+<p>Git is without a doubt one of the most intimidating parts of being a developer. For visual folks, it can be hard to understand what is going on under the hood. Git commands are sometimes obtuse. Working on massive code bases with large teams can exacerbate these fears.</p>
+<p>Git is something that generally becomes more intuitive as you practice. Practice, practice, practice. I recommend using it on your own small projects. Allow yourself to make mistakes and learn how to get yourself out of them. <a href="https://www.ohshitgit.com">OhShitGit</a> is one of my favourite resources for when I get stuck and feel that git-sweat come on.</p>
+<p>And, though practice helps, know that even the most seasoned developers <em>royally fork</em> (SORRY) up their repos sometimes. It's okay. It's this weird thing we all do so we can commiserate over it, like burpees or taking out the trash. Most things you do are reversible. If you're worried at first, there is no shame in copying your entire folder somewhere else <em>just in case.</em> There's a saying about something not being backed up unless it's backed up thrice anyway.</p>
+<p>For the purposes of this project, you need to have git installed onto your machine and an account with a git host.</p>
+<blockquote>
+<p>Installing git can become complicated and frustrating very quickly. If you encounter roadblocks, know that you're not alone. While I'd love to explain exactly how to install git, several key factors will change the exact instructions, including the operating system you use (MacOS, Windows, Ubuntu, etc), what command line interface you use, etc. <a href="https://www.atlassian.com/git/tutorials/install-git">Atlassian’s guide is a good place to start</a>.</p>
+</blockquote>
+<p><strong>Examples of Git Hosts</strong>: <a href="https://www.atlassian.com/git">Atlassian BitBucket</a>, <a href="https://github.com/">GitHub</a>, <a href="https://about.gitlab.com/">GitLab</a>, <a href="https://sourceforge.net/">SourceForge</a>.</p>
+<p>Note that for most personal purposes, these services offer free accounts. Be mindful of what constitutes as a paid account and for what needs.</p>
+<h2 id="installing-the-things">Installing The Things <a class="direct-link" href="#installing-the-things">📌</a></h2>
+<p>Once you have your terminal emulator, code editor, git installed, and an account with a git host, you're ready to install Eleventy! You've made it past a huge hurdle! Seriously, not being sarcastic. Environment set-up is one of the biggest hurdles, and you just did most of it!</p>
+<p>The last step is installing Eleventy.</p>
+<ol>
+<li>In your terminal emulator, run <code>pwd</code> (present working directory) (if that doesn’t work for you, try <code>cd</code>) to figure out where you are. Once you are where you think you need to be, run <code>ls</code> (shortened form of “list”) to <em>list</em> out all the items in the folder you are in (or <code>dir</code> for Windows).</li>
+<li>Navigate to the folder you want (use <code>cd</code> to go into a folder; use <code>cd ..</code> to back out of a folder). (Note that depending on your operating system, the back slashes (\) could be forward slashes instead (/).</li>
+<li>Once you are in the folder you want to house your project, run <code>mkdir eleventy-project-name</code>. (You can call your <code>eleventy-project-name</code> whatever you want. It’s not permanent, and we can change it later.) <code>mkdir</code> creates a new directory with that name.</li>
+<li>Navigate into that folder using <code>cd eleventy-project-name</code></li>
+<li>Run <code>npm init -y</code>. This command creates what's called a <code>package.json</code> file; they are like a recipe of all the ingredients (or packages) used from npm. <code>package.json</code> files can also keep track of other on-going tasks that your project needs. When someone clones your project, the <code>package.json</code> file tells npm all of the packages that are necessary to make that project run. The <code>init</code> initialises npm. The <code>-y</code> here is saying &quot;yes&quot; to all the questions that <code>npm</code> asks, and sets them to defaults.</li>
+</ol>
+<p>The command line should return a confirmation that starts with &quot;Wrote to [directory]/package.json: ...more code&quot;.</p>
+<ol>
+<li>Run <code>npm install --save-dev @11ty/eleventy</code>.</li>
+</ol>
+<p><code>install</code> goes to the npm registry and asks it to look for <code>@11ty/eleventy</code>. <code>--save-dev</code> tells <code>npm</code> to save this package (<code>@11ty/eleventy</code>) into what's called your <code>devDependencies</code>. All of this is happening locally, which means that this Eleventy install will only work for things inside of this directory.</p>
+<p>Unpacking that further:<br>
+<code>devDependencies</code> are what are required to <em>develop</em> your package and are installed automatically when someone downloads your package. <code>Dependencies</code> are what is required to <em>run</em> the project, so for example, a user of a package needs its <code>dependencies</code>, but not necessarily its <code>devDependencies</code>. Your <code>package.json</code> is what keeps track of all these packages you use.</p>
+<p>The <code>--save-dev</code> command is what tells the command line to store this into your devDependencies in your package.json file. The two dashes that precede the words <code>save-dev</code> make the command a flag. So, when someone says “add a <code>save-dev</code> flag,” this is likely what they mean. Flags are essentially arguments that add extra conditions to the initial command.</p>
+<p>While you read all that, you may notice that npm is still running. You should see a sort of progress bar to let you know how much more it has to go. You may see a series of warnings about things that have been deprecated. For now, you can ignore all that. (Most developers continue to ignore all that.)</p>
+<blockquote>
+<p>Whenever you see a <code>-g</code> flag appended to an npm command, that means that it’s going to be installed globally. The upside is you’re only going to install it once, but you might run into issues down the line. Most folks work locally, as it prevents what are called “interoperability” issues. For example, you might encounter a project that is running on an older version of Eleventy than the global one you have installed, which will cause infuriating errors. Therefore, it’s best to treat each project independently. You might notice that most devs prefer to install things locally for this reason.</p>
+</blockquote>
+<ol start="2">
+<li>To check that Eleventy installed properly, run <code>npx @11ty/eleventy</code>.</li>
+</ol>
+<p><code>npx</code> is a helper tool for <code>npm</code>. If you were to run <code>npm @11ty/eleventy</code>, it would not work. The reason for this is a bit complex (Kat Marchán, who authored <code>npx</code>, <a href="https://medium.com/@maybekatz/introducing-npx-an-npm-package-runner-55f7d4bd282b">explains npx in this Medium article</a>.), The general reason is that <code>npx</code> will check your global folder to see if the package you want to install already exists. If it doesn’t, it will go ahead and download that package locally and run it for you, which saves a few steps and prevents you from future headaches. (Read more about why local installations are preferred above.)</p>
+<p>The command line should confirm that Eleventy is installed by returning something like:</p>
+<p>Wrote <code>0 files in 0.03 seconds (v.0.11.0)</code>.</p>
+<p>Because you haven’t written any files yet, it makes sense that there are 0 files to write. The <code>v…</code> indicates what version of Eleventy you are running. At time of writing, it is <code>v.0.11.0</code></p>
+<ol start="3">
+<li>Now, we are going to create an index.html page so you can see Eleventy in action</li>
+</ol>
+<p>Run <code>echo 'You are officially a developer!' &gt; index.html</code></p>
+<p>Breaking this command down, <code>echo</code> says to the command line “read me back all this stuff.” Everything within the single quotes (‘) is what you’re asking the command line to read back.</p>
+<p>The second part of the initial command, <code>&gt; index.html</code>, includes what is called an append symbol (&gt;). While you might know this as the greater than symbol, in this context, it tells the command line to instead place the stuff inside the single quotes into a file called <code>index.html</code>, instead of returning it (with <code>echo</code>), like the statement it did above.</p>
+<p>The command line won’t confirm that it successfully created the file. It will just start a new line and await the next command.</p>
+<ol>
+<li>
+<p>To view your work, you will now run Eleventy again by typing <code>npx @11ty/eleventy</code>. OR, you can push the up arrow on your keyboard until you see that line again and hit enter.</p>
+</li>
+<li>
+<p>Now we want Eleventy to show us the work we did in the browser by running <code>npx @11ty/eleventy --serve</code>. You’ll see it run a few commands and end with “Access URLs.” Copy and paste the <a href="http://localhost:8080">http://localhost:8080</a> into your browser. You should see your site that says “You are officially a developer!” because you are!</p>
+</li>
+</ol>
+<p>The <code>--serve</code> flag takes your files and opens them in your browser.</p>
+<p>As we learned about in the last post, this step is where Eleventy takes all of the static files in all their different languages, and <em>generates</em> the site into languages that the browser can render. We'll talk more in the next instalment of the structure of Eleventy and how this all comes together. For now, know that this is the part where the Generator part of Static Site Generator comes from.</p>
+<p>Feel boss! You have gotten your environment up, and have a fresh new website to play with! You are totally a developer who served up your first static site (Or maybe 30th! It’s still exciting!).</p>
+<h2 id="thank-you">Thank You <a class="direct-link" href="#thank-you">📌</a></h2>
+<p>Thank you to <a href="https://twitter.com/dia_trahman">Dia Trahman</a>, <a href="https://www.twitter.com/eddiepearson">Eddie Pearson</a>, <a href="https://www.twitter.com/sigje">Jennifer Davis</a>, <a href="https://www.twitter.com/meowwwls">Melissa Em</a>, <a href="https://www.twitter.com/threepointone">Sunil Pai</a> for their attention to detail, in particular, for the beginner readers who bravely went through my imperfect instructions!</p>
+<h2 id="references">References <a class="direct-link" href="#references">📌</a></h2>
+<p><a href="https://en.wikipedia.org/wiki/Usage_share_of_web_browsers">Wikipedia: Usage share of web browsers</a></p>
+<h2 id="questions-and-corrections">Questions and Corrections <a class="direct-link" href="#questions-and-corrections">📌</a></h2>
+<p>For questions, please <a href="https://www.twitter.com/TatianaTMac">reach out on Twitter</a>! I can't promise to answer all your questions, but I'll try my best!</p>
+<p>For corrections (typos, factual inaccuracies), please file a <a href="https://github.com/tatianamac/tm11ty/issues">GitHub issue</a>.</p>
+
+    </article>
+
+    <section class="grid-whole@xxs grid-whole@xs grid-whole@s grid-third@m grid-third@l grid-third@xl">
+    <div class="post-blob">
+        <p class="t-serifweight t-thinnfont">In the second instalment of a four part guide, I show you how to install Eleventy—except I walk through each gruelling step.</p>
+        <p class="t-eyebrow t-typeweight">Tue May 19 2020 15:49:13 GMT+0300 (Eastern European Summer Time)</p>
+        
+        
+            
+      
+            
+        
+      
+        <a class="t-tag tag" href="/tags/tutorials/">tutorials</a>
+      
+        
+      
+            
+        
+      
+        <a class="t-tag tag" href="/tags/Eleventy/">Eleventy</a>
+      
+        
+      
+            
+      
+            
+        
+      
+        <a class="t-tag tag" href="/tags/engineering/">engineering</a>
+      
+        
+      
+    </div>
+    </section>
+</div>
      </main>
 
     
@@ -174,6 +363,6 @@
     document.getElementById("year").innerHTML = new Date().getFullYear();
 </script>
 
-    <!-- Current page: /404.html -->
+    <!-- Current page: /posts/beginner-eleventy-tutorial-partii/ -->
   </body>
 </html>

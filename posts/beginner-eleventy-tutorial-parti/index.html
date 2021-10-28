@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beginner&#39;s Guide to Eleventy [Part I] » Tatiana Mac</title>
+    <meta name="description" content="Part I: What is a static site generator?">
+    <meta property="og:title" content="Beginner&#39;s Guide to Eleventy [Part I]"/>
+    <meta property="og:url" content="https://www.tatianamac.com/posts/beginner-eleventy-tutorial-parti" />
+    <meta property="og:description" content="Part I: What is a static site generator?" />
+    <meta property="og:image" content="https://www.tatianamac.com/assets/img/social-card.jpg" />
+    <meta property="og:type" content="website">
+    <meta name="twitter:site" content="@tatianatmac">
+    <meta property="og:site_name" content="Tatiana Mac">
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="robots" content="index, follow, max-image-preview:large"/>
+    <link rel="preload" href="assets/fonts/domaine-text-web-light-subset.woff2" as="font" type="font/woff2" crossorigin="crossorigin">
+    <link rel="preload" href="assets/fonts/calibre-web-regular-subset.woff2" as="font" type="font/woff2" crossorigin="crossorigin">
+    <link rel="preload" href="assets/fonts/calibre-web-bold-subset.woff2" as="font" type="font/woff2" crossorigin="crossorigin">
+
+    
+      <link rel="canonical" href="https://www.tatianamac.com/posts/beginner-eleventy-tutorial-parti" />
+    
+
+    
+    <style type="text/css">
+    :root{font-size:calc(20px + .05vw)}/*! normalize.css v5.0.0 | MIT License | github.com/necolas/normalize.css */html{font-family:sans-serif;line-height:1.15;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0;padding:0}article,aside,footer,header,nav,section{display:block}h1{font-size:2em;margin:.67em 0}figcaption,figure,main{display:block}figure{margin:1em 40px}hr{box-sizing:content-box;height:0;overflow:visible}pre{font-family:monospace,monospace;font-size:1em}a{background-color:transparent;-webkit-text-decoration-skip:objects}a:active,a:hover{outline-width:0}abbr[title]{border-bottom:none;text-decoration:underline}b,strong{font-weight:inherit}b,strong{font-weight:bolder}code,kbd,samp{font-family:monospace,monospace;font-size:1em}dfn{font-style:italic}mark{background-color:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}audio,video{display:inline-block}audio:not([controls]){display:none;height:0}img{border-style:none}svg:not(:root){overflow:hidden}button,input,optgroup,select,textarea{font-family:sans-serif;font-size:100%;line-height:1.15;margin:0}button,input{overflow:visible}button,select{text-transform:none}[type=reset],[type=submit],button,html [type=button]{-webkit-appearance:button}[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner,button::-moz-focus-inner{border-style:none;padding:0}[type=button]:-moz-focusring,[type=reset]:-moz-focusring,[type=submit]:-moz-focusring,button:-moz-focusring{outline:1px dotted ButtonText}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{box-sizing:border-box;color:inherit;display:table;max-width:100%;padding:0;white-space:normal}progress{display:inline-block;vertical-align:baseline}textarea{overflow:auto}[type=checkbox],[type=radio]{box-sizing:border-box;padding:0}[type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}[type=search]::-webkit-search-cancel-button,[type=search]::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}details,menu{display:block}summary{display:list-item}canvas{display:inline-block}template{display:none}[hidden]{display:none}html{box-sizing:border-box}*,::after,::before{box-sizing:inherit}img{width:100%}@media screen and (min-width:200px) and (max-width:599px){.grid-quarter\@xs{grid-column:span 3}}@media screen and (min-width:600px) and (max-width:1023px){.grid-quarter\@s{grid-column:span 3}}@media screen and (min-width:1024px) and (max-width:1439px){.grid-quarter\@m{grid-column:span 3}}@media screen and (min-width:1440px) and (max-width:3000px){.grid-quarter\@l{grid-column:span 3}}@media screen and (min-width:1920px){.grid-quarter\@xl{grid-column:span 3}}@media screen and (min-width:200px) and (max-width:599px){.grid-third\@xs{grid-column:span 4}}@media screen and (min-width:600px) and (max-width:1023px){.grid-third\@s{grid-column:span 4}}@media screen and (min-width:1024px) and (max-width:1439px){.grid-third\@m{grid-column:span 4}}@media screen and (min-width:1440px) and (max-width:3000px){.grid-third\@l{grid-column:span 4}}@media screen and (min-width:1920px){.grid-third\@xl{grid-column:span 4}}@media screen and (min-width:200px) and (max-width:599px){.grid-half\@xs{grid-column:span 6}}@media screen and (min-width:600px) and (max-width:1023px){.grid-half\@s{grid-column:span 6}}@media screen and (min-width:1024px) and (max-width:1439px){.grid-half\@m{grid-column:span 6}}@media screen and (min-width:1440px) and (max-width:3000px){.grid-half\@l{grid-column:span 6}}@media screen and (min-width:1920px){.grid-half\@xl{grid-column:span 6}}@media screen and (min-width:200px) and (max-width:599px){.grid-twothirds\@xs{grid-column:span 8}}@media screen and (min-width:600px) and (max-width:1023px){.grid-twothirds\@s{grid-column:span 8}}@media screen and (min-width:1024px) and (max-width:1439px){.grid-twothirds\@m{grid-column:span 8}}@media screen and (min-width:1440px) and (max-width:3000px){.grid-twothirds\@l{grid-column:span 8}}@media screen and (min-width:1920px){.grid-twothirds\@xl{grid-column:span 8}}@media screen and (min-width:200px) and (max-width:599px){.grid-whole\@xs{grid-column:span 12}}@media screen and (min-width:600px) and (max-width:1023px){.grid-whole\@s{grid-column:span 12}}@media screen and (min-width:1024px) and (max-width:1439px){.grid-whole\@m{grid-column:span 12}}@media screen and (min-width:1440px) and (max-width:3000px){.grid-whole\@l{grid-column:span 12}}@media screen and (min-width:1920px){.grid-whole\@xl{grid-column:span 12}}.grid-quarter-in-third-r-r{grid-column:8/span 4}.align-self-r{justify-self:end}.padding-thinn{padding:1em}.padding-normie{padding:1.5em}.padding-thicc{padding:2.25em}.padding-btm-none{padding-bottom:0}.bg-primary{background:#0e4bff}.bg-black{background:#222}.bg-teal-green{background:#037a5c}.bg-yellow{background:#ffd926}.bg-blush-pink{background:#fff3f3}.bg-baby-blue{background:#dae3ff}.bg-emerald-green{background:#004328}.bg-light-grey{background:#eee}.bg-dusty-rose{background:#cbab99}.bg-pale-peach{background:#ffe0d1}.bg-neon-yellow{background:#f3f315}.bg-ochre{background:#ece2ce}@font-face{font-family:domaine-text-web-light;src:local("domaine-text-web-light"),url(../../assets/fonts/domaine-text-web-light-subset.woff2) format("woff"),url(../../assets/fonts/calibre-web-regular-subset.woff) format("woff");font-display:swap}@font-face{font-family:calibre-web-regular;font-weight:400;src:local("calibre-web-regular"),url(../../assets/fonts/calibre-web-regular-subset.woff2) format("woff2"),url(../../assets/fonts/calibre-web-regular-subset.woff) format("woff");font-display:swap}@font-face{font-family:calibre-web-bold;font-weight:700;src:local("calibre-web-bold"),url(../../assets/fonts/calibre-web-bold-subset.woff2) format("woff2"),url(../../assets/fonts/calibre-web-bold-subset.woff) format("woff");font-display:swap}.clearfix::after{clear:both;content:"";display:table}img{display:block}h1{margin:.25em 0;line-height:1.25em}.container{max-width:3000px;margin:0 auto}@media screen and (min-width:200px) and (max-width:599px){.container{padding:1em}}@media screen and (min-width:600px) and (max-width:1023px){.container{padding:1.5em}}@media screen and (min-width:1024px) and (max-width:1439px){.container{padding:2.25em}}@media screen and (min-width:1440px) and (max-width:3000px){.container{padding:2.25em}}@media screen and (min-width:1920px){.container{padding:2.25em}}.t-space-strip{padding:0;margin:0}.center-objects{vertical-align:middle}.align-self-center{align-self:center}.height-full{height:100%}.padding-btm-none{padding-bottom:0}.clearspace{margin:0;padding:0}.display-flex{display:flex;flex-direction:column;align-content:space-around}.overflow-hidden{overflow-y:hidden}.hide-text{overflow:hidden;padding:0;text-indent:101%;white-space:nowrap}.visually-hidden{border:0;clip:rect(0 0 0 0);height:1px;margin:-1px;overflow:hidden;padding:0;position:absolute;width:1px}.uppercase{text-transform:uppercase}.bold{font-weight:700}b,strong{font-weight:700;font-family:calibre-web-bold,"Arial Black",sans-serif}.t-tag{border:1px solid #000;border-radius:2em;color:#000;font-size:.75em;padding:.5em 1em;text-decoration:none;transition:all .4s ease-in-out}.t-tag:hover{background:#000;color:#fff}.t-tag:focus{background:#000;color:#fff;outline:0 solid transparent;box-shadow:0 0 0 .25em #0531b2,0 0 0 .5em #2159fe}.t-tag-white{border:1px solid #fff;border-radius:2em;color:#fff;font-size:.75em;padding:.5em 1em;text-decoration:none;transition:all .4s ease-in-out}.t-tag-white:focus,.t-tag-white:hover{background:#fff;color:#000}.t-mini{font-size:.75em}.t-jumbo{font-size:5em}.t-extrajumbo{font-size:10em;padding:0}.t-center{text-align:center}.t-serifweight{font-family:domaine-text-web-light,Georgia,"Times New Roman",serif;font-weight:300}.t-typeweight{font-family:Courier,monospace}.t-height-none{line-height:0}.t-height-dense{line-height:.9}.t-height-tight{line-height:1.1}.t-height-cozy{line-height:1.25}.t-height-loose{line-height:2}@media screen and (min-width:200px) and (max-width:599px){.t-ultrachonkfont\@xs{font-size:5em}}@media screen and (min-width:600px) and (max-width:1023px){.t-ultrachonkfont\@s{font-size:5em}}@media screen and (min-width:1024px) and (max-width:1439px){.t-ultrachonkfont\@m{font-size:5em}}@media screen and (min-width:1440px) and (max-width:3000px){.t-ultrachonkfont\@l{font-size:5em}}@media screen and (min-width:1440px) and (max-width:3000px){.t-ultrachonkfont\@xl{font-size:5em}}@media screen and (min-width:200px) and (max-width:599px){.t-chonkfont\@xs{font-size:3em}}@media screen and (min-width:600px) and (max-width:1023px){.t-chonkfont\@s{font-size:3em}}@media screen and (min-width:1024px) and (max-width:1439px){.t-chonkfont\@m{font-size:3em}}@media screen and (min-width:1440px) and (max-width:3000px){.t-chonkfont\@l{font-size:3em}}@media screen and (min-width:1440px) and (max-width:3000px){.t-chonkfont\@xl{font-size:3em}}@media screen and (min-width:200px) and (max-width:599px){.t-thiccfont\@xs{font-size:2.25em}}@media screen and (min-width:600px) and (max-width:1023px){.t-thiccfont\@s{font-size:2.25em}}@media screen and (min-width:1024px) and (max-width:1439px){.t-thiccfont\@m{font-size:2.25em}}@media screen and (min-width:1440px) and (max-width:3000px){.t-thiccfont\@l{font-size:2.25em}}@media screen and (min-width:1440px) and (max-width:3000px){.t-thiccfont\@xl{font-size:2.25em}}@media screen and (min-width:200px) and (max-width:599px){.t-fullfont\@xs{font-size:2em}}@media screen and (min-width:600px) and (max-width:1023px){.t-fullfont\@s{font-size:2em}}@media screen and (min-width:1024px) and (max-width:1439px){.t-fullfont\@m{font-size:2em}}@media screen and (min-width:1440px) and (max-width:3000px){.t-fullfont\@l{font-size:2em}}@media screen and (min-width:1440px) and (max-width:3000px){.t-fullfont\@xl{font-size:2em}}@media screen and (min-width:200px) and (max-width:599px){.t-normiefont\@xs{font-size:1.5em}}@media screen and (min-width:600px) and (max-width:1023px){.t-normiefont\@s{font-size:1.5em}}@media screen and (min-width:1024px) and (max-width:1439px){.t-normiefont\@m{font-size:1.5em}}@media screen and (min-width:1440px) and (max-width:3000px){.t-normiefont\@l{font-size:1.5em}}@media screen and (min-width:1920px){.t-normiefont\@xl{font-size:1.5em}}@media screen and (min-width:200px) and (max-width:599px){.t-slimmfont\@xs{font-size:1.25em}}@media screen and (min-width:600px) and (max-width:1023px){.t-slimmfont\@s{font-size:1.25em}}@media screen and (min-width:1024px) and (max-width:1439px){.t-slimmfont\@m{font-size:1.25em}}@media screen and (min-width:1440px) and (max-width:3000px){.t-slimmfont\@l{font-size:1.25em}}@media screen and (min-width:1920px){.t-slimmfont\@xl{font-size:1.25em}}@media screen and (min-width:200px) and (max-width:599px){.t-thinnfont\@xs{font-size:1em}}@media screen and (min-width:600px) and (max-width:1023px){.t-thinnfont\@s{font-size:1em}}@media screen and (min-width:1024px) and (max-width:1439px){.t-thinnfont\@m{font-size:1em}}@media screen and (min-width:1440px) and (max-width:3000px){.t-thinnfont\@l{font-size:1em}}@media screen and (min-width:1920px){.t-thinnfont\@xl{font-size:1em}}@media screen and (min-width:200px) and (max-width:599px){.t-giganticfont\@xs{font-size:10em}}@media screen and (min-width:600px) and (max-width:1023px){.t-giganticfont\@s{font-size:10em}}@media screen and (min-width:1024px) and (max-width:1439px){.t-giganticfont\@m{font-size:10em}}@media screen and (min-width:1440px) and (max-width:3000px){.t-giganticfont\@l{font-size:10em}}@media screen and (min-width:1920px){.t-giganticfont\@xl{font-size:10em}}.t-babyfont{font-size:.8em}body{font-family:calibre-web-regular,Helvetica,sans-serif;line-height:1.75}article h2,h3,h4{font-family:domaine-text-web-light,Georgia,"Times New Roman",serif;font-weight:300;line-height:1.25}article blockquote{background:#eee;margin:0;border-left:10px solid #ff0dd1;padding:1em}article blockquote p:first-of-type:before{content:"Note";color:#b2098b;display:block;font-family:calibre-web-bold,Impact,sans-serif;font-size:1em;letter-spacing:.2em;margin:0;padding:0;text-transform:uppercase}article a:focus{outline:.25em ridge #ff0dd1}article a:hover{border-bottom:1px solid #ff0dd1}article li a,article p a{border-bottom:1px solid #222;color:#0e4bff;text-decoration:none;transition:.2s border-bottom ease-in-out}article li a:hover,article p a:hover{border-bottom:1px solid #ff0dd1}article ul{list-style-type:square;margin:0 0 0 1.5em}h5{font-family:domaine-text-web-light,Georgia,"Times New Roman",serif;font-weight:400;font-size:1.25em}p{color:#222}p.comingsoon{color:#767676;text-transform:uppercase;font-size:.8em;letter-spacing:.05em;text-decoration:none;padding:10px 0;margin-right:2em;transition:all .2s ease-in}.details{text-transform:uppercase;font-size:.75em;color:#222;letter-spacing:.025em;padding-top:.5em;min-width:100px}.wip{font-style:italic;color:#767676}.t-white{color:#fff}.t-red{color:#e60073}.t-dark-grey{color:#4f4f4f}.t-cobalt{color:#0e4bff}.t-black{color:#222}.t-light-grey{color:#eee}.t-light-green{color:#bdf5bd}.t-blush-pink{color:#fff3f3}.t-link-accent-white{border-bottom:1px solid #fff;text-decoration:none;padding:10px 0}.t-link-accent-white:hover{border-bottom:1px solid #ff0dd1;transition:border .2s ease-in}.t-link-accent-white:focus{outline:.25em ridge #42ff0d}.t-link-accent-white--block{display:inline-block}.t-link-accent-black{border-bottom:1px solid #222;transition:border .2s ease-in;padding:2px 0;text-decoration:none}.t-link-accent-black:hover{border-bottom:1px solid #ff0dd1;transition:border .2s ease-in}.t-link-accent-black:focus{outline:.25em ridge #42ff0d}.t-link-accent-green{border-bottom:1px solid #42ff0d;transition:border .2s ease-in;line-height:3;padding:2px 0;text-decoration:none}.t-link-accent-green:hover{border-bottom:1px solid #ff0dd1;transition:border .2s ease-in}.t-link-accent-green:focus{outline:.25em ridge #ff0dd1}.t-link-accent-orange,.t-link-accent-orange--block,.t-link-accent-white--block{border-bottom:1px solid #ff5327;transition:border .2s ease-in;color:#942f00;padding:2px 0;text-decoration:none}.t-link-accent-orange--block:hover,.t-link-accent-orange:hover,.t-link-accent-white--block:hover{border-bottom:1px solid #ff0dd1;transition:border .2s ease-in}.t-link-accent-orange--block:focus,.t-link-accent-orange:focus,.t-link-accent-white--block:focus{outline:.25em ridge #942f00}.t-link-accent-orange--block{display:inline-block}.t-ltr-stretch{text-transform:uppercase;letter-spacing:.05em}.t-link-accent-blue,.t-link-accent-blue--block{border-bottom:1px solid #222;transition:border .2s ease-in;color:#0e4bff;line-height:1.25em;padding:2px 0;text-decoration:none}.t-link-accent-blue--block:hover,.t-link-accent-blue:hover{border-bottom:1px solid #ff0dd1;transition:border .2s ease-in}.t-link-accent-blue--block:focus,.t-link-accent-blue:focus{outline:.5em ridge #0e4bff}.t-link-accent-blue--block{display:inline-block}.t-link-accent-pink{border-bottom:1px solid #fff;color:#ff0dd1;padding:2px 0;text-decoration:none}.t-link-accent-pink:hover{border-bottom:1px solid #ff0dd1;transition:border .2s ease-in}.t-link-accent-pink:focus{outline:.25em ridge #42ff0d}.t-eyebrow{font-size:.8em;text-transform:uppercase;letter-spacing:.15em;font-family:calibre-web-bold,"Arial Black",sans-serif}.t-titlingfont{font-family:calibre-web-bold,Impact,sans-serif;font-size:1.25em;text-transform:uppercase}code{background:#dae3ff;border-radius:.25em;padding:.25rem;color:#222;margin:.25rem}.postlist{list-style:none;padding:0}.postlist-item{counter-increment:start-from -1}.postlist-item:before{display:inline-block;pointer-events:none;line-height:100%;text-align:right}.postlist-date{word-spacing:-.1px}.postlist-link{display:inline-block;padding:.25em .1875em}.postlist-item-active .postlist-link{font-weight:700}ul.linklist{list-style:none outside;padding:0;display:flex;flex-direction:row;flex-wrap:wrap;justify-content:flex-start}ul.linklist li{margin:0 2rem 0 0}ul.taglist{list-style:none outside;padding:0;display:inline-block}ul.taglist li{margin:0 .25em .25em 0}ul.medialist--tight{list-style:none outside;padding:0}ul.medialist--tight li{margin:.75rem 0 0 0}ul.medialist--loose{list-style:none outside;padding:0}ul.medialist--loose li{margin:1rem 0 0 0}ul.longform{list-style-type:square;padding-bottom:.5rem}ul.longform li{margin:0 0 1rem 0}.direct-link{text-decoration:none;font-style:normal;display:none;margin-left:.1em}:hover>a[href].direct-link,:hover>a[href].direct-link:visited{display:inline-block}a[href].direct-link:focus,a[href].direct-link:focus:visited{outline:2px solid #ff0dd1;display:inline-block}a.right-arrow:after{content:"\2197"}.shitpost{background:#fff;border-radius:1em;margin:0 0 2em;padding:1em 3em}.wrapper{display:grid;grid-template-columns:repeat(12,1fr);grid-column-gap:2vw;grid-row-gap:2vh}.tiled{display:flex;flex-direction:column;justify-content:space-between}.padding-thinn{padding:1em}@media screen and (min-width:200px) and (max-width:599px){.padding-thinn\@xs{padding:1em}}@media screen and (min-width:600px) and (max-width:1023px){.padding-thinn\@s{padding:1em}}@media screen and (min-width:1024px) and (max-width:1439px){.padding-thinn\@m{padding:1em}}@media screen and (min-width:1440px) and (max-width:3000px){.padding-thinn\@l{padding:1em}}@media screen and (min-width:1920px){.padding-thinn\@xl{padding:1em}}@media screen and (min-width:200px) and (max-width:599px){.padding-normie\@xs{padding:1.5em}}@media screen and (min-width:600px) and (max-width:1023px){.padding-normie\@s{padding:1.5em}}@media screen and (min-width:1024px) and (max-width:1439px){.padding-normie\@m{padding:1.5em}}@media screen and (min-width:1440px) and (max-width:3000px){.padding-normie\@l{padding:1.5em}}@media screen and (min-width:1920px){.padding-normie\@xl{padding:1.5em}}@media screen and (min-width:200px) and (max-width:599px){.padding-thicc\@xs{padding:2.25em}}@media screen and (min-width:600px) and (max-width:1023px){.padding-thicc\@s{padding:2.25em}}@media screen and (min-width:1024px) and (max-width:1439px){.padding-thicc\@m{padding:2.25em}}@media screen and (min-width:1440px) and (max-width:3000px){.padding-thicc\@l{padding:2.25em}}@media screen and (min-width:1920px){.padding-thicc\@xl{padding:2.25em}}.margin-bottom-thinn{margin-bottom:1em}.order-one{order:1}.order-minusone{order:-1}@media screen and (min-width:200px) and (max-width:599px){.order-minusone\@xs{order:-1}}@media screen and (min-width:600px) and (max-width:1023px){.order-minusone\@s{order:-1}}@media screen and (min-width:1024px) and (max-width:1439px){.order-minusone\@m{order:-1}}@media screen and (min-width:1440px) and (max-width:3000px){.order-minusone\@l{order:-1}}@media screen and (min-width:1920px){.order-minusone\@xl{order:-1}}.order-zero{order:0}@media screen and (min-width:200px) and (max-width:599px){.order-zero\@xs{order:0}}@media screen and (min-width:600px) and (max-width:1023px){.order-zero\@s{order:0}}@media screen and (min-width:1024px) and (max-width:1439px){.order-zero\@m{order:0}}@media screen and (min-width:1440px) and (max-width:3000px){.order-zero\@l{order:0}}@media screen and (min-width:1920px){.order-zero\@xl{order:0}}.order-one{order:1}@media screen and (min-width:200px) and (max-width:599px){.order-one\@xs{order:1}}@media screen and (min-width:600px) and (max-width:1023px){.order-one\@s{order:1}}@media screen and (min-width:1024px) and (max-width:1439px){.order-one\@m{order:1}}@media screen and (min-width:1440px) and (max-width:3000px){.order-one\@l{order:1}}@media screen and (min-width:1920px){.order-one\@xl{order:1}}.order-two{order:2}@media screen and (min-width:200px) and (max-width:599px){.order-two\@xs{order:2}}@media screen and (min-width:600px) and (max-width:1023px){.order-two\@s{order:2}}@media screen and (min-width:1024px) and (max-width:1439px){.order-two\@m{order:2}}@media screen and (min-width:1440px) and (max-width:3000px){.order-two\@l{order:2}}@media screen and (min-width:1920px){.order-two\@xl{order:2}}.order-three{order:3}@media screen and (min-width:200px) and (max-width:599px){.order-three\@xs{order:3}}@media screen and (min-width:600px) and (max-width:1023px){.order-three\@s{order:3}}@media screen and (min-width:1024px) and (max-width:1439px){.order-three\@m{order:3}}@media screen and (min-width:1440px) and (max-width:3000px){.order-three\@l{order:3}}@media screen and (min-width:1920px){.order-three\@xl{order:3}}.order-four{order:4}@media screen and (min-width:200px) and (max-width:599px){.order-four\@xs{order:4}}@media screen and (min-width:600px) and (max-width:1023px){.order-four\@s{order:4}}@media screen and (min-width:1024px) and (max-width:1439px){.order-four\@m{order:4}}@media screen and (min-width:1440px) and (max-width:3000px){.order-four\@l{order:4}}@media screen and (min-width:1920px){.order-four\@xl{order:4}}.order-five{order:5}@media screen and (min-width:200px) and (max-width:599px){.order-five\@xs{order:5}}@media screen and (min-width:600px) and (max-width:1023px){.order-five\@s{order:5}}@media screen and (min-width:1024px) and (max-width:1439px){.order-five\@m{order:5}}@media screen and (min-width:1440px) and (max-width:3000px){.order-five\@l{order:5}}@media screen and (min-width:1920px){.order-five\@xl{order:5}}article{max-width:1290px;padding:0 2em}.flex--row-reverse{display:flex;flex-direction:column-reverse}section{max-width:1290px}#skip a{display:block;position:absolute;z-index:9999;left:1em;top:1em;transform:translateY(calc(-100% - 1em));padding:1em;color:#fff;text-decoration:none;background:#222;border:1px #ff0dd1}#skip a:focus{transform:translateY(0);transition:all .2s ease-in-out;outline:1px solid #ff0dd1}.site-header{align-items:center;display:flex;flex-direction:row;padding:0 0 .25rem 0}@media screen and (min-width:200px) and (max-width:599px){.site-header{align-items:flex-start}}.logo{display:block;margin:1em 2em 0 0;min-width:40px;max-width:50px}@media screen and (min-width:200px) and (max-width:599px){.logo{margin:1em 1em 0 0}}.logo #logo{fill:#ff0dd1}.logo a{border-bottom:none}.logo a:focus{outline:.5em ridge #ffd926}.dark{color:#222;text-transform:uppercase;border-bottom:1px solid #ff0dd1;transition:border .2s ease-in;text-decoration:none;font-size:.85rem;padding:.3rem 0}.dark:hover{border-bottom:1px solid #ff0dd1;transition:border .2s ease-in}.dark:focus{outline:.5em ridge #0e4bff}.light{color:#fff;text-transform:uppercase;border-bottom:1px solid #ff0dd1;transition:border .2s ease-in;text-decoration:none;font-size:.85rem;padding:.3rem 0}.light:hover{border-bottom:1px solid #ff0dd1;transition:border .2s ease-in}.light:focus{outline:.5em ridge #ffd926}.download,button{text-transform:uppercase;text-decoration:none;font-size:.75rem;padding:1rem;margin:1rem 1rem 0 0}.download.primary,button.primary{border:1px solid #fff;background:#0e4bff;color:#fff}.download.secondary,button.secondary{border:1px solid #0e4bff;background:#fff;color:#0e4bff}.download:hover,button:hover{background:#ff0dd1;transition:border .2s ease-in}.download:focus,button:focus{outline:.25em ridge #ff0dd1}.selfportrait-pink{filter:url(#coloring-pink)}.selfportrait-yellow{filter:url(#coloring-yellow)}.zigzag-blue-yellow{height:5em;background:linear-gradient(45deg,transparent 50%,#0e4bff 50%),linear-gradient(90deg,transparent 50%,#ffd926 50%),linear-gradient(135deg,#0e4bff 50%,#cbab00 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-yellow-white{height:5em;background:linear-gradient(-45deg,transparent 74%,#cbab00 75%),linear-gradient(45deg,transparent 74%,#ffd926 75%) 0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-neon-yellow-green{height:5em;background:linear-gradient(45deg,transparent 50%,#f3f315 50%),linear-gradient(90deg,transparent 50%,#42ff0d 50%),linear-gradient(135deg,#f3f315 50%,#27b300 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-emerald-green-green{height:5em;background:linear-gradient(45deg,transparent 50%,#004328 50%),linear-gradient(90deg,transparent 50%,#42ff0d 50%),linear-gradient(135deg,#004328 50%,#27b300 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-yellow-white{height:5em;background:linear-gradient(-45deg,transparent 74%,#cbab00 75%),linear-gradient(45deg,transparent 74%,#ffd926 75%) 0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-white-grey{height:5em;background:linear-gradient(45deg,transparent 50%,#fff 50%),linear-gradient(90deg,transparent 50%,#eee 50%),linear-gradient(135deg,#fff 50%,#767676 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-grey-black{height:5em;background:linear-gradient(-45deg,transparent 74%,#767676 75%),linear-gradient(45deg,#222 74%,#eee 75%) 0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-black-pink{height:5em;background:linear-gradient(45deg,transparent 50%,#222 50%),linear-gradient(90deg,transparent 50%,#ff0dd1 50%),linear-gradient(135deg,#222 50%,#b2098b 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-pink-white{height:5em;background:linear-gradient(-45deg,transparent 74%,#b2098b 75%),linear-gradient(45deg,#fff 74%,#ff0dd1 75%) 0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-white-blue{height:5em;background:linear-gradient(45deg,transparent 50%,#fff 50%),linear-gradient(90deg,transparent 50%,#0e4bff 50%),linear-gradient(135deg,#fff 50%,#0531b2 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-blue-blush{height:5em;background:linear-gradient(-45deg,transparent 74%,#0531b2 75%),linear-gradient(45deg,#fff3f3 74%,#0e4bff 75%) 0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-white-green{height:5em;background:linear-gradient(45deg,transparent 50%,#fff 50%),linear-gradient(90deg,transparent 50%,#42ff0d 50%),linear-gradient(135deg,#fff 50%,#27b300 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-pale-peach-green{height:5em;background:linear-gradient(45deg,transparent 50%,#ffe0d1 50%),linear-gradient(90deg,transparent 50%,#42ff0d 50%),linear-gradient(135deg,#ffe0d1 50%,#27b300 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-baby-blue-green{height:5em;background:linear-gradient(45deg,transparent 50%,#dae3ff 50%),linear-gradient(90deg,transparent 50%,#42ff0d 50%),linear-gradient(135deg,#dae3ff 50%,#27b300 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-blush-pink-green{height:5em;background:linear-gradient(45deg,transparent 50%,#fff3f3 50%),linear-gradient(90deg,transparent 50%,#42ff0d 50%),linear-gradient(135deg,#fff3f3 50%,#27b300 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-ochre-green{height:5em;background:linear-gradient(45deg,transparent 50%,#ece2ce 50%),linear-gradient(90deg,transparent 50%,#42ff0d 50%),linear-gradient(135deg,#ece2ce 50%,#27b300 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-light-grey-green{height:5em;background:linear-gradient(45deg,transparent 50%,#eee 50%),linear-gradient(90deg,transparent 50%,#42ff0d 50%),linear-gradient(135deg,#eee 50%,#27b300 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-black-green{height:5em;background:linear-gradient(45deg,transparent 50%,#222 50%),linear-gradient(90deg,transparent 50%,#42ff0d 50%),linear-gradient(135deg,#222 50%,#27b300 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-green-black{height:5em;background:linear-gradient(-45deg,transparent 74%,#27b300 75%),linear-gradient(45deg,#222 74%,#42ff0d 75%) 0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-yellow-black{height:5em;background:linear-gradient(45deg,transparent 50%,#f3f315 50%),linear-gradient(90deg,transparent 50%,#4f4f4f 50%),linear-gradient(135deg,#f3f315 50%,#222 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-black-grey{height:5em;background:linear-gradient(-45deg,transparent 74%,#222 75%),linear-gradient(45deg,#eee 74%,#4f4f4f 75%) 0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.zigzag-grey-yellow{height:5em;background:linear-gradient(-45deg,transparent 74%,#767676 75%),linear-gradient(45deg,#f3f315 74%,#eee 75%) 0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.flex--half{display:flex;flex-direction:row;flex-wrap:wrap}.flex--half--child{flex:1;min-width:15em}#floating-hands{margin:1em;max-width:30em}#spilled-glasses{margin:1em auto;max-width:20em}.animate--float{animation-name:floating;animation-duration:3s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}.clearspace{margin:0;padding:0}#contact{background:#222}@keyframes floating{from{transform:translate(0,0)}50%{transform:translate(0,-30px)}to{transform:translate(0,0)}}.zigzag-black-green{height:5em;background:linear-gradient(45deg,transparent 50%,#222 50%),linear-gradient(90deg,transparent 50%,#42ff0d 50%),linear-gradient(135deg,#222 50%,#27b300 50%),0 50%;background-repeat:repeat-x;background-size:5em 5em,5em 5em}.post-blob{background:#fff3f3;border-radius:30% 25%/20% 30%;padding:3em}.rhyme-blob{background:#0e4bff;border-radius:35% 33%/23% 34%;color:#fff;padding:3em}.rhyme-blob-big{background:#0e4bff;border-radius:15% 14%/13% 24%;color:#fff;padding:3em}#ephemera-hands{max-height:30em;display:flex;justify-content:center;flex-direction:row}.stamp{outline:20px dotted #fff3f3;outline-offset:-10px;background:#ffcff2;margin:.75em;position:relative}.stub{display:flex;align-self:center;position:relative;width:80%;margin:2rem 0;max-height:15rem;min-width:250px;background:radial-gradient(circle at 0 100%,transparent 30px,#f3f315 30px),radial-gradient(circle at 100% 100%,transparent 30px,#f3f315 30px),radial-gradient(circle at 100% 0,transparent 30px,#f3f315 30px),radial-gradient(circle at 0 0,transparent 30px,#f3f315 30px);background-position:bottom left,bottom right,top right,top left;background-size:51% 51%,51% 51%,51% 51%,51% 51%;background-repeat:no-repeat}.stub:hover{background:radial-gradient(circle at 0 100%,transparent 30px,#42ff0d 30px),radial-gradient(circle at 100% 100%,transparent 30px,#42ff0d 30px),radial-gradient(circle at 100% 0,transparent 30px,#42ff0d 30px),radial-gradient(circle at 0 0,transparent 30px,#42ff0d 30px);background-position:bottom left,bottom right,top right,top left;background-size:51% 51%,51% 51%,51% 51%,51% 51%;background-repeat:no-repeat}.stub-content{display:flex;text-align:left;justify-content:space-between;flex-direction:column;padding:.5rem 2.5rem;vertical-align:baseline}.calendar-item{display:flex;text-align:left;justify-content:space-between;flex-direction:column;padding:.25em 1.5em;margin:1.25em;vertical-align:baseline;background:#fff}.stamp-date{width:7em;height:7em;position:absolute}.stamp-date text{text-transform:uppercase;fill:#0e4bff;font-size:.4em;font-family:Courier}.stamp-date path{fill:none;border:1px solid #ff5327}.stamp-date svg{display:block;overflow:visible}@media screen and (min-width:1024px) and (max-width:1439px){.stamp--neg10\@m{transform:rotate(-10deg)}}@media screen and (min-width:1440px) and (max-width:3000px){.stamp--neg10\@l{transform:rotate(-10deg)}}@media screen and (min-width:1920px){.stamp--neg10\@xl{transform:rotate(-10deg)}}@media screen and (min-width:1024px) and (max-width:1439px){.stamp--neg5\@m{transform:rotate(-5deg)}}@media screen and (min-width:1440px) and (max-width:3000px){.stamp--neg5\@l{transform:rotate(-5deg)}}@media screen and (min-width:1920px){.stamp--neg5\@xl{transform:rotate(-5deg)}}@media screen and (min-width:1024px) and (max-width:1439px){.stamp--10\@m{transform:rotate(10deg)}}@media screen and (min-width:1440px) and (max-width:3000px){.stamp--10\@l{transform:rotate(10deg)}}@media screen and (min-width:1920px){.stamp--10\@xl{transform:rotate(10deg)}}@media screen and (min-width:1024px) and (max-width:1439px){.stamp--5\@m{transform:rotate(5deg)}}@media screen and (min-width:1440px) and (max-width:3000px){.stamp--5\@l{transform:rotate(5deg)}}@media screen and (min-width:1920px){.stamp--5\@xl{transform:rotate(5deg)}}.stamp--aboveleft{top:-2rem;right:-2rem}.stamp--aboveright{top:-3rem;right:-2rem}.stamp--topright{top:2rem;right:-2rem}.stamp--midleft{top:5rem;right:-2rem}.stamp--midright{top:5rem;left:-2rem}.stamp--btmright{bottom:-2rem;right:-2rem}.calendar-item{display:flex;text-align:left;justify-content:space-between;flex-direction:column;padding:.1em 1.5em;margin:1.25em;vertical-align:baseline;background:#fff}.pixel-box{display:inline-block;margin:2rem;padding:1rem;width:150px;height:150px;background:#42ff0d;border:1px solid #000;box-shadow:1px 1px 0 #000;filter:drop-shadow(10px 10px 0 #000)}
+    </style>
+
+    <link rel="alternate" href="/feed/feed.xml" type="application/atom+xml" title="Tatiana Mac">
+  </head>
+
+  <body>
+    <div id="skip">
+        <a href="#content">Skip Content</a>
+    </div>
+    <div class="bg-white container">
+    <header class="site-header wrapper">
+    <div class="logo">
+    <a href="/">
+        <svg version="1.1" id="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 117 114">
+        <title>Floating hands</title>
+        <desc>Geometric logo with two parallel lines on top and bottom, then a backwards 11 in the middle.</desc>
+            <path d="M0 0h117v10H0zM1 104h117v10H1zM28 20v75h9V41l27 22V50zM80 20v75h10V41l26 22V50z"/>
+        </svg>
+
+    </a>
+    </div>
+    <nav>
+        <ul class="linklist">
+            
+            
+            
+
+            
+
+            <li class="nav-item">
+            <a  class="dark " href="/writing" >
+                Writing
+            </a>
+            </li>
+            
+            
+
+            
+
+            <li class="nav-item">
+            <a  class="dark " href="/speaking" >
+                Speaking
+            </a>
+            </li>
+            
+            
+
+            
+
+            <li class="nav-item">
+            <a  class="dark " href="/media" >
+                Media
+            </a>
+            </li>
+            
+            
+
+            
+
+            <li class="nav-item">
+            <a  class="dark " href="/about" >
+                About
+            </a>
+            </li>
+            
+            
+
+            
+            
+            
+
+            <li class="nav-item">
+            <a  class="dark right-arrow" href="https://www.styledotcss.com"  rel="external">
+                Shop
+            </a>
+            </li>
+            
+        </ul>
+    </nav>
+</header>
+    </div>
+    <main class="content  bg-white " id="content">
+        
+<div class="wrapper container">
+    <article class="grid-whole@xxs grid-whole@xs grid-whole@s grid-twothirds@m grid-twothirds@l grid-twothirds@xl padding-thinn@xs padding-thinn@s">
+    <p class="t-serif details">Part I: What is a static site generator?</p>
+    <h1 class="t-serifweight t-ultrachonk t-height-tight">Beginner&#39;s Guide to Eleventy [Part I]</h1>
+
+    <h2 id="intro-to-the-series">Intro to the Series <a class="direct-link" href="#intro-to-the-series">📌</a></h2>
+<p>I won't lie. When I first installed a static site generator (SSG), I was pleased with how quickly it installed. However, my immediate success was short lived. Something something, beginner's luck.</p>
+<p>Even though I was comfortable working in design and templating systems (having built many WordPress sites before) and competent in front-front-end development, I still wasn't clear on a lot. I couldn't understand how pages were rendered, where assets and data were stored, and really, how this was saving me any time at all?</p>
+<p>My learning curve was steep.</p>
+<p>Like any good developer, though, I hate myself, so I stuck with it. Bit by bit, I learned the power behind the simplicity, flexibility, and reproducibility.</p>
+<p>My hope with this guide is to remove barriers, particularly for designers/developers who:</p>
+<ul>
+<li>are limited by What-You-See-Is-What-You-Get (WYSIWYG) tools like Squarespace;</li>
+<li>want the efficiencies of a content management system (CMS);</li>
+<li>possess <em>some</em> competency in front-end languages (HTML, CSS, JS); and/or</li>
+<li>don't understand the basic setup and infrastructure of SSGs.</li>
+</ul>
+<p>To remove barriers to entry, we must provide adequate context. I will break this guide into a multi-part series:</p>
+<ul>
+<li><strong>Part I:</strong> What is a static site generator? 👈🏽 You are here</li>
+<li><strong>Part II:</strong> <a href="https://www.tatianamac.com/posts/beginner-eleventy-tutorial-partii">Installation</a></li>
+<li><strong>Part III:</strong> Structure/Basic Customisation (coming soon)</li>
+<li><strong>Part IV</strong>: Advanced Customisation (coming soon)</li>
+</ul>
+<p>In general, I think our industry fears overexplaining concepts. We tend to presume people have skills that they don't always have and leave a lot of helpful context or explanation unsaid. After &quot;hello world&quot; examples, we tend to optimise our content for superusers. Beginners are sent into the world with a very limited foundation and asked to make a fairly large leap to intermediate on their own. By writing more beginner-through-intermediate tutorials like this, I hope to provide a solid foundation by answering unanswered questions and escalating examples as we go.</p>
+<p>Throughout this tutorial, I will simplify some things a little bit (like in diagrams), which means you could &quot;well actually technically&quot; me and be right. In other areas I will be intentionally verbose, which means I might explain concepts you already know. Congratulations. Here is a trophy. 🏆</p>
+<h2 id="part-i">Part I <a class="direct-link" href="#part-i">📌</a></h2>
+<p>Before we dive into the tactical how-to (which you will find in Part II, once I write it), I want to provide context for static site generators (SSG) and how they fit into the web landscape. I'll break down what the fork an SSG even is (not a Star Trek series as I once thought), how SSGs compare to other tools and frameworks, costs/benefits to this choice, and lastly, why I choose <a href="https://www.11ty.dev/">Eleventy</a> for my own site.</p>
+<h2 id="the-landscape">The Landscape <a class="direct-link" href="#the-landscape">📌</a></h2>
+<p>Generally speaking, there are two types of sites:</p>
+<ul>
+<li>static sites and</li>
+<li>dynamic sites.</li>
+</ul>
+<p>SSG-generated sites are technically a subcategory of static sites, but they're a <em>special</em> type. More on that later. Dynamic sites include sites built atop a framework, like WordPress, Drupal, Joomla.</p>
+<h3 id="static-sites">Static Sites <a class="direct-link" href="#static-sites">📌</a></h3>
+<p>Static sites have static content. Static sites store the information (or assets) needed to serve the site (HTML, images, scripts) on a server (usually whomever is paid to &quot;host&quot; the site).</p>
+<ol>
+<li>When users access a site in their browser, the browser requests files from the web server.</li>
+<li>The web server gathers the files you need for the specific page you requested from a finite list of files that it has stored.</li>
+<li>The web server sends the files to your browser.</li>
+<li>Your browser renders the files and presents you with the website.</li>
+</ol>
+<p>Theoretically, everyone should receive the same information (even if it ends up looking slightly different).</p>
+<p><img src="../../assets/img/eleventy-i-static.jpg" alt="Diagram of static sites where all elements are from Super Mario to illustrate how static sites are generated. Computer and browser (browser logo is Bowser's eye and eyebrow done in Firefox/Edge style) sends a request (Bullet Bill) to the web server (Thomp), which then sends back static files (Koopas dresed as HTML, CSS, and JS files)."></p>
+<p>The <a href="http://info.cern.ch/hypertext/WWW/TheProject.html">first website launched in 1990</a> by Sir Tim Berners-Lee was a static site with just unstyled HTML.</p>
+<h4 id="static-site-examples">Static Site Examples <a class="direct-link" href="#static-site-examples">📌</a></h4>
+<p>Static sites are most any site when we think of &quot;basic&quot; or &quot;hard-coded sites&quot; (though those are not the only ways to generate static sites; more on that later).</p>
+<p>I wanted to add a list here of static sites built by hand (without the assistance a static site generator, framework, or platform). If you come across any good examples, please <a href="https://www.twitter.com/TatianaTMac">reach out on Twitter</a> so I may add them!</p>
+<h4 id="static-site-pros">Static Site Pros <a class="direct-link" href="#static-site-pros">📌</a></h4>
+<ul>
+<li><strong>Fast</strong>: Static sites are predictable. Because there is a finite list of requests you can make (get me this page or that page), there isn't any processing that happens on the server side. The more requests you can make as a user that require the website do something, or client-side server requests, slow down a website, particularly when they become complex. Client-side server requests things like when you search or filter a website, or log in.</li>
+<li><strong>Lean</strong>: Static sites aren't as resource-intensive (their file sizes tend to be relatively small). If you have an unexpected spike in traffic to your site, they are usually able to handle the influx just fine (as long as their web hosts are able to keep up).</li>
+<li><strong>Secure:</strong> As there are no entry points (you can't input or send information to a static site like you can in dynamic sites), static sites are much more secure when used for a comparable dynamic site.</li>
+<li><strong>Economic Hosting:</strong> You're usually just paying for the hosting of your static assets, which is inexpensive compared to dynamic sites that require maintaining a service (like Squarespace) and a database (which involves things like mySQL).</li>
+<li><strong>Controllable:</strong> With a static site, whoever creates it has a lot more relative control over the source files. Since the source files and the rendered files are the same, you know how the site will be generated.</li>
+</ul>
+<h4 id="static-site-cons">Static Site Cons <a class="direct-link" href="#static-site-cons">📌</a></h4>
+<blockquote>
+<p>Note that there are workarounds for many of these cons. For scope of article and brevity, <strong>I've left out the tools that address/serve some of these cons.</strong> I know they exist. Some of them will be addressed in the SSG section, so hold your commenting horses (ya neigh-sayers), and note that I can't talk about everything in this one article.</p>
+</blockquote>
+<ul>
+<li><strong>Limited</strong>: Static sites can't do more complex things that we take for granted, like buying things online, getting weather for our location, etc.</li>
+<li><strong>Gatekept:</strong> Static sites require knowledge of HTML/CSS/JS to create and to update, turning developers into either content overlords or servants (depending on your org structure 😂). If you don't have these skills in house, you'll have to source them. Hand-coding websites is time-consuming, and thus, can be costly.</li>
+<li><strong>Non-dynamic:</strong> Everyone receives the same content, regardless of things like geolocation, time of day, etc. (Here is one of those areas where workarounds can apply. Did you stop yourself from explaining to me? Here, have another trophy. 🏆 Don't forget to unwind your undies.)</li>
+<li><strong>Difficult to scale:</strong> Depending on how you built the site, updating one global element (like a navigation) could mean updating hundreds/thousands of pages, which is impractical, resource-intensive, error-prone, and... boring AF.</li>
+<li><strong>Inconsistent:</strong> Consistency is reliant on the people building and maintaining the site. If they are not meticulous and/or lack adequate resources and quality assurance infrastructure, the site will likely lack polish.</li>
+<li><strong>Inputless</strong>: No log-ins (accounts), inputs (forms), or user-generated content.</li>
+<li><strong>Not Version-Controlled:</strong> While third-party services can help, if you do not set up such services, overwriting your files directly on the server means that they're overwritten forever. Reverting will require that you maintain some version control on the creator side.</li>
+</ul>
+<h3 id="dynamic-sites">Dynamic Sites <a class="direct-link" href="#dynamic-sites">📌</a></h3>
+<p>While making a bunch of static sites accessible to thousands of users was a huge invention and progress for the information age, it wasn't enough. As the amount of available content increased, the user experience became quite monotonous, impractical, and undiscoverable.</p>
+<p>Dynamic sites were introduced in 1993 with the advent of the Common Gateway Interface (CGI). The CGI is a set of standards to define how information is exchanged between servers.</p>
+<p>(CGI also, not to be confused with the other, more well-known Computer Generated Imagery, which is what makes Michael Bay movies <em>pop</em>. Fun fact: CGI's logo resembles the album cover for Pink Floyd's <em>Dark Side of the Moon</em>. But I disambiguate.)</p>
+<p>In the barest terms, CGI allowed for servers to do more than just receive requests and respond to requests as input/output. CGIs allowed the server <strong>to process</strong> the request, which adds a layer of complexity to how websites are served to you via browser.</p>
+<p>In a dynamic site:</p>
+<ol>
+<li>When users access a site in their browser, the browser requests files from the server. The request could include a search query, a form submission, or even implicit data (like your geolocation).</li>
+<li>Using the criteria set out by the CGI, the web server talks to another server (the application server) that processes all the inputs and makes a list of what it needs.</li>
+<li>The application server will talk to another server, the database, to gather the information it needs, say, like, your order history or all the possible products. The application server translates this all into a language that the web server understands, and then sends it to the web server.</li>
+<li>The web server sends the generated files to your browser.</li>
+<li>Your browser renders the files and presents you with the website.</li>
+</ol>
+<p><img src="../../assets/img/eleventy-i-dynamic.jpg" alt="Diagram of static sites where all elements are from Super Mario to illustrate how static sites are generated. Computer and browser (browser logo is Bowser's eye and eyebrow done in Firefox/Edge style) sends a request (Bullet Bill) to the web server (Thomp), which communicates with app server (question mark block), which then communicates with database (pipe) then sends back static files (Koopas dresed as HTML, CSS, and JS files)."></p>
+<p>Dynamic sites opened up a whole world of the internet that was not possible before, customising the experience, introducing inextricable complexity in the process.</p>
+<blockquote>
+<p>One could argue that applications and programs like Dreamweaver and FrontPage were the first static site generators that used a WYSIWYG editor. For brevity, I'm leaving that part of the history out.</p>
+</blockquote>
+<h4 id="dynamic-site-examples">Dynamic Site Examples <a class="direct-link" href="#dynamic-site-examples">📌</a></h4>
+<p>Dynamic sites are <em>everything else</em>. Any site that serves you a website from a database, an Application Programming Interface (API), or an experience based on input is a dynamic site. Common features on dynamic sites include shopping carts, search or content queries, location data, user data, and so on. Most &quot;complex&quot; sites tend to be dynamic; think Amazon, Facebook, Pinterest. (Most websites that are also a product also tend to be dynamic.)</p>
+<p>Sites that are generated by CMSes like WordPress, Squarespace, and Shopify are also dynamic.</p>
+<h4 id="dynamic-site-pros">Dynamic Site Pros <a class="direct-link" href="#dynamic-site-pros">📌</a></h4>
+<ul>
+<li><strong>Dynamic:</strong> As the name suggests, the power comes in generating content based on specific requests or data gathered (some of that data is gathered duplicitously and/or without consent, but a topic for another day).</li>
+<li><strong>Powerful:</strong> Dynamic sites allow for integration of CMSes, eCommerce platforms, and more complexity in general. Dynamic sites take the web from just a content storage platform, to a living, breathing information hub that can serve us content based on variables. That's pretty cool.</li>
+<li><strong>No-/Low-Code:</strong> The addition of CMSes and eCommerce platforms with dashboards means that code no longer becomes a requirement to create a site, lowering the barrier to entry. The cost of maintenance no longer requires code, but only familiarity with the editor interface (dashboard), which is quite a bit more economically viable to learn.</li>
+<li><strong>Out-of-Box Set-up:</strong> With platform integration, installing and launching a site becomes a lot faster. Products like Squarespace and Shopify boast the time to launch as a feature and earn their revenue through hosting the interface and your site.</li>
+<li><strong>Scalable</strong>: Adding more data or content already has a workflow and a place to store it (for example, you can import a thousand posts from another blogging platform or user data in a comma-separated values (CSV) file instead of manually entering it).</li>
+<li><strong>Consistent:</strong> As things like blog posts require an infrastructure, you can count each post appearing consistently based on the rules you set out.</li>
+<li><strong>Search Engine Optimisation (SEO)-Focused</strong>: Most CMSes are tailored to &quot;business needs&quot;, which means that out of box, they tend to reveal ways to improve your SEO.</li>
+<li><strong>Version-Controlled</strong>: Most platforms integrate some sort of version controlling, so content can be reversed if an error is made.</li>
+</ul>
+<h4 id="dynamic-site-cons">Dynamic Site Cons <a class="direct-link" href="#dynamic-site-cons">📌</a></h4>
+<blockquote>
+<p>Workarounds exist for all of these cons (and where appropriate, I've noted them) and some of them will be addressed in the SSG section, so hold your commenting horses.</p>
+</blockquote>
+<ul>
+<li><strong>Costly</strong>: Convenience comes at a price. While WordPress itself is free, themes and other add-ons can start to add up. Monthly paid services like Squarespace and Shopify can be cost-prohibitive to many people, and become exponentially costly as you want to add features for growth. Developers who specialise in these frameworks can also charge a premium as their skills tend to be niche.</li>
+<li><strong>Resource-Intensive:</strong> Every time a WordPress site is loaded, it has to call the server and ask for any scripts, plug-in libraries, etc. The time it takes to load these scripts can be long and require a lot of bandwidth.</li>
+<li><strong>Server Requirements</strong>: To run WordPress, special servers like Apache or NGINX are required. As with all things, there is a cost associated with this, which typically gets passed down the chain. To locally run a WordPress site (so that you're not making the edits live on the web), you need to do some manipulation to your machine, which can be confusing.</li>
+<li><strong>Slow</strong>: All of the inputs and dynamic calls result in having to wait for the server to do its job. We all know what that's like; when you're waiting for a colleague to finish their task before you can finish yours. Any delays in speed result in disengaged/unhappy users and thus, negatively impacted SEO measurements.</li>
+<li><strong>Cache-Difficult:</strong> Caching provides major benefits to sites. Caching basically stores a copy of the site somewhere else (whether that be on your computer in a temporary file) or on another server (like a content delivery network (CDN)). Doing so takes one load off of the main server you're accessing. However, caching becomes very complex when the server isn't <strong>quite</strong> sure even which HTML or images it should serve you because the variables are too vast (Are you logged in? Did you change a setting? Is there something in your cart? Did someone comment since you last logged in? Are you cute? <em>How</em> cute?)</li>
+<li><strong>Inaccessible:</strong>
+<ul>
+<li>Heavy sites mean that users who rely on phone data (and pay per megabyte) are being economically taxed for accessing your site. In regions and contexts with systematically slower internet speeds, your users will likely bounce if your site is too slow. Remember, this is your fault for building a site maximised for 5G internet, not your user's inability to purchase an iPhone 14S.</li>
+<li>While a static site does not guarantee accessibility and you <em>can</em> make dynamic sites accessible, dynamic sites make out-of-box accessibility far more complex. A few static HTML pages will likely be fairly accessible as there's not much to them and HTML is fairly generous. However, the accessibility of a dynamic site becomes reliant on the accessibility of a platform on which it's built. The tools used to build the site (like the dash) need to be accessible as does the site itself. Any layer of complication increases the dimension of accessibility exponentially.</li>
+</ul>
+</li>
+<li><strong>Insecure:</strong> Dynamic sites have to allow for input, which means that they open the doors for bugs and viruses. <a href="https://www.wpwhitesecurity.com/statistics-70-percent-wordpress-installations-vulnerable/">Something like 70-90% of WordPress sites</a> are vulnerable to attacks. So, while they boast the statistic of being 2/3 of the web (why not just call it 69% tho), that means that over half of the web is insecure—like a middle school.</li>
+<li><strong>Instable</strong>: Unexpected spikes in traffic can overload the server with requests and break the site. We've seen this with news sites, high-heat commerce drops (think sneakerhead or video games), intensive retail periods like Black Friday/Cyber Monday, and other windows of extreme traffic.</li>
+<li><strong>Monotonous</strong>: Many sites can start to look the same (for example in Portland, there are at least a dozen coffee roasters who use the same Squarespace theme—those nuanced beans deserve better, dammit) as the out-of-box options tend to be limited.</li>
+</ul>
+<h3 id="casting-extremes">Casting Extremes <a class="direct-link" href="#casting-extremes">📌</a></h3>
+<p>As you can see, the landscape casts two extremes. On one end, you have something lean and agile, but fairly rigid. On the other end, you can have something brilliantly dynamic, but resource-intensive.</p>
+<p>This is not a decision you should make based on what you, the developer, like the most. It needs to be driven by myriad other factors, like who will ultimately be responsible for maintaining the site, what equitably provides as many users as possible with the bare need, and what will scale and maintain best over time. In short, we should be looking for resiliency over efficiency. Sometimes your hand will be forced; the decision for how to build a news or airline site, which has a lot of dynamic requirements, is a bit more obvious because you lack choice. You have to make it dynamic.</p>
+<p>But what about a portfolio site for developer who wants a blog, but doesn't want to have to manually write all the HTML and copy and paste templates each time, nor do they want to feel limited by WordPress (or denying their abject fear of writing PHP and being denied entry into Developer Heaven)?</p>
+<p>Or, what about a brochure site for a restaurant who wants to update their menu through a WYSIWYG but doesn't want to pay for the overhead of Squarespace?</p>
+<p>Enter:</p>
+<h3 id="static-site-generator-generated-sites*">Static Site Generator-generated Sites* <a class="direct-link" href="#static-site-generator-generated-sites*">📌</a></h3>
+<blockquote>
+<p>*It’s a little confusing because to be accurate means we have to be pedantic, hence the redundancy of Generator-generated. For purposes of clarity, this is how I differentiated the two; please note the difference:<br>
+<strong>SSGs:</strong> Static Site Generators. The thing that generates the site.<br>
+<strong>SSG sites:</strong> Static Site Generator-generated Sites. The sites that are generated.<br>
+Please know I thought very long and hard about this very trivial/non-trivial issue.</p>
+</blockquote>
+<p>Static site generator-generated sites (SSG sites) provide a happy medium between the static sites and dynamic sites. Technically speaking, a site built from an SSG is a still static site.</p>
+<p>SSG sites follow the same build process as static sites from above.</p>
+<ol>
+<li>When users access a site in their browser, the browser requests files from the web server.</li>
+<li>The web server gathers the files you need for the specific page you requested from a finite list of files that it has stored.</li>
+<li>The web server sends the files to your browser.<br>
+Your browser renders the files and presents you with the website.</li>
+</ol>
+<p>Here there’s an added step that happens somewhat separately:</p>
+<p>A. The person creating the site generates dynamic inputs, like markup language files, template files, data files, and assets.</p>
+<p>B. The SSGs essentially take the actions that would happen on the server-side (like building a post into an HTML file) and perform them before the site is deployed. The SSG takes the dynamic inputs and compiles it into HTML, CSS, and JavaScript—these are the static files that get uploaded to the file server. Hence, the site becomes static.</p>
+<p><img src="../../assets/img/eleventy-i-ssg.jpg" alt="Diagram of SSG sites where all elements are from Super Mario to illustrate how static sites are generated. Computer and browser (browser logo is Bowser's eye and eyebrow done in Firefox/Edge style) sends a request (Bullet Bill) to the web server (Thomp). Simultaneously, data/template files (Koopas as Markdown, JSON, and Nunjucks files) are sent to the static site generator (Magic Koopa) who sends generated static files (Koopas dressed as HTML, CSS, and JS files) back to the web server. The web server sends those files to the computer."></p>
+<p>The benefit of this added step is that it adds some of the developer/creator benefits of dynamic sites (like, writing content in Markdown and reusing templates) without as many of the dynamic cons (like, usually having to load an entire framework) while maintaining the pros of static sites. A Best of Both Worlds™ (BOBW) if you ask me.</p>
+<p><strong>To be explicit:</strong> Neither the user nor the server perceives, typically, the difference between a hard-coded static site and a SSG-generated site. To them, they're both static sites. SSGs improve the <em>developer</em> experience. I would even argue it's <em>optimised</em> to a certain niche of developer experience.</p>
+<p>We have to admit that part of the rise of SSGs is that as developers, we are community-focused and want to be in-line with our peers. It would be dishonest, I think, to say that all of our motivation for anything (especially this) is ever purely user-motivated.</p>
+<h4 id="ssg-site-examples">SSG Site Examples <a class="direct-link" href="#ssg-site-examples">📌</a></h4>
+<p>New SSGs are popping up every day as this modern approach to tooling becomes more widely adopted. Popular static site generators (and their frameworks/languages) include: <a href="https://gohugo.io/">Hugo</a> (Go), <a href="https://www.gatsbyjs.org/">Gatsby</a>, <a href="https://nextjs.org/">Next.js</a>, <a href="https://github.com/react-static/react-static/tree/master/">React Static</a> (React); <a href="https://nuxtjs.org/">NuxtJS</a> (Vue.js); <a href="https://middlemanapp.com/">Middleman</a>, <a href="https://jekyllrb.com/">Jekyll</a> (Ruby); <a href="https://sapper.svelte.dev/">Sapper</a> (Svelte); and my personal favourite, <a href="https://11ty.io">Eleventy</a> (Node.js).</p>
+<p>Examples of <em>sites</em> made on these <em>SSGs</em> on these can be found on each of those links. (See how the naming convention is confusing?!)</p>
+<h4 id="aside%3A-on-jamstack-and-humans">Aside: On JAMstack and Humans <a class="direct-link" href="#aside%3A-on-jamstack-and-humans">📌</a></h4>
+<p>In the context of SSGs, you may have heard of JAMstack. JAMstack, which stands for JavaScript, APIs, and Markup, is not a three-tiered peanut butter and jelly sandwich. It is a movement, approach, workflow that was born out of developers wanting to maintain speed and security of static sites while adding some of the richness and tooling of dynamic sites. JAMstack also carries an ethic of performance-driven, low-cost, improved developer experience, and scalability. The hope, I think, is to bring many of the traditionally &quot;back-end&quot; capabilities like database manipulation into the realm of possibility for &quot;front-end&quot; developers.</p>
+<p>How I like to think of the JAMstack approach is that everything in the world exists on a spectrum. While the line between static and dynamic was once more hard-drawn, the distinction between what constitutes static and dynamic is now more of a continuum. JAMstack further blurs that line or builds that bridge (depending on whether you think this is a good or bad thing).</p>
+<p>Simultaneously, for us humans of the web, that means that the line between front-end and back-end development becomes less clear. Certain aspects of back-end development that were once inaccessible to front-end developers are becoming surfaced with movements like JAMstack and the tools they inspire.</p>
+<blockquote>
+<p>Not all SSGs are part of the JAMstack. The JAMstack is not just about SSGs. (Read more on <a href="https://jamstack.wtf">JAMstackWTF</a>.)</p>
+</blockquote>
+<h4 id="ssg-site-pros">SSG Site Pros <a class="direct-link" href="#ssg-site-pros">📌</a></h4>
+<ul>
+<li><strong>Developer-Focused:</strong> Hand-coding websites is a pain in the Lance Bass. It's fun to be artisanal for a second, but once you get into dozens (hundreds, thousands) of pages, it becomes frustrating and confusing. On the dynamic side, manipulating WordPress and Squarespace to do all you know is possible can be frustrating (I know that the folks who work on these teams work very hard to improve dev experience as it's a weak spot in most dynamic site generators).</li>
+<li><strong>Separation of Concerns</strong>: SSG sites maintain the separation of visual presentation and content. You can continue to write new content as Markdown files without manually applying styling to it as you would with a hand-coded static site.</li>
+<li><strong>Reusable</strong>: Global changes to templates (e.g., blog post template) and components (e.g., navigation) are made by editing one file instead of many.</li>
+<li><strong>Metadata</strong>: One of the most powerful aspects of SSGs is that it surfaces the metadata: the title of the page, published date, site taxonomy, hero image, etc, can be defined and changed without touching the templates themselves, reinforcing the separation of concerns. Metadata is surfaced in something called front matter, which allows the content maintainer to add and customised data to the literal <strong>front</strong> of their file. (I'll talk more about this and show examples when we dive into Eleventy's structure in part II.)</li>
+<li><strong>Lean</strong>: As with a static site, the delivered files are what they are. It takes up less room on the internet, which is minimalist and aligns with our designer ways (rerolls turtleneck collar).</li>
+<li><strong>Fast:</strong> Lessening the number of server requests means your site will be faster, which improves your SEO and user experience, providing better access to more users.</li>
+<li><strong>Economic</strong>: Most SSGs are free to set up.</li>
+<li><strong>Asset Management:</strong> On static sites, asset management is largely manual; you might run individual photos and CSS files through some processes. On dynamic sites, image handling is automated and quite dialed in by way of plug-ins and platform-wide support. Most SSGs include some sort of process for assets, including compiling, transpiling, minifying, and bundling assets. SSGs provide build processes for anything from photo management (serving appropriately sized images) to CSS minification (rewriting your CSS into what the browser needs to read rather than what's optimal for developers to read).</li>
+<li><strong>Build Customisation:</strong> Most SSGs allow you to manipulate how the build process happens. So, if you want to see the site refresh live as you make edits, that's usually possible. If you want to check for specific linting processes, that's possible too.</li>
+</ul>
+<h4 id="ssg-site-cons">SSG Site Cons <a class="direct-link" href="#ssg-site-cons">📌</a></h4>
+<p>In addition to the cons from static sites, here are a few more SSG-specific limitations.</p>
+<ul>
+<li><strong>Complicated Setup</strong>: Atop needing to know the foundational HTML and CSS and some JS, you now need to also have an understanding of command-line interfaces (CLI) and package management to set up your environment. <strong>This is no small feat and creates a massive barrier to entry.</strong> Every SSG I've ever tried to set up has been confusing. I've learned that even the most competent developers can struggle with this initial step of the process.</li>
+<li><strong>Choice Overload</strong>: Modern development's embrace of SSGs means there are many SSG choices across many languages and language libraries. While this is generally a good thing, it can make it VERY confusing and intimidating if you don't already have a language loyalty. How do you pick which SSG when you don't know if you want to learn JS or Ruby or what?</li>
+<li><strong>Niche Skillset</strong>:
+<ul>
+<li>While WordPress and Drupal developers tend to be more abundant, developers who are versed in using SSGs tend to be fewer (partly because the application of the technology is relatively new, comparatively). You could find yourself using an SSG without someone to update it, which is a risk.</li>
+<li>Some developers become developers of a specific SSG, like &quot;Gatsby developers&quot;, which tethers their economic success to a specific framework. I <strong>personally</strong> think this can be risky. As each framework is nuanced, learning can pigeon-hole you if you're not careful (same problem as becoming a WordPress developer, for example).</li>
+</ul>
+</li>
+<li><strong>Limited</strong>: While some possibilities are possible (and increasingly so by way of movements like JAMstack), adding user-generated content or real-time-influenced data is still not really possible. The more complex your desires, the more you're going to have to hack the SSG to do what you want. This increases barriers to entry and instability.</li>
+<li><strong>Slow Build Times:</strong> As you're building everything pre-deploy, you have to rebuild the entire website. As you may well know, waiting for a SSG to load all of its npm packages is time-consuming. On top of that, if you have a large blog or asset-intensive website, you will have to wait for it to build when you're developing. It's a buzz kill (but better our dev team than millions of users...right? RIGHT.).</li>
+<li><strong>Gatekept</strong>: Without a CMS, you have to know how to write code to publish content. Most SSGs require you to know some sort of templating language, at minimum, like Markdown.</li>
+</ul>
+<h3 id="why-eleventy">Why Eleventy <a class="direct-link" href="#why-eleventy">📌</a></h3>
+<p><s>As a developer advocate for Eleventy**,</s> I favour Eleventy for most smaller projects because the way it was built aligns with my personal developer ethos. I do not like serving the user a bunch of unnecessary JavaScript to serve what will inevitably be static content.</p>
+<p>Eleventy's mission seems to possess some similar biases to me. In the end, this is a huge factor in what we look for as developers, whether we admit it or not.</p>
+<p>(**Also so the creator, Zach, doesn't get mad at me, Eleventy doesn't actually have developer advocates and is a community-contributed and -funded project. If you find Eleventy helpful and can, <a href="https://opencollective.com/11ty">throw a few bucks at them</a>!</p>
+<h4 id="pros">Pros <a class="direct-link" href="#pros">📌</a></h4>
+<ul>
+<li><strong>Performance-First:</strong> Eleventy is very lean. It doesn't take 30 minutes to build my Eleventy site.</li>
+<li><strong>Community-Driven:</strong> As much as possible, I try to use tools that have a supportive community around them.</li>
+<li><strong>Independent:</strong> I try to support projects that don't fund and/or evangelise multi-billionaire companies (though I possess no judgment around this because I think we all gotta make a living).</li>
+<li><strong>Language Agnostic:</strong> While Eleventy's functionality is written in Node.js, the templating is very flexible, accepting Markdown, HTML, JS, Nunjucks, or any hot mess combination of all of them if you thrive in chaos (which you can see that I do if you look at my own website source code, thank you very much.)</li>
+<li><strong>Fast Build Times</strong>: I hate waiting for my site to build as a developer. If I wanted to wait for the internet, I'd get dial-up again. Jokes aside, build time and delay can be a major downside of sites on massive dynamic frameworks. Luckily, Eleventy is so lean and most of the sites I choose to build on Eleventy are too. (It's important to note that any SSG built atop a framework, like NuxtJS (Vue.js) or Gatsby (React) means that you'll have to wait for those frameworks to build, which can take time.)</li>
+<li><strong>Friendship</strong>: I consider Zach a friend. I like to support my friends and what they build.</li>
+</ul>
+<h4 id="cons">Cons <a class="direct-link" href="#cons">📌</a></h4>
+<ul>
+<li><strong>Limited Tooling</strong>: As Eleventy is small and community-driven (without massive corporate backing), it doesn't have as much tooling support as, say Gatsby. Whereas Gatsby has some pretty cool/sophisticated image handler, handling images in Eleventy is somewhat bare-bones.</li>
+<li><strong>Sparse Documentation:</strong> Again, because it's small and community-funded and -maintained, the documentation is sparse. I get the sense that because Eleventy was initially marketed as an alternative to Jekyll, much of the documentation presumes Jekyll (reminder, it's another SSG) familiarity and competency. I found the barrier to entry quite high for me post-install, even though I have a fairly solid grasp on development and templating.</li>
+<li><strong>Limited Tutorials and Examples</strong>: Some community-generated tutorials exist for Eleventy, but not to the extent of some of the larger SSG communities.</li>
+</ul>
+<p>To me, the pros outweigh the cons. Developers who work in and support Eleventy can help to improve the two cons. This is why I'm writing this series.</p>
+<blockquote>
+<p>Next (Part II): Learn how to install Eleventy (and, all the things you need to install in order to install Eleventy). <a href="../beginner-eleventy-tutorial-partii/">Read Part II</a></p>
+</blockquote>
+<h4 id="thank-you">Thank You <a class="direct-link" href="#thank-you">📌</a></h4>
+<p>Thank you to <a href="https://www.twitter.com/bitandbang">Tierney Cyren</a> and <a href="https://www.twitter.com/SwissWebMiss">Heidi Olsen</a> for their invaluable contributions as editors.</p>
+<h4 id="references">References <a class="direct-link" href="#references">📌</a></h4>
+<p><a href="https://serverless.css-tricks.com">CSS Tricks: The Power of Serverless</a><br>
+<a href="https://www.11ty.dev/docs/">Eleventy Docs</a><br>
+<a href="https://jamstack.org/">JAMstack.org</a><br>
+<a href="https://www.keycdn.com/support/difference-between-static-and-dynamic">KeyCDN: Difference between Static and Dynamic Sites</a><br>
+<a href="https://www.netlify.com/blog/2017/05/25/top-ten-static-site-generators-of-2017/">Netlify: Top Ten Static Site Generators of 2017</a><br>
+<a href="https://www.sitepoint.com/7-reasons-use-static-site-generator/">Sitepoint: 7 Reasons to use a Static Site Generator</a><br>
+<a href="https://bejamas.io/blog/wordpress-alternative/">Bejamas: Wordpress Alternative: The Pros and Cons of Static Site Generators</a></p>
+<h4 id="questions-and-corrections">Questions and Corrections <a class="direct-link" href="#questions-and-corrections">📌</a></h4>
+<p>For questions, please <a href="https://www.twitter.com/TatianaTMac">reach out on Twitter</a>! I can't promise to answer all your questions, but I'll try my best!</p>
+<p>For corrections (typos, factual inaccuracies), please file a <a href="https://github.com/tatianamac/tm11ty/issues">GitHub issue</a>.</p>
+
+    </article>
+
+    <section class="grid-whole@xxs grid-whole@xs grid-whole@s grid-third@m grid-third@l grid-third@xl">
+    <div class="post-blob">
+        <p class="t-serifweight t-thinnfont">Static site generators (SSGs) are critical to modern tooling. When used thoughtfully, SSGs can facilitate sites that need something in the middle—in the vast expanse between static, hand-coded sites and dynamic behemoths. In a multi-part guide, I&#39;ll show you how to use Eleventy.</p>
+        <p class="t-eyebrow t-typeweight">Thu Apr 02 2020 19:09:03 GMT+0300 (Eastern European Summer Time)</p>
+        
+        
+            
+      
+            
+        
+      
+        <a class="t-tag tag" href="/tags/tutorials/">tutorials</a>
+      
+        
+      
+            
+        
+      
+        <a class="t-tag tag" href="/tags/Eleventy/">Eleventy</a>
+      
+        
+      
+            
+      
+            
+        
+      
+        <a class="t-tag tag" href="/tags/engineering/">engineering</a>
+      
+        
+      
+    </div>
+    </section>
+</div>
+     </main>
+
+    
+    <div class="container clearspace">
+        <div class="zigzag-white-green">
+        </div>
+        <div class="zigzag-green-black">
+        </div>
+    </div>
+
+  <footer id="contact" class="container">
+    <div class="wrapper">
+    
+        <div class="grid-whole@xs grid-whole@s grid-whole@m grid-whole@l grid-whole@xl">
+            <h2 class="t-eyebrow t-thiccfont@xs t-thiccfont@s t-thiccfont@m t-thiccfont@l t-thiccfont@xl t-white">Contact</h2>
+        </div>
+        <ul class="linklist grid-whole@xs grid-whole@s grid-whole@m grid-whole@l grid-whole@xl">
+            
+            
+            
+
+            
+            
+            
+            <li>
+                <a class="t-link-accent-green t-white t-chonkfont@xl t-chonkfont@l t-thiccfont@m t-normiefont@s t-normiefont@xs t-thinnfont@xxs t-serifweight t-height-tight" href="mailto:inquiry@tatianamac.com">Email</a>
+            </li>
+            
+            
+
+            
+            
+            
+            <li>
+                <a class="t-link-accent-green t-white t-chonkfont@xl t-chonkfont@l t-thiccfont@m t-normiefont@s t-normiefont@xs t-thinnfont@xxs t-serifweight t-height-tight" href="https://twitter.com/TatianaTMac">Twitter</a>
+            </li>
+            
+            
+
+            
+            
+            
+            <li>
+                <a class="t-link-accent-green t-white t-chonkfont@xl t-chonkfont@l t-thiccfont@m t-normiefont@s t-normiefont@xs t-thinnfont@xxs t-serifweight t-height-tight" href="https://codepen.io/tatianamac/">Codepen</a>
+            </li>
+            
+            
+
+            
+            
+            
+            <li>
+                <a class="t-link-accent-green t-white t-chonkfont@xl t-chonkfont@l t-thiccfont@m t-normiefont@s t-normiefont@xs t-thinnfont@xxs t-serifweight t-height-tight" href="https://github.com/tatianamac">GitHub</a>
+            </li>
+            
+        </ul>
+        <div class="grid-whole@xs grid-whole@s grid-whole@m grid-whole@l grid-whole@xl">
+            <p class="t-white t-mini">Copyright <span id="year"></span> &copy; Tatiana Mac. Built with HTML &amp; CSS with Sass and sass atop <a href="https://www.11ty.io" class="t-link-accent-green t-white">Eleventy</a>. Read my <a class="t-link-accent-green t-white" href="/release-notes">release notes</a>. Subscribe to my <a class="t-link-accent-green t-white" href="/feed/feed.xml">RSS feed</a>. Get to really know me by reading my <a class="t-link-accent-green t-white" href="/shitposts">💩</a>.</p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    document.getElementById("year").innerHTML = new Date().getFullYear();
+</script>
+
+    <!-- Current page: /posts/beginner-eleventy-tutorial-parti/ -->
+  </body>
+</html>
