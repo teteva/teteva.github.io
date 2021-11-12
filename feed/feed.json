@@ -1,0 +1,19 @@
+{
+  "version": "https://jsonfeed.org/version/1",
+  "title": "teteva.com",
+  "home_page_url": "https://www.teteva.com",
+  "feed_url": "https://update-me.com/feed/feed.json",
+  "description": "Description of the website. Update me.",
+  "author": {
+    "name": "Vadim Teteva.",
+    "url": ""
+  },
+  "items": [{
+      "id": "https://www.teteva.com/posts/wptest/",
+      "url": "https://www.teteva.com/posts/wptest/",
+      "title": "Hello world!",
+      "content_html": "<h3 id=\"url---wptest.teteva.com\">url - <a href=\"http://wptest.teteva.com\">wptest.teteva.com</a> <a class=\"direct-link\" href=\"#url---wptest.teteva.com\">#</a></h3>\n<p>Welcome to  This is your first post. Edit or delete it, then start writing</p>\n<p><img src=\"/img/1.jpg\" alt=\"Alternative Text\" title=\"Image Title Attribute\"></p>\n<figcaption>The Amazon Rainforest contains a multitude of species.</figcaption>\n<table>\n<thead>\n<tr>\n<th style=\"text-align:center\"><img src=\"/img/1.jpg\" alt=\"Alternative Text\" title=\"Image Title Attribute\"></th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td style=\"text-align:center\"><figcaption> Title </figcaption></td>\n</tr>\n<tr>\n<td style=\"text-align:center\"><b> Caption Image Credits - Fig.2 - 4K Mountains Wallpaper </b></td>\n</tr>\n<tr>\n<td style=\"text-align:center\"><figcaption> Title </figcaption></td>\n</tr>\n</tbody>\n</table>\n<figcaption>The Amazon Rainforest contains a multitude of species.</figcaption>\n",
+      "date_published": "2021-11-07T14:10:08+02:00"
+    }
+  ]
+}

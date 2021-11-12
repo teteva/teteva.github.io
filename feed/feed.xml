@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+	<title>teteva.com</title>
+	<subtitle>Subtitle. Update me.</subtitle>
+	
+	<link href="https://www.teteva.com/feed/feed.xml" rel="self"/>
+	<link href="https://www.teteva.com"/>
+	<updated>2021-11-07T14:10:08+02:00</updated>
+	<id>https://update-me.com</id>
+	<author>
+		<name>Vadim Teteva.</name>
+		<email></email>
+	</author>
+	
+	<entry>
+		<title>Hello world!</title>
+		<link href="https://www.teteva.com/posts/wptest/"/>
+		<updated>2021-11-07T14:10:08+02:00</updated>
+		<id>https://www.teteva.com/posts/wptest/</id>
+		<content type="html">
+		  &lt;h3 id=&quot;url---wptest.teteva.com&quot;&gt;url - &lt;a href=&quot;http://wptest.teteva.com/&quot;&gt;wptest.teteva.com&lt;/a&gt; &lt;a class=&quot;direct-link&quot; href=&quot;#url---wptest.teteva.com&quot;&gt;#&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Welcome to  This is your first post. Edit or delete it, then start writing&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;https://www.teteva.com/img/1.jpg&quot; alt=&quot;Alternative Text&quot; title=&quot;Image Title Attribute&quot;&gt;&lt;/p&gt;
+&lt;figcaption&gt;The Amazon Rainforest contains a multitude of species.&lt;/figcaption&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style=&quot;text-align:center&quot;&gt;&lt;img src=&quot;https://www.teteva.com/img/1.jpg&quot; alt=&quot;Alternative Text&quot; title=&quot;Image Title Attribute&quot;&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;&lt;figcaption&gt; Title &lt;/figcaption&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;&lt;b&gt; Caption Image Credits - Fig.2 - 4K Mountains Wallpaper &lt;/b&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot;text-align:center&quot;&gt;&lt;figcaption&gt; Title &lt;/figcaption&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;figcaption&gt;The Amazon Rainforest contains a multitude of species.&lt;/figcaption&gt;
+
+			
+		</content>
+	</entry>
+</feed>
