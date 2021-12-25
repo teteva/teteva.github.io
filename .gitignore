@@ -25,6 +25,7 @@ yarn.lock*
 /scripts
 /src/
 /src
+/docs/docs/*
 
 
 # dependencies
