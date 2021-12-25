@@ -27,8 +27,8 @@ yarn.lock*
 /src/
 /src
 
-#/docs/docs/*
-#/docs/_next/static/media
+/docs/docs/*
+/docs/_next/static/media
 
 # dependencies
 /node_modules
