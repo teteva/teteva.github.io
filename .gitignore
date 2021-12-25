@@ -13,6 +13,7 @@ package.json
 postcss.config.js
 prettier.config.js
 redirects.json
+replacer.js
 tailwind.config.js
 yarn.lock*
 /public/
