@@ -1,31 +1,5 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# teteva.github.io
-
-.editorconfig
-.env*
-.eslintrc.js
-.prettierignore
-jsconfig.json
-next.config.js
-package.json
-postcss.config.js
-prettier.config.js
-redirects.json
-tailwind.config.js
-yarn.lock*
-/public/
-/public
-/rehype/
-/rehype
-/remark/
-/remark
-/scripts/
-/scripts
-/src/
-/src
-
-
 # dependencies
 /node_modules
 /.pnp
