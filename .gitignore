@@ -2,6 +2,7 @@
 
 # teteva.github.io
 
+.DS_Store
 .editorconfig
 .env*
 .eslintrc.js
