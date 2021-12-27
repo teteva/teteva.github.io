@@ -272,7 +272,8 @@ module.exports = function (config) {
   return {
     dir: {
       input: 'src/site/content/', // we use a string path with the forward slash since windows doesn't like the paths generated from path.join
-      output: 'dist',
+      //output: 'dist',
+      output: 'docs',
       data: '../_data',
       includes: '../_includes',
     },
