@@ -21,8 +21,8 @@ window.applyThemeSetting();
 </script>
 
   
-  <link rel="stylesheet" href="/css/next.css?v=fe3ae6339db68">
-  <link rel="stylesheet" href="/css/legacy-rollout.css?v=29cd686eb52d5">
+  <link rel="stylesheet" href="/css/next.css?v=9c7a5f4e7256b">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=b941a519d7ee1">
   <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
 
 
@@ -114,12 +114,12 @@ function loadScript(url, type) {
     document.head.append(s);
   }
 }
-loadScript('/js/app.js?v=e78eae60f2979', 'module');
+loadScript('/js/app.js?v=ae6f3916a9a3e', 'module');
 
 
 
 
-  loadScript('/js/content.js?v=de9e6c21bb9a6', 'module');
+  loadScript('/js/content.js?v=54047a8655da6', 'module');
 
 
   loadScript('https://www.google-analytics.com/analytics.js', null);
@@ -377,7 +377,7 @@ to have the same tools as external web developers.</p>
 All pages include <a href="https://www.11ty.dev/docs/data-frontmatter/" rel="noopener">front matter</a>, which describes metadata about each post.
 This metadata is ingested into the layout of each page, creating headings, tags, and so on.
 Here's an example:</p>
-<web-copy-code><pre class="language-md"><code class="language-md"><span class="token front-matter-block"><span class="token punctuation">---</span><br><span class="token font-matter yaml language-yaml">layout: post<br>title: What is network reliability and how do you measure it?<br>authors:<br>  - jeffposnick<br>date: 2018-11-05<br>description: |<br>  The modern web is enjoyed by a wide swath of people…</span><br><span class="token punctuation">---</span></span><br><br>The modern web is enjoyed by a wide swath of <span class="token url">[<span class="token content">people</span>](<span class="token url">https://www.youtube.com/watch?v=dQw4w9WgXcQ</span>)</span>, using a range of different devices and types of network connections.<br><br>Your creations can reach users all across the world...</code></pre>
+<web-copy-code><pre class="language-md"><code class="language-md"><span class="token front-matter-block"><span class="token punctuation">---</span><br><span class="token font-matter yaml language-yaml"><span class="token key atrule">layout</span><span class="token punctuation">:</span> post<br><span class="token key atrule">title</span><span class="token punctuation">:</span> What is network reliability and how do you measure it<span class="token punctuation">?</span><br><span class="token key atrule">authors</span><span class="token punctuation">:</span><br>  <span class="token punctuation">-</span> jeffposnick<br><span class="token key atrule">date</span><span class="token punctuation">:</span> <span class="token datetime number">2018-11-05</span><br><span class="token key atrule">description</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string"><br>  The modern web is enjoyed by a wide swath of people…</span></span><br><span class="token punctuation">---</span></span><br><br>The modern web is enjoyed by a wide swath of <span class="token url">[<span class="token content">people</span>](<span class="token url">https://www.youtube.com/watch?v=dQw4w9WgXcQ</span>)</span>, using a range of different devices and types of network connections.<br><br>Your creations can reach users all across the world...</code></pre>
 </web-copy-code><p>This front matter lets us define arbitrary properties like author(s), publish date, and tags.
 Eleventy conveniently exposes the front matter as <a href="https://www.11ty.dev/docs/data/" rel="noopener">data</a> in nearly every plugin, template, or other context where we'd like to do something intelligent.
 The data object also contains what Eleventy describes as the <a href="https://www.11ty.dev/docs/data-cascade/" rel="noopener">data cascade</a>—a variety of data pulled from each individual page, from the layout the page uses, and from data found in the hierarchical folder structure.</p>

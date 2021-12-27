@@ -21,8 +21,8 @@ window.applyThemeSetting();
 </script>
 
   
-  <link rel="stylesheet" href="/css/next.css?v=b6a8e56a3143">
-  <link rel="stylesheet" href="/css/legacy-rollout.css?v=a7004a70835b5">
+  <link rel="stylesheet" href="/css/next.css?v=d0344542a5f9d">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=b29d3cc5e890c">
   <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
 
 
@@ -114,12 +114,12 @@ function loadScript(url, type) {
     document.head.append(s);
   }
 }
-loadScript('/js/app.js?v=b6ee9b4e8c795', 'module');
+loadScript('/js/app.js?v=7cb0e43c33598', 'module');
 
 
 
 
-  loadScript('/js/content.js?v=4dcaa2b848f6b', 'module');
+  loadScript('/js/content.js?v=239d7bdb61885', 'module');
 
 
   loadScript('https://www.google-analytics.com/analytics.js', null);
@@ -521,7 +521,7 @@ safe.</p>
 library to sanitize the value and create a Trusted Type for you.
 In those cases, create a Trusted Type object yourself.</p>
 <p>For that, first create a <a href="https://w3c.github.io/webappsec-trusted-types/dist/spec/#policies-hdr" rel="noopener">policy</a>. Policies are factories for Trusted Types that enforce certain security rules on their input:</p>
-<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="highlight-line"><span class="token keyword">if</span> <span class="token punctuation">(</span>window<span class="token punctuation">.</span>trustedTypes <span class="token operator">&amp;&amp;</span> trustedTypes<span class="token punctuation">.</span>createPolicy<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// Feature testing</span></span><br><span class="highlight-line">  <span class="token keyword">const</span> escapeHTMLPolicy <span class="token operator">=</span> trustedTypes<span class="token punctuation">.</span><span class="token function">createPolicy</span><span class="token punctuation">(</span><span class="token string">'myEscapePolicy'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span></span><br><mark class="highlight-line highlight-line-active">    <span class="token function-variable function">createHTML</span><span class="token operator">:</span> <span class="token parameter">string</span> <span class="token operator">=></span> string<span class="token punctuation">.</span><span class="token function">replace</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">\&lt;</span><span class="token regex-delimiter">/</span><span class="token regex-flags">g</span></span><span class="token punctuation">,</span> <span class="token string">'&amp;lt;'</span><span class="token punctuation">)</span></mark><br><span class="highlight-line">  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line"><span class="token punctuation">}</span></span></code></pre>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="highlight-line"><span class="token keyword">if</span> <span class="token punctuation">(</span>window<span class="token punctuation">.</span>trustedTypes <span class="token operator">&amp;&amp;</span> trustedTypes<span class="token punctuation">.</span>createPolicy<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// Feature testing</span></span><br><span class="highlight-line">  <span class="token keyword">const</span> escapeHTMLPolicy <span class="token operator">=</span> trustedTypes<span class="token punctuation">.</span><span class="token function">createPolicy</span><span class="token punctuation">(</span><span class="token string">'myEscapePolicy'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span></span><br><mark class="highlight-line highlight-line-active">    <span class="token function-variable function">createHTML</span><span class="token operator">:</span> <span class="token parameter">string</span> <span class="token operator">=></span> string<span class="token punctuation">.</span><span class="token function">replace</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex"><span class="token escape">\&lt;</span></span><span class="token regex-delimiter">/</span><span class="token regex-flags">g</span></span><span class="token punctuation">,</span> <span class="token string">'&amp;lt;'</span><span class="token punctuation">)</span></mark><br><span class="highlight-line">  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line"><span class="token punctuation">}</span></span></code></pre>
 </web-copy-code><p>This code creates a policy called <code>myEscapePolicy</code> that can produce <code>TrustedHTML</code>
 objects via its <code>createHTML()</code> function. The defined rules will
 HTML-escape <code>&lt;</code> characters to prevent the creation of new HTML elements.</p>
