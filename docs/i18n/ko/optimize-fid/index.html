@@ -1,0 +1,760 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=b854ed0879fbc">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=8b54ed939c6f4">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>최초 입력 지연 최적화</title>
+<meta name="description" content="First Input Delay(최초 입력 지연, FID)는 사용자가 사이트에 처음 상호 작용한 시간부터 브라우저가 실제로 해당 상호 작용에 응답할 수 있었던 시간까지를 측정합니다. 사용하지 않는 JavaScript를 최소화하고, 긴 작업을 분리하고, 상호 작용 준비를 개선하여 FID를 최적화하는 방법을 알아봅니다." />
+
+<link rel="canonical" href="https://web.dev/i18n/ko/optimize-fid/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/optimize-fid/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/optimize-fid/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/optimize-fid/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/optimize-fid/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/optimize-fid/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/optimize-fid/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/optimize-fid/" />
+<meta itemprop="name" content="최초 입력 지연 최적화" />
+<meta itemprop="description" content="First Input Delay(최초 입력 지연, FID)는 사용자가 사이트에 처음 상호 작용한 시간부터 브라우저가 실제로 해당 상호 작용에 응답할 수 있었던 시간까지를 측정합니다. 사용하지 않는 JavaScript를 최소화하고, 긴 작업을 분리하고, 상호 작용 준비를 개선하여 FID를 최적화하는 방법을 알아봅니다." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/ko/optimize-fid/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="최초 입력 지연 최적화" />
+<meta property="og:description" content="First Input Delay(최초 입력 지연, FID)는 사용자가 사이트에 처음 상호 작용한 시간부터 브라우저가 실제로 해당 상호 작용에 응답할 수 있었던 시간까지를 측정합니다. 사용하지 않는 JavaScript를 최소화하고, 긴 작업을 분리하고, 상호 작용 준비를 개선하여 FID를 최적화하는 방법을 알아봅니다." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="스마트폰 화면을 만지는 손" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="최초 입력 지연 최적화" />
+<meta name="twitter:description" content="First Input Delay(최초 입력 지연, FID)는 사용자가 사이트에 처음 상호 작용한 시간부터 브라우저가 실제로 해당 상호 작용에 응답할 수 있었던 시간까지를 측정합니다. 사용하지 않는 JavaScript를 최소화하고, 긴 작업을 분리하고, 상호 작용 준비를 개선하여 FID를 최적화하는 방법을 알아봅니다." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=71a9c08553b37', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=44f8db7c0b161', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          배우기
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        측정
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        블로그
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        정보
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">닫기</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="스마트폰 화면을 만지는 손"     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="이 페이지에서">
+    <div class="course-toc__heading font-google-sans weight-medium">이 페이지에서</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#javascript">집약적 JavaScript 실행</a></li><li class="toc__listitem"><a class="toc__anchor" href="#long-tasks">긴 작업 세분화</a></li><li class="toc__listitem"><span class="toc__span">상호 작용 준비를 위해 페이지 최적화</span><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-2">자사 스크립트 실행으로 상호 작용 준비가 지연될 수 있음</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">상호 작용 준비의 여러 측면에 영향을 주는 데이터 가져오기</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">상호 작용 지연 시간을 늦출 수 있는 타사 스크립트 실행</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">웹 작업자 사용</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#reduce-javascript-execution">JavaScript 실행 시간 단축</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-6">개발자 도구</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="">최초 입력 지연 최적화</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            사용자 상호 작용에 더 빨리 응답하는 방법
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>May 5, 2020</time>
+            
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/optimize-fid/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/optimize-fid/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/optimize-fid/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/optimize-fid/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/optimize-fid/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/optimize-fid/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/houssein/"> <img     alt="Houssein Djirdeh"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/houssein/">Houssein Djirdeh</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/hdjirdeh">Twitter</a>
+               <a href="https://github.com/housseindjirdeh">GitHub</a>
+               <a href="https://glitch.com/@housseindjirdeh">Glitch</a>
+               <a href="https://houssein.me/">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/addyosmani/"> <img     alt="Addy Osmani"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/addyosmani/">Addy Osmani</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/addyosmani">Twitter</a>
+               <a href="https://github.com/addyosmani">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="이 페이지에서">
+      <summary>
+        이 페이지에서
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#javascript">집약적 JavaScript 실행</a></li><li class="toc__listitem"><a class="toc__anchor" href="#long-tasks">긴 작업 세분화</a></li><li class="toc__listitem"><span class="toc__span">상호 작용 준비를 위해 페이지 최적화</span><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-2">자사 스크립트 실행으로 상호 작용 준비가 지연될 수 있음</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">상호 작용 준비의 여러 측면에 영향을 주는 데이터 가져오기</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">상호 작용 지연 시간을 늦출 수 있는 타사 스크립트 실행</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">웹 작업자 사용</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#reduce-javascript-execution">JavaScript 실행 시간 단축</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-6">개발자 도구</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <blockquote>
+  <p>분명히 클릭했는데 아무 일도 없잖아! 이 페이지와 상호 작용할 수 없는 이유가 뭐지? 😢</p>
+</blockquote>
+<p><a href="/fcp/">First Contentful Paint(최초 콘텐츠풀 페인트, FCP)</a> 및 <a href="/lcp/">Largest Contentful Paint(최대 콘텐츠풀 페인트, LCP)</a>는 모두 콘텐츠가 페이지에서 시각적으로 렌더링(페인트)하는 데 걸리는 시간을 측정하는 메트릭입니다. 페인트 시간은 중요하긴 하지만 <em>로드 응답성</em> 또는 페이지가 사용자 상호 작용에 얼마나 빨리 응답하는지는 포착하지 않습니다.</p>
+<p><a href="/fid/">First Input Delay</a>(최초 입력 지연, FID)는 사이트의 상호 작용 및 응답성에 대한 사용자의 첫인상을 포착하는 <a href="/vitals/">Core Web Vitals</a> 메트릭으로, 사용자가 페이지와 처음 상호 작용한 시점부터 브라우저가 실제로 해당 상호 작용에 응답한 시점까지의 시간을 측정합니다. FID는 <a href="/user-centric-performance-metrics/#in-the-field">필드 메트릭</a>이며 실험실 환경에서 시뮬레이션할 수 없습니다. 응답 지연을 측정하려면 <strong>실제 사용자 상호 작용</strong>이 필요하기 때문입니다.</p>
+  <picture>
+    <source srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eXyvkqRHQZ5iG38Axh1Z.svg" media="(min-width: 640px)">
+    <img     alt="좋은 fid 값은 2.5초이고, 나쁨 값은 4.0초보다 크며 그 사이에는 개선이 필요합니다."     class="w-screenshot w-screenshot--filled width-full"     decoding="async"     height="96"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/Se4TiXIdp8jtLJVScWed.svg"               width="384"   />
+  </picture>
+<p><a href="/how-to-measure-speed/#lab-data-vs-field-data">실험실</a>에서 FID를 예측하는 데 활용할 만한 메트릭은 <a href="/tbt/">Total Blocking Time(총 차단 시간, TBT)</a>입니다. 둘은 서로 다른 부분을 측정하지만, TBT를 개선하면 일반적으로 FID도 개선됩니다.</p>
+<p>열악한 FID의 주요 원인은 <strong>과도한 JavaScript 실행</strong>입니다. JavaScript가 웹 페이지에서 구문 분석, 컴파일 및 실행하는 방식을 최적화하면 FID가 감소합니다.</p>
+<h2 id="javascript">집약적 JavaScript 실행 <a class="w-headline-link" href="#javascript">#</a></h2>
+<p>브라우저는 메인 스레드에서 JavaScript를 실행하는 동안 대부분의 사용자 입력에 응답할 수 없습니다. 즉, 메인 스레드가 사용 중인 경우 브라우저는 사용자 상호 작용에 응답할 수 없다는 의미입니다. 이를 개선하기 위한 방법은 다음과 같습니다.</p>
+<ul>
+<li><a href="#long-tasks">긴 작업 세분화</a></li>
+<li><a href="#optimize-interaction-readiness">상호 작용 준비를 위해 페이지 최적화</a></li>
+<li><a href="#use-a-web-worker">웹 작업자 사용</a></li>
+<li><a href="#reduce-javascript-execution">JavaScript 실행 시간 단축</a></li>
+</ul>
+<h2 id="long-tasks">긴 작업 세분화 <a class="w-headline-link" href="#long-tasks">#</a></h2>
+<p>단일 페이지에 로드되는 JavaScript를 줄이는 방법을 이미 시도했다면, 장기 실행 코드를 <strong>더 작은 비동기 작업</strong>으로 세분화하는 방법이 유용할 수도 있습니다.</p>
+<p><a href="/custom-metrics/#long-tasks-api"><strong>긴 작업</strong></a>이란 사용자가 UI가 응답하지 않는다는 것을 발견할 수 있는 JavaScript 실행 기간입니다. 50ms 이상 메인 스레드를 차단하는 모든 코드는 긴 작업이라고 볼 수 있으며 사용자가 현재 필요로 하는 것보다 더 많은 것을 로드 및 실행해 JavaScript가 팽창할 가능성이 있음을 나타내는 신호일 수 있습니다. 그러므로 긴 작업을 분할하면 사이트의 입력 지연을 줄일 수 있습니다.</p>
+<figure class="w-figure"><img     alt="Chrome DevTools의 긴 작업"     class="w-screenshot"     decoding="async"     height="132"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1600 1600w"          width="800"   /> <figcaption class="w-figcaption">Chrome DevTools의 Performance 패널에서 <a href="https://developers.google.com/web/updates/2020/03/devtools#long-tasks">긴 작업을 시각화</a>한 모습</figcaption></figure>
+<figure class="w-figure">
+  <img     alt="Chrome DevTools의 긴 작업"     class="w-screenshot"     decoding="async"     height="132"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">Chrome DevTools의 Performance 패널에서 <a href="https://developers.google.com/web/updates/2020/03/devtools#long-tasks">긴 작업을 시각화</a>한 모습</figcaption>
+</figure>
+<p>FID는 코드 분할 및 긴 작업 세분화와 같은 모범 사례를 채택하면 눈에 띄게 개선됩니다. TBT는 필드 메트릭이 아니지만 궁극적으로 Time To Interactive(상호 작용까지의 시간, TTI)와 FID를 모두 개선하기 위한 진행 상황을 확인하는 데 유용합니다.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>자세한 내용은 <a href="/long-tasks-devtools/">긴 JavaScript 작업으로 인해 상호 작용까지의 시간이 지연되나요?</a>를 참조하세요.</p>
+</div></aside>
+<h2 id="">상호 작용 준비를 위해 페이지 최적화 <a class="w-headline-link" href="#">#</a></h2>
+<p>JavaScript에 크게 의존하는 웹 앱에서 FID 및 TBT 점수가 좋지 않은 일반적인 원인에는 여러 가지가 있습니다.</p>
+<h3 id="-2">자사 스크립트 실행으로 상호 작용 준비가 지연될 수 있음 <a class="w-headline-link" href="#-2">#</a></h3>
+<ul>
+<li>JavaScript 크기 팽창, 과도한 실행 시간 및 비효율적인 청크로 인해 페이지가 사용자 입력에 응답하고 FID, TBT 및 TTI에 영향을 미치는 속도가 느려질 수 있습니다. 코드와 기능을 점진적으로 로드하면 이 작업을 분산하고 상호 작용 준비를 개선하는 데 도움이 될 수 있습니다.</li>
+<li>서버 측에서 렌더링된 앱은 화면에 픽셀이 빠르게 그려지는 것처럼 보일 수 있지만 대규모 스크립트 실행(예: 이벤트 리스너를 연결하기 위한 원상 회복)으로 인해 사용자 상호 작용이 차단될 수도 있다는 점에 유의해야 합니다. 경로 기반 코드 분할을 사용하는 경우 수백 밀리초, 때로는 몇 초가 소요될 수 있습니다. 더 많은 논리를 서버 측으로 이동하거나 빌드 시간 동안 더 많은 콘텐츠를 고정적으로 생성하도록 하는 것이 좋습니다.</li>
+</ul>
+<p>다음은 애플리케이션에 대한 자사 스크립트 로딩을 최적화하기 전과 후의 TBT 점수입니다. 중요하지 않은 구성 요소에 대해 비용이 많이 드는 스크립트 로드(및 실행)를 이동함으로써 사용자는 페이지와 훨씬 더 빨리 상호 작용할 수 있게 되었습니다.</p>
+<img     alt="자사 스크립트 최적화 후 개선된 Lighthouse의 TBT 점수."     class="w-screenshot"     decoding="async"     height="148"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=1600 1600w"          width="800"   />
+<h3 id="-3">상호 작용 준비의 여러 측면에 영향을 주는 데이터 가져오기 <a class="w-headline-link" href="#-3">#</a></h3>
+<ul>
+<li>계속해서 이어지는 계단식 가져오기(예: 구성 요소에 대한 JavaScript 및 데이터 가져오기)를 기다리는 것은 상호 작용 지연 시간에 영향을 줄 수 있습니다. 그러므로 계단식 데이터 가져오기에 대한 의존도를 최소화하는 것을 목표로 하세요.</li>
+<li>대규모 인라인 데이터 저장소는 HTML 구문 분석 시간을 늘려 페인트 및 상호 작용 메트릭 모두에 영향을 줄 수 있습니다. 클라이언트 측에서 후처리해야 하는 데이터의 양을 최소화하는 것을 목표로 하세요.</li>
+</ul>
+<h3 id="-4">상호 작용 지연 시간을 늦출 수 있는 타사 스크립트 실행 <a class="w-headline-link" href="#-4">#</a></h3>
+<ul>
+<li>많은 사이트에는 네트워크를 계속 바쁘게 유지하고 메인 스레드가 주기적으로 응답하지 않도록 하여 상호 작용 대기 시간에 영향을 줄 수 있는 타사 태그 및 분석이 포함되어 있습니다. 타사 코드의 주문형 로드를 탐색해보세요(예: 뷰포트에 더 가깝게 스크롤될 때까지 스크롤해야 볼 수 있는 광고를 로드하지 않을 수 있음).</li>
+<li>경우에 따라 타사 스크립트가 메인 스레드의 우선순위 및 대역폭 측면에서 자사 스크립트보다 앞에 올 수 있으며, 이 경우 페이지에서 상호 작용 준비를 마치는 시간도 지연됩니다. 사용자에게 가장 큰 가치를 제공하는 부분을 먼저 로드하도록 우선순위를 정하세요.</li>
+</ul>
+<h2 id="-5">웹 작업자 사용 <a class="w-headline-link" href="#-5">#</a></h2>
+<p>차단된 메인 스레드는 입력 지연의 주요 원인 중 하나입니다. <a href="https://developer.mozilla.org/docs/Web/API/Worker" rel="noopener">웹 작업자</a>를 사용하면 백그라운드 스레드에서 JavaScript를 실행할 수 있습니다. UI가 아닌 작업을 별도의 작업자 스레드로 이동하면 메인 스레드 차단 시간을 줄이고 결과적으로 FID를 개선할 수 있습니다.</p>
+<p>사이트에서 웹 작업자를 더 쉽게 사용할 수 있도록 다음 라이브러리를 사용하는 것이 좋습니다.</p>
+<ul>
+<li><a href="https://github.com/GoogleChromeLabs/comlink" rel="noopener">Comlink</a> <code>postMessage</code>를 추상화하고 사용하기 쉽게 만드는 도우미 라이브러리</li>
+<li><a href="https://github.com/WebReflection/workway" rel="noopener">Workway</a> : 일반적 목적의 웹 작업자 익스포터</li>
+<li><a href="https://github.com/developit/workerize" rel="noopener">Workerize</a> : 모듈을 웹 작업자로 이동</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>웹 작업자가 메인 스레드에서 코드를 실행하는 방법에 대해 자세히 알아보려면 <a href="/off-main-thread/">웹 작업자를 사용하여 브라우저의 메인 스레드에서 JavaScript 실행</a>을 참조하세요.</p>
+</div></aside>
+<h3 id="reduce-javascript-execution">JavaScript 실행 시간 단축 <a class="w-headline-link" href="#reduce-javascript-execution">#</a></h3>
+<p>페이지의 JavaScript 양을 제한하면 브라우저에서 JavaScript 코드를 실행하는 데 필요한 시간이 줄어듭니다. 이렇게 하면 브라우저가 사용자 상호 작용에 응답할 수 있는 속도가 빨라집니다.</p>
+<p>페이지에서 실행되는 JavaScript의 양을 줄이는 방법은 다음과 같습니다.</p>
+<ul>
+<li>사용하지 않는 JavaScript 지연</li>
+<li>사용하지 않는 Polyfills 최소화</li>
+</ul>
+<h4 id="javascript-2">사용하지 않는 JavaScript 지연 <a class="w-headline-link" href="#javascript-2">#</a></h4>
+<p>기본적으로 모든 JavaScript는 렌더링을 차단합니다. 브라우저가 외부 JavaScript 파일에 연결되는 스크립트 태그를 만나면 수행 중인 작업을 일시 중지하고 해당 JavaScript를 다운로드, 구문 분석, 컴파일 및 실행해야 합니다. 따라서 페이지 또는 사용자 입력에 응답하는 데 필요한 코드만 로드해야 합니다.</p>
+<p>Chrome DevTools의 <a href="https://developers.google.com/web/tools/chrome-devtools/coverage" rel="noopener">Coverage</a> 탭을 보면 웹 페이지에서 사용되지 않는 JavaScript가 어느 정도인지 파악할 수 있습니다.</p>
+<img     alt="Coverage 탭."     class="w-screenshot w-screenshot--filled"     decoding="async"     height="559"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=1600 1600w"          width="800"   />
+<p>사용하지 않는 JavaScript를 줄이는 방법은 다음과 같습니다.</p>
+<ul>
+<li>번들을 여러 청크로 코드 분할</li>
+<li><code>async</code> 또는 <code>defer</code>를 사용하여 타사 스크립트를 비롯한 중요하지 않은 JavaScript 지연</li>
+</ul>
+<p><strong>코드 분할</strong>은 하나의 큰 JavaScript 번들을 조건부로 로드할 수 있는 더 작은 청크로 분할하는 개념입니다(지연 로드라고도 함). 대부분의 최신 브라우저는 <a href="https://caniuse.com/#feat=es6-module-dynamic-import" rel="noopener">동적 가져오기 구문을 지원하며</a> 이는 요청 시 모듈 가져오기를 허용합니다.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">import</span><span class="token punctuation">(</span><span class="token string">'module.js'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">module</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token comment">// 모듈로 뭔가 해보기.</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>특정 사용자 상호 작용(예: 경로 변경 또는 모달 표시)에서 JavaScript를 동적으로 가져오면 초기 페이지 로드에 사용되지 않는 코드는 필요할 때만 가져오도록 합니다.</p>
+<p>일반적인 브라우저 지원 외에도 다양한 빌드 시스템에서 동적 가져오기 구문을 사용할 수 있습니다.</p>
+<ul>
+<li><a href="https://medium.com/rollup/rollup-now-has-code-splitting-and-we-need-your-help-46defd901c82" rel="noopener">webpack</a> , <a href="https://parceljs.org/code_splitting.html" rel="noopener">Rollup</a> 또는 <a href="https://webpack.js.org/guides/code-splitting/" rel="noopener">Parcel</a>을 모듈 번들러로 사용하는 경우 동적 가져오기 지원을 활용하세요.</li>
+<li><a href="https://reactjs.org/docs/code-splitting.html#reactlazy" rel="noopener">React</a> , <a href="https://angular.io/guide/lazy-loading-ngmodules" rel="noopener">Angular</a> 및 <a href="https://vuejs.org/v2/guide/components-dynamic-async.html#Async-Components" rel="noopener">Vue</a> 와 같은 클라이언트 측 프레임워크는 구성 요소 수준에서 지연 로드를 쉽게 하기 위해 추상화를 제공합니다.</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>코드 분할에 대해 자세히 알아보려면 <a href="/reduce-javascript-payloads-with-code-splitting/">코드 분할로 JavaScript 페이로드 줄이기</a>를 참조하세요.</p>
+</div></aside>
+<p>코드 분할 외에도 중요 경로 또는 스크롤 없이 볼 수 있는 콘텐츠에 필요하지 않은 스크립트에는 항상 <a href="https://javascript.info/script-async-defer" rel="noopener">async 또는 defer</a>를 사용하세요.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">defer</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>…<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">async</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>…<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>특별한 이유가 없는 한 모든 타사 스크립트는 기본적으로 <code>defer</code> 또는 <code>async</code></p>
+<h4 id="polyfills">사용하지 않는 Polyfills 최소화 <a class="w-headline-link" href="#polyfills">#</a></h4>
+<p>최신 JavaScript 구문을 사용하여 코드를 작성하고 최신 브라우저 API를 참조하는 경우 이전 브라우저에서 작동하려면 코드를 변환하고 Polyfills을 포함해야 합니다.</p>
+<p>사이트에 Polyfills 및 변환 컴파일된 코드를 포함할 때 발생하는 주요 성능 문제는 최신 브라우저에서 필요하지 않은 경우 이를 다운로드할 필요가 없다는 것입니다. 애플리케이션의 JavaScript 크기를 줄이려면 사용하지 않는 Polyfills을 최대한 최소화하고 필요한 환경에서만 사용을 제한하세요.</p>
+<p>사이트에서 폴리필 사용을 최적화하려면 다음과 같은 방법을 사용합니다.</p>
+<ul>
+<li>
+<p><a href="https://babeljs.io/docs/en/index.html" rel="noopener">Babel</a>을 변환기로 사용하는 경우 <a href="https://babeljs.io/docs/en/babel-preset-env" rel="noopener"><code>@babel/preset-env</code></a>를 사용하여 타겟팅하려는 브라우저에 필요한 Polyfills만 포함합니다. Babel 7.9의 경우 <a href="https://babeljs.io/docs/en/babel-preset-env#bugfixes" rel="noopener"><code>bugfixes</code></a> 옵션을 활성화하여 불필요한 Polyfills을 더 줄일 수 있습니다.</p>
+</li>
+<li>
+<p>module/nomodule 패턴을 사용하여 두 개의 개별 번들을 제공합니다(<code>@babel/preset-env</code> 역시 <a href="https://babeljs.io/docs/en/babel-preset-env#targetsesmodules" rel="noopener"><code>target.esmodules</code></a>를 통해 이를 지원함).</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>module<span class="token punctuation">"</span></span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>modern.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">nomodule</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>legacy.js<span class="token punctuation">"</span></span> <span class="token attr-name">defer</span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>Babel로 컴파일된 많은 최신 ECMAScript 기능은 JavaScript 모듈을 지원하는 환경에서 이미 지원되고 있습니다. 따라서 이렇게 하면 실제로 필요한 브라우저에 대해 변환 컴파일된 코드만 사용되도록 하여 프로세스를 단순화할 수 있습니다.</p>
+</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p><a href="/serve-modern-code-to-modern-browsers/">더 빠른 페이지 로드를 위해 최신 브라우저에 최신 코드 제공</a> 가이드에서 이 주제에 대해 자세히 설명합니다.</p>
+</div></aside>
+<h2 id="-6">개발자 도구 <a class="w-headline-link" href="#-6">#</a></h2>
+<p>FID를 측정하고 디버그하는 데 사용할 수 있는 여러 가지 도구가 있습니다.</p>
+<ul>
+<li>
+<p><a href="https://developers.google.com/web/tools/lighthouse" rel="noopener">Lighthouse 6.0</a>은 필드 메트릭인 FID에 대한 지원을 포함하지 않습니다. 그러나 <a href="/tbt/">총 차단 시간</a>(TBT)를 그 대체제로 사용할 수 있습니다. TBT를 개선하는 최적화는 필드에서 FID도 개선합니다.</p>
+  <img     alt="Lighthouse 6.0."     class="w-screenshot"     decoding="async"     height="309"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=1600 1600w"          width="800"   />
+</li>
+<li>
+<p><a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome User Experience Report</a> 는 원본 수준에서 집계된 실제 FID 값을 제공합니다.</p>
+</li>
+</ul>
+<p><em>Philip Walton, Kayce Basques, Ilya Grigorik 및 Annie Sullivan의 리뷰에 감사드립니다.</em></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/performance/">성능</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/web-vitals/">Web Vitals</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          마지막 업데이트: <time>May 5, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/ko/blog/optimize-fid/index.md"
+        >
+          기사 개선하기
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@hdjirdeh | @addyosmani"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">공유</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            버그 신고
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            소스 보기
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">관련된 콘텐츠</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome 업데이트
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            웹 기초
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            사례 연구
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            팟캐스트
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            쇼
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">연결</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          전체 제품
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="ko"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          약관 및 개인정보 보호
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          커뮤니티 가이드라인
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

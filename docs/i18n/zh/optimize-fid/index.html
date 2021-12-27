@@ -1,0 +1,759 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=e28ef331035c2">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=eebf9a006cf62">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>优化 First Input Delay 首次输入延迟</title>
+<meta name="description" content="首次输入延迟 (FID) 测量从用户第一次与您的网站交互直到浏览器实际能够对交互作出响应的时间。了解如何通过最小化未使用的 JavaScript、分割长任务和改进交互准备来优化 FID。" />
+
+<link rel="canonical" href="https://web.dev/i18n/zh/optimize-fid/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/optimize-fid/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/optimize-fid/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/optimize-fid/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/optimize-fid/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/optimize-fid/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/optimize-fid/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/optimize-fid/" />
+<meta itemprop="name" content="优化 First Input Delay 首次输入延迟" />
+<meta itemprop="description" content="首次输入延迟 (FID) 测量从用户第一次与您的网站交互直到浏览器实际能够对交互作出响应的时间。了解如何通过最小化未使用的 JavaScript、分割长任务和改进交互准备来优化 FID。" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="zh_CN" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/zh/optimize-fid/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="优化 First Input Delay 首次输入延迟" />
+<meta property="og:description" content="首次输入延迟 (FID) 测量从用户第一次与您的网站交互直到浏览器实际能够对交互作出响应的时间。了解如何通过最小化未使用的 JavaScript、分割长任务和改进交互准备来优化 FID。" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="一只手触摸智能手机屏幕" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="优化 First Input Delay 首次输入延迟" />
+<meta name="twitter:description" content="首次输入延迟 (FID) 测量从用户第一次与您的网站交互直到浏览器实际能够对交互作出响应的时间。了解如何通过最小化未使用的 JavaScript、分割长任务和改进交互准备来优化 FID。" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=d724e24471206', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=5f143ccd1eb0e', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          学习
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        衡量
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        博客
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        关于
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">关闭</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="一只手触摸智能手机屏幕"     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="本页内容">
+    <div class="course-toc__heading font-google-sans weight-medium">本页内容</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#javascript">繁重的 JavaScript 执行</a></li><li class="toc__listitem"><a class="toc__anchor" href="#long-tasks">分割长任务</a></li><li class="toc__listitem"><span class="toc__span">优化您的页面，做好交互准备</span><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-2">第一方脚本执行会延迟交互准备</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">数据获取会影响交互准备的许多方面</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">第三方脚本执行也会加剧交互延迟</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#web-worker">使用 Web Worker</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#reduce-javascript-execution">减少 JavaScript 执行时间</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">开发者工具</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="first-input-delay">优化 First Input Delay 首次输入延迟</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            如何更快地响应用户交互。
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>May 5, 2020</time>
+            
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/optimize-fid/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/optimize-fid/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/optimize-fid/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/optimize-fid/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/optimize-fid/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/optimize-fid/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/houssein/"> <img     alt="Houssein Djirdeh"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/houssein/">Houssein Djirdeh</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/hdjirdeh">Twitter</a>
+               <a href="https://github.com/housseindjirdeh">GitHub</a>
+               <a href="https://glitch.com/@housseindjirdeh">Glitch</a>
+               <a href="https://houssein.me/">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/addyosmani/"> <img     alt="Addy Osmani"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/addyosmani/">Addy Osmani</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/addyosmani">Twitter</a>
+               <a href="https://github.com/addyosmani">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="本页内容">
+      <summary>
+        本页内容
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#javascript">繁重的 JavaScript 执行</a></li><li class="toc__listitem"><a class="toc__anchor" href="#long-tasks">分割长任务</a></li><li class="toc__listitem"><span class="toc__span">优化您的页面，做好交互准备</span><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-2">第一方脚本执行会延迟交互准备</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">数据获取会影响交互准备的许多方面</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">第三方脚本执行也会加剧交互延迟</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#web-worker">使用 Web Worker</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#reduce-javascript-execution">减少 JavaScript 执行时间</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">开发者工具</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <blockquote>
+  <p>我明明点击了，却什么也没发生！为什么我无法与这个页面交互？😢</p>
+</blockquote>
+<p><a href="/fcp/">First Contentful Paint 首次内容绘制</a> (FCP) 和<a href="/lcp/">Largest Contentful Paint 最大内容绘制</a> (LCP) 都是测量内容在页面上完成视觉渲染（绘制）所需时间的指标。尽管这两项指标十分重要，但绘制时间并不能捕获<em>加载响应度</em>：或页面对用户交互的响应速度。</p>
+<p><a href="/fid/">首次输入延迟</a> (FID) 是<a href="/vitals/">核心 Web 指标</a>中的一项指标，可捕获用户对网站交互性和响应度的第一印象。该项指标测量从用户第一次与您的网站交互直到浏览器实际能够对交互作出响应的时间。FID 是一项<a href="/user-centric-performance-metrics/#in-the-field">实际指标</a>，无法在实验室环境中进行模拟。该项指标需要<strong>真实的用户交互</strong>才能测量响应延迟。</p>
+  <picture>
+    <source srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eXyvkqRHQZ5iG38Axh1Z.svg" media="(min-width: 640px)">
+    <img     alt="好的fid 值为2.5 秒，差的值大于4.0 秒，中间的任何值都需要改进"     class="w-screenshot w-screenshot--filled width-full"     decoding="async"     height="96"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/Se4TiXIdp8jtLJVScWed.svg"               width="384"   />
+  </picture>
+<p>为了有助于在<a href="/how-to-measure-speed/#lab-data-vs-field-data">实验室</a>中预测 FID，我们建议您测量<a href="/tbt/">Total Blocking Time 总阻塞时间 (TBT)</a>。虽然这两项指标的测量内容不同，但 TBT 的改进通常能够带来 FID 的相应改进。</p>
+<p>糟糕的 FID 主要是由<strong>繁重的 JavaScript 执行</strong>导致的。优化您网页上 JavaScript 的解析、编译和执行方式将直接降低 FID。</p>
+<h2 id="javascript">繁重的 JavaScript 执行 <a class="w-headline-link" href="#javascript">#</a></h2>
+<p>浏览器在主线程上执行 JavaScript 时无法对大多数用户输入作出响应。换句话说，当主线程繁忙时，浏览器无法响应用户交互。要想改善这一点：</p>
+<ul>
+<li><a href="#long-tasks">分割长任务</a></li>
+<li><a href="#optimize-interaction-readiness">优化您的页面，做好交互准备</a></li>
+<li><a href="#use-a-web-worker">使用 Web Worker</a></li>
+<li><a href="#reduce-javascript-execution">减少 JavaScript 执行时间</a></li>
+</ul>
+<h2 id="long-tasks">分割长任务 <a class="w-headline-link" href="#long-tasks">#</a></h2>
+<p>如果您已经尝试过减少在单个页面上加载的 JavaScript 数量，那么另一个可能会非常有用的做法是将长时间运行的代码拆解为<strong>更小的异步任务</strong>。</p>
+<p><a href="/custom-metrics/#long-tasks-api"><strong>长任务</strong></a>是 JavaScript 的执行期，这期间，用户可能会发现您的用户界面没有响应。任何阻塞主线程 50 毫秒或以上的代码都可以被称为长任务。长任务是潜在 JavaScript 膨胀的标志（加载和执行的内容超出用户现在可能需要的范围）。将长任务拆分可以减少您网站上的输入延迟。</p>
+<figure class="w-figure">
+  <img     alt="Chrome 开发者工具中的长任务"     class="w-screenshot"     decoding="async"     height="132"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption"> Chrome 开发者工具在性能面板中<a href="https://developers.google.com/web/updates/2020/03/devtools#long-tasks">将长任务可视化</a></figcaption>
+</figure>
+<p>当您采用类似代码分割和分割长任务这样的最佳实践后，FID 应该会得到显著改善。虽然 TBT 不是一项实际指标，但该指标对于查看 Time To Interactive 可交互时间 (TTI) 和 FID 的最终改进进度非常有用。</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>如需了解更多信息，请查看<a href="/long-tasks-devtools/">JavaScript 长任务是否会延迟您的可交互时间？</a>。</p>
+</div></aside>
+<h2 id="">优化您的页面，做好交互准备 <a class="w-headline-link" href="#">#</a></h2>
+<p>对于高度依赖 JavaScript 的网络应用程序来说，导致 FID 和 TBT 分数较差的常见原因有很多：</p>
+<h3 id="-2">第一方脚本执行会延迟交互准备 <a class="w-headline-link" href="#-2">#</a></h3>
+<ul>
+<li>JavaScript 体积膨胀、执行时间过长和分块效率低下会延迟页面对用户输入作出响应的时机，并影响 FID、TBT 和 TTI。渐进式加载代码和功能可以有助于分散工作量，改善交互准备。</li>
+<li>服务端渲染的应用程序在屏幕上绘制像素的速度可能看起来很快，但需要注意用户交互被大型脚本执行（例如通过数据重构来连接事件侦听器）阻塞的情况。如果使用了基于路由的代码分割，这可能会花费数百毫秒，有时甚至是数秒。请考虑将更多逻辑转移到服务器端，或在构建期间静态生成更多内容。</li>
+</ul>
+<p>以下是优化某应用程序的第一方脚本加载之前和之后的 TBT 分数。通过移除关键路径上消耗大量资源为非必要组件加载（和执行）的脚本，用户便能够更快地与页面进行交互。</p>
+<img     alt="优化第一方脚本后，灯塔中 TBT 分数的改善。"     class="w-screenshot"     decoding="async"     height="148"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=1600 1600w"          width="800"   />
+<h3 id="-3">数据获取会影响交互准备的许多方面 <a class="w-headline-link" href="#-3">#</a></h3>
+<ul>
+<li>等待一连串的级联获取（例如组件的 JavaScript 和数据获取）会影响交互延迟。请尽量最大限度地减少对级联数据获取的依赖。</li>
+<li>大型内联数据存储会延长 HTML 解析时间并影响绘制和交互指标。请尽量最大限度地减少需要在客户端进行后处理的数据量。</li>
+</ul>
+<h3 id="-4">第三方脚本执行也会加剧交互延迟 <a class="w-headline-link" href="#-4">#</a></h3>
+<ul>
+<li>许多网站包括的第三方标签和分析会使网络一直处于忙碌状态，并使主线程周期性地无响应，从而影响交互延迟。请探究按需加载第三方代码的相关做法（例如，不要加载还未滚动到可视区域附近的非首屏广告）。</li>
+<li>在某些情况下，第三方脚本会在主线程的优先级和带宽方面抢占第一方脚本，并延迟页面做好交互准备的时机。请尝试优先加载您认为可以为用户提供最大价值的内容。</li>
+</ul>
+<h2 id="web-worker">使用 Web Worker <a class="w-headline-link" href="#web-worker">#</a></h2>
+<p>被阻塞的主线程是输入延迟的主要原因之一。<a href="https://developer.mozilla.org/docs/Web/API/Worker" rel="noopener">Web Worker</a>能够让 JavaScript 在后台线程上运行。将非用户界面操作移动到单独的工作线程上可以缩减主线程阻塞时间，从而改善 FID。</p>
+<p>请考虑使用以下库来使您更轻松地在网站上使用 Web Worker：</p>
+<ul>
+<li><a href="https://github.com/GoogleChromeLabs/comlink" rel="noopener">Comlink</a>：一个助手类库，该库抽象了<code>postMessage</code>，使其更易于使用</li>
+<li><a href="https://github.com/WebReflection/workway" rel="noopener">Workway</a> : 一个通用的 Web Worker 导出器</li>
+<li><a href="https://github.com/developit/workerize" rel="noopener">Workerize</a>：将模块移动到 Web Worker 中</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>如需进一步了解 Web Worker 如何在主线程外执行代码，请参阅<a href="/off-main-thread/">使用 Web Worker 在浏览器主线程外运行 JavaScript</a>。</p>
+</div></aside>
+<h3 id="reduce-javascript-execution">减少 JavaScript 执行时间 <a class="w-headline-link" href="#reduce-javascript-execution">#</a></h3>
+<p>限制页面上 JavaScript 的数量可以减少浏览器执行 JavaScript 代码所需的时间。这样能够使浏览器更迅速地开始对任何用户交互作出响应。</p>
+<p>要想减少在页面上执行的 JavaScript 数量：</p>
+<ul>
+<li>延迟加载未使用的 JavaScript</li>
+<li>最大限度减少未使用的 polyfill</li>
+</ul>
+<h4 id="javascript-2">延迟加载未使用的 JavaScript <a class="w-headline-link" href="#javascript-2">#</a></h4>
+<p>默认情况下，所有 JavaScript 都是阻塞渲染的。当浏览器遇到链接到外部 JavaScript 文件的脚本标签时，就必须暂停正在执行的操作，转而下载、解析、编译和执行该 JavaScript。因此，您应该只加载页面所需的代码或响应用户输入所需的代码。</p>
+<p>Chrome 开发者工具中的<a href="https://developers.google.com/web/tools/chrome-devtools/coverage" rel="noopener">代码覆盖率</a>选项卡能够告诉您网页上有多少未在使用的 JavaScript。</p>
+<img     alt="代码覆盖率选项卡。"     class="w-screenshot w-screenshot--filled"     decoding="async"     height="559"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=1600 1600w"          width="800"   />
+<p>要想精简未使用的 JavaScript：</p>
+<ul>
+<li>将您的资源包代码拆分为多个块</li>
+<li>使用<code>async</code>或<code>defer</code>延迟加载任何非关键 JavaScript，包括第三方脚本</li>
+</ul>
+<p><strong>代码分割</strong>是将单个大型 JavaScript 包拆分为可以按需加载（也称懒加载）的多个小块的概念。<a href="https://caniuse.com/#feat=es6-module-dynamic-import" rel="noopener">大多数较新的浏览器都支持动态导入语法</a>，因此能够按需获取模块：</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">import</span><span class="token punctuation">(</span><span class="token string">'module.js'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">module</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token comment">// 对模块进行一些操作。</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>在进行某些用户交互（例如更改路由或显示模态框）时动态导入 JavaScript 将确保仅在需要时才获取初始页面加载中未使用的代码。</p>
+<p>除了一般浏览器支持外，动态导入语法还可用于许多不同的构建系统。</p>
+<ul>
+<li>如果您使用<a href="https://webpack.js.org/guides/code-splitting/" rel="noopener">webpack</a>、<a href="https://medium.com/rollup/rollup-now-has-code-splitting-and-we-need-your-help-46defd901c82" rel="noopener">Rollup</a>或<a href="https://parceljs.org/code_splitting.html" rel="noopener">Parcel</a>模块打包器，请多加利用这些工具的动态导入支持。</li>
+<li><a href="https://reactjs.org/docs/code-splitting.html#reactlazy" rel="noopener">React</a>、<a href="https://angular.io/guide/lazy-loading-ngmodules" rel="noopener">Angular</a>和<a href="https://vuejs.org/v2/guide/components-dynamic-async.html#Async-Components" rel="noopener">Vue</a>等客户端框架实现了抽象，使组件级的懒加载变得更加容易。</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>请查看<a href="/reduce-javascript-payloads-with-code-splitting/">使用代码分割减少 JavaScript 有效负载</a>，了解代码分割的更多相关信息。</p>
+</div></aside>
+<p>除了代码分割之外，请始终对关键路径或首屏内容不需要的脚本使用 <a href="https://javascript.info/script-async-defer" rel="noopener">async 或 defer</a>。</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">defer</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>…<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">async</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>…<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>除非有特殊原因，否则所有第三方脚本在默认情况下都应该使用<code>defer</code>或<code>async</code>来加载。</p>
+<h4 id="polyfill">最大限度减少未使用的 polyfill <a class="w-headline-link" href="#polyfill">#</a></h4>
+<p>如果您使用现代 JavaScript 语法编写代码并参考现代浏览器 API，那么要使您的代码在旧版本浏览器中正常工作，您将需要对代码进行转译并包括 polyfill。</p>
+<p>在您的网站中包括 polyfill 和转译代码会带来性能方面的一个主要担忧，即如果新版本浏览器不需要这些资源，则不必进行下载。要想精简您应用程序的 JavaScript 大小，请尽可能地减少未使用的 polyfill，并且只在需要它们的环境中进行使用。</p>
+<p>如需优化您网站上的 polyfill 使用：</p>
+<ul>
+<li>
+<p>如果您在使用 <a href="https://babeljs.io/docs/en/index.html" rel="noopener">Babel</a> 转译器，请使用<a href="https://babeljs.io/docs/en/babel-preset-env" rel="noopener"><code>@babel/preset-env</code></a>来只将您计划定位的浏览器所需的 polyfill 包括在其中。对于 Babel 7.9，启用<a href="https://babeljs.io/docs/en/babel-preset-env#bugfixes" rel="noopener"><code>bugfixes</code></a>选项来进一步精简任何不需要的 polyfill</p>
+</li>
+<li>
+<p>使用模块/非模块模式来交付两个单独的资源包（<code>@babel/preset-env</code>也能够通过<a href="https://babeljs.io/docs/en/babel-preset-env#targetsesmodules" rel="noopener"><code>target.esmodules</code></a>支持这一操作）</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>module<span class="token punctuation">"</span></span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>modern.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">nomodule</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>legacy.js<span class="token punctuation">"</span></span> <span class="token attr-name">defer</span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>许多使用 Babel 编译的较新的 ECMAScript 特性已经在支持 JavaScript 模块的环境中得到支持。因此，您可以通过这一做法对确保仅将转译代码用于实际有需要的浏览器的过程进行简化。</p>
+</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p><a href="/serve-modern-code-to-modern-browsers/">为现代浏览器提供现代代码来实现更快的页面加载速度</a>指南对该主题展开了详细探讨。</p>
+</div></aside>
+<h2 id="-5">开发者工具 <a class="w-headline-link" href="#-5">#</a></h2>
+<p>许多工具都可以用于测量和调试 FID：</p>
+<ul>
+<li>
+<p><a href="https://developers.google.com/web/tools/lighthouse" rel="noopener">灯塔 6.0</a> 不支持 FID，因为 FID 是一个实际指标。但是，可以用<a href="/tbt/">总阻塞时间</a> (TBT) 作为代理。能够改进 TBT 的优化也应该能改进实际情况下的 FID。</p>
+  <img     alt="灯塔 6.0."     class="w-screenshot"     decoding="async"     height="309"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=1600 1600w"          width="800"   />
+</li>
+<li>
+<p><a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome 用户体验报告</a>提供在域级聚合下的真实 FID 值</p>
+</li>
+</ul>
+<p><em>感谢 Philip Walton、Kayce Basques、Ilya Grigorik 和 Annie Sullivan 的审阅。</em></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/performance/">性能</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/web-vitals/">网页指标</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>May 5, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/zh/blog/optimize-fid/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@hdjirdeh | @addyosmani"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">分享</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            提交错误
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            查看源代码
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">相关内容</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome 动态
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            网站开发基础
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            案例研究
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            播客
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            节目
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">连接</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          所有产品
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="zh"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          条款和隐私权
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          社区准则
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

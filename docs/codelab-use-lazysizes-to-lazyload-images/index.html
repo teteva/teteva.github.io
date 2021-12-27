@@ -1,0 +1,632 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=d85e3aa512992">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Lazy load offscreen images with lazysizes</title>
+<meta name="description" content="In this codelab, learn how to use lazysizes to only load images that are in the current viewport. " />
+
+<link rel="canonical" href="https://web.dev/codelab-use-lazysizes-to-lazyload-images/" />
+
+<meta itemprop="name" content="Lazy load offscreen images with lazysizes" />
+<meta itemprop="description" content="In this codelab, learn how to use lazysizes to only load images that are in the current viewport. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/codelab-use-lazysizes-to-lazyload-images/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Lazy load offscreen images with lazysizes" />
+<meta property="og:description" content="In this codelab, learn how to use lazysizes to only load images that are in the current viewport. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="performance" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Lazy load offscreen images with lazysizes" />
+<meta name="twitter:description" content="In this codelab, learn how to use lazysizes to only load images that are in the current viewport. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=2fb3cc7ff973d', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=e51a0825ef0a', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+    
+<div class="codelab-landing-page">
+  
+    
+    
+    
+  
+  <web-codelab class="web-codelab" glitch="lazysizes"  >
+    <div class="web-codelab__instructions">
+      
+      <article class="prose legacy-rollout">
+        <header class="flow gap-bottom-size-3">
+
+          <h1 id="lazy-load-offscreen-images-with-lazysizes">Lazy load offscreen images with lazysizes</h1>
+          
+
+          
+            <div class="flow-space-size-1 color-mid-text text-size-0">
+              <time>Nov 5, 2018</time>
+              
+            </div>
+          
+
+          
+
+          
+            <div class="cluster flow-space-size-2">
+              
+                <div class="w-author">
+  <a href="/authors/katiehempenius/"><img     alt="Katie Hempenius"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/katiehempenius/">Katie Hempenius</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/katiehempenius"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/khempenius">GitHub</a>
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://glitch.com/@khempenius"
+          >Glitch</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://katiehempenius.com/">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+              
+            </div>
+          
+        </header>
+
+        
+
+        <p>Lazy loading is the approach of waiting to load resources until they are needed,
+rather than loading them in advance. This can improve performance by reducing
+the amount of resources that need to be loaded and parsed on initial page load.</p>
+<p>Images that are offscreen during the initial pageload are ideal candidates for
+this technique. Best of all, <a href="https://github.com/aFarkas/lazysizes" rel="noopener">lazysizes</a>
+makes this a very simple strategy to implement.</p>
+<h2 id="add-the-lazysizes-script-to-the-page">Add the lazysizes script to the page <a class="w-headline-link" href="#add-the-lazysizes-script-to-the-page">#</a></h2>
+<ul>
+<li>Click <strong>Remix to Edit</strong> to make the project editable.</li>
+</ul>
+<p><code>lazysizes.min.js</code> has already been downloaded and added to this Glitch. To
+include it in the page:</p>
+<ul>
+<li>Add the following <code>&lt;script&gt;</code> tag to <code>index.html</code>:</li>
+</ul>
+<web-copy-code><pre class="language-html"><code class="language-html"><mark class="highlight-line highlight-line-active">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazysizes.min.js<span class="token punctuation">"</span></span> <span class="token attr-name">async</span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></mark><br><span class="highlight-line">  <span class="token comment">&lt;!-- Images End --></span></span><br><span class="highlight-line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span></span></code></pre>
+</web-copy-code><div class="w-aside w-aside--note">
+<p>The <a href="https://raw.githubusercontent.com/aFarkas/lazysizes/gh-pages/lazysizes.min.js" rel="noopener">lazysizes.min.js</a>
+file has already been added to this project, so there is no need to add it
+separately. The script you just added can use this script.</p>
+</div>
+<p>lazysizes will intelligently load images as the user scrolls through the page
+and prioritize the images that the user is going to encounter soon.</p>
+<h2 id="indicate-the-images-to-lazy-load">Indicate the images to lazy load <a class="w-headline-link" href="#indicate-the-images-to-lazy-load">#</a></h2>
+<ul>
+<li>Add the class <code>lazyload</code> to images that should be lazy loaded. In addition,
+change the <code>src</code> attribute to <code>data-src</code>.</li>
+</ul>
+<p>For example, the changes for <code>flower3.png</code> would look like this:</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><del class="highlight-line highlight-line-remove"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>images/flower3.png<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span><span class="token punctuation">></span></span></del><br><ins class="highlight-line highlight-line-add"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">data-src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>images/flower3.png<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazyload<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span><span class="token punctuation">></span></span></ins></code></pre>
+</web-copy-code><p>For this example, try lazy loading <code>flower3.png</code>, <code>flower4.jpg</code>, and
+<code>flower5.jpg</code>.</p>
+<div class="w-aside w-aside--note">
+<p>You may be wondering why it is necessary to change the <code>src</code> attribute to
+<code>data-src</code>. If this attribute is not changed, all the images will load
+immediately instead of being lazy-loaded. <code>data-src</code> is not an attribute that
+the browser recognizes, so when it encounters an image tag with this attribute,
+it doesn't load the image. In this case, that is a good thing, because it then
+allows the lazysizes script to decide when the image should be loaded, rather
+than the browser.</p>
+</div>
+<h2 id="see-it-in-action">See it in action <a class="w-headline-link" href="#see-it-in-action">#</a></h2>
+<p>That's it! To see these changes in action, follow these steps:</p>
+<ul>
+<li>
+<p>To preview the site, press <strong>View App</strong>. Then press
+<strong>Fullscreen</strong>
+<img
+src="/images/glitch/fullscreen.svg"
+alt="fullscreen"
+style="padding: 4px 8px; opacity: .5; border: 1px solid #c3c3c3; border-radius: 5px;"
+/>.</p>
+</li>
+<li>
+<p>Open the console and find the images that were just added. Their classes
+should change from <code>lazyload</code> to <code>lazyloaded</code> as you scroll down the page.</p>
+</li>
+</ul>
+<img     alt="Images being lazy loaded"          decoding="async"     height="252"          loading="lazy"     sizes="(min-width: 428px) 428px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/yXej5KAOMzoqoQAB2paq.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/yXej5KAOMzoqoQAB2paq.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/yXej5KAOMzoqoQAB2paq.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/yXej5KAOMzoqoQAB2paq.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/yXej5KAOMzoqoQAB2paq.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/yXej5KAOMzoqoQAB2paq.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/yXej5KAOMzoqoQAB2paq.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/yXej5KAOMzoqoQAB2paq.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/yXej5KAOMzoqoQAB2paq.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/yXej5KAOMzoqoQAB2paq.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/yXej5KAOMzoqoQAB2paq.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/yXej5KAOMzoqoQAB2paq.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/yXej5KAOMzoqoQAB2paq.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/yXej5KAOMzoqoQAB2paq.png?auto=format&w=856 856w"          width="428"   />
+<ul>
+<li>Watch the network panel to see the image files load individually as you scroll
+down the page.</li>
+</ul>
+<img     alt="Images being lazy loaded"          decoding="async"     height="233"          loading="lazy"     sizes="(min-width: 418px) 418px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/tcQpLeAubOW1l42eyXiW.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/tcQpLeAubOW1l42eyXiW.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/tcQpLeAubOW1l42eyXiW.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/tcQpLeAubOW1l42eyXiW.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/tcQpLeAubOW1l42eyXiW.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/tcQpLeAubOW1l42eyXiW.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/tcQpLeAubOW1l42eyXiW.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/tcQpLeAubOW1l42eyXiW.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/tcQpLeAubOW1l42eyXiW.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/tcQpLeAubOW1l42eyXiW.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/tcQpLeAubOW1l42eyXiW.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/tcQpLeAubOW1l42eyXiW.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/tcQpLeAubOW1l42eyXiW.png?auto=format&w=836 836w"          width="418"   />
+<h2 id="verify-using-lighthouse">Verify using Lighthouse <a class="w-headline-link" href="#verify-using-lighthouse">#</a></h2>
+<p>Lastly, it's a good idea to use Lighthouse to verify these changes. Lighthouse's
+&quot;Defer offscreen images&quot; performance audit will indicate if you've forgotten to
+add lazy loading to any offscreen images.</p>
+<ol>
+<li>To preview the site, press <strong>View App</strong>. Then press
+<strong>Fullscreen</strong>
+<img
+src="/images/glitch/fullscreen.svg"
+alt="fullscreen"
+style="padding: 4px 8px; opacity: .5; border: 1px solid #c3c3c3; border-radius: 5px;"
+/>.</li>
+<li>Press `Control+Shift+J` (or `Command+Option+J` on Mac) to open DevTools.</li>
+<li>Click the <strong>Lighthouse</strong> tab.</li>
+<li>Make sure the <strong>Performance</strong> checkbox is selected in the <em>Categories</em> list.</li>
+<li>Click the <strong>Generate report</strong> button.</li>
+<li>Verify the <strong>Defer offscreen images</strong> audit was passed.</li>
+</ol>
+<img     alt="Passing &#x27;Efficiently encode images&#x27; audit in Lighthouse"          decoding="async"     height="774"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/AWMJnCEi3IAgANHhTgiC.png?auto=format&w=1600 1600w"          width="800"   />
+<p>Success! You have used lazysizes to lazy load the images on your page.</p>
+
+
+        <div class="text-size-0 color-mid-text">
+          <span>
+            
+            Last updated: <time>Nov 5, 2018</time>
+            
+          </span>
+          —
+          <a
+            href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/fast/codelab-use-lazysizes-to-lazyload-images/index.md"
+          >
+            Improve article
+          </a>
+        </div>
+
+        
+          
+          
+        
+
+        
+          <div class="flow-space-size-2">
+            <a href="/use-lazysizes-to-lazyload-images" class="button" data-type="secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+              <span>Return to article</span>
+            </a>
+          </div>
+        
+      </article>
+    </div>
+  </web-codelab>
+</div>
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

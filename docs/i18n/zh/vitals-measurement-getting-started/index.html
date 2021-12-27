@@ -1,0 +1,663 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=085f7090e71a4">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=ae911f1f08ac5">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>开始测量 Web 指标</title>
+<meta name="description" content="了解如何在真实世界和实验室环境中测量您的网站 Web 指标。" />
+
+<link rel="canonical" href="https://web.dev/i18n/zh/vitals-measurement-getting-started/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/vitals-measurement-getting-started/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/vitals-measurement-getting-started/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/vitals-measurement-getting-started/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/vitals-measurement-getting-started/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/vitals-measurement-getting-started/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/vitals-measurement-getting-started/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/vitals-measurement-getting-started/" />
+<meta itemprop="name" content="开始测量 Web 指标" />
+<meta itemprop="description" content="了解如何在真实世界和实验室环境中测量您的网站 Web 指标。" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="zh_CN" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/zh/vitals-measurement-getting-started/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="开始测量 Web 指标" />
+<meta property="og:description" content="了解如何在真实世界和实验室环境中测量您的网站 Web 指标。" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="月度图表叠加标有 LCP、FID 和 CLS 的秒表。" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="开始测量 Web 指标" />
+<meta name="twitter:description" content="了解如何在真实世界和实验室环境中测量您的网站 Web 指标。" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=d837b4fdf3107', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=848d99e45612c', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          学习
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        衡量
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        博客
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        关于
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">关闭</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="月度图表叠加标有 LCP、FID 和 CLS 的秒表。"     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="本页内容">
+    <div class="course-toc__heading font-google-sans weight-medium">本页内容</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#rum-web">使用 RUM 数据测量 Web 指标</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#rum">收集 RUM 数据</a></li><li class="toc__listitem"><a class="toc__anchor" href="#web-vitals-javascript">web-vitals JavaScript 库</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-2">数据聚合</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">数据解读</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#web">使用实验室数据测量 Web 指标</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-4">注意事项</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">工具集</a></li></ul></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="web">开始测量 Web 指标</h1>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>May 27, 2020</time>
+             — 更新日期 <time>May 27, 2020</time> 
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/vitals-measurement-getting-started/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/vitals-measurement-getting-started/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/vitals-measurement-getting-started/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/vitals-measurement-getting-started/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/vitals-measurement-getting-started/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/vitals-measurement-getting-started/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/katiehempenius/"> <img     alt="Katie Hempenius"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/katiehempenius/">Katie Hempenius</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/katiehempenius">Twitter</a>
+               <a href="https://github.com/khempenius">GitHub</a>
+               <a href="https://glitch.com/@khempenius">Glitch</a>
+               <a href="https://katiehempenius.com/">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="本页内容">
+      <summary>
+        本页内容
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#rum-web">使用 RUM 数据测量 Web 指标</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#rum">收集 RUM 数据</a></li><li class="toc__listitem"><a class="toc__anchor" href="#web-vitals-javascript">web-vitals JavaScript 库</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-2">数据聚合</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">数据解读</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#web">使用实验室数据测量 Web 指标</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-4">注意事项</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">工具集</a></li></ul></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <p>收集您网站的 Web 指标数据是对其进行改善的第一步。一次全面的分析将会从真实世界和实验室环境中收集性能数据。测量 Web 指标所要求的代码改动非常微小，并且可以使用免费工具集来完成。</p>
+<h2 id="rum-web">使用 RUM 数据测量 Web 指标 <a class="w-headline-link" href="#rum-web">#</a></h2>
+<p><a href="https://en.wikipedia.org/wiki/Real_user_monitoring" rel="noopener">真实用户监控</a> (RUM) 数据，也称实际数据，可以捕获网站真实用户的性能体验。Google 用 RUM 数据来确定网站是否符合<a href="/vitals/">核心 Web 指标建议阈值</a>。</p>
+<h3 id="">入门 <a class="w-headline-link" href="#">#</a></h3>
+<p>如果您还未设置 RUM，那么以下工具将快速为您提供网站实际性能的相关数据。这些工具都基于相同的底层数据集（<a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome 用户体验报告</a>），但用例略有不同：</p>
+<ul>
+<li><strong>PageSpeed Insights 网页速度测量工具 (PSI)</strong>：<a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">PageSpeed Insights</a>报告过去 28 天的页面级和域级聚合性能。此外，该工具还会提供如何改进性能的相关建议。如果您正在寻求一种单一操作来着手测量和改进您网站的 Web 指标，我们建议您使用 PSI 来审计您的网站。 PSI 可在<a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">网页</a>上使用，也可作为<a href="https://developers.google.com/speed/docs/insights/v5/get-started" rel="noopener">API</a>使用。</li>
+<li><strong>搜索控制台</strong>：<a href="https://search.google.com/search-console/welcome" rel="noopener">搜索控制台</a>为每个页面报告性能数据。因此，该工具非常适合用来识别需要改进的特定页面。与 PageSpeed Insights 不同，搜索控制台的报告包括历史性能数据。只能针对您拥有并已验证所有权的网站使用搜索控制台。</li>
+<li><strong>CrUX 仪表板</strong>：<a href="https://developers.google.com/web/updates/2018/08/chrome-ux-report-dashboard" rel="noopener">CrUX 仪表板</a>是一个预先构建的仪表板，可显示您所选域的 CrUX 数据。该工具是基于 Data Studio 构建的，设置过程大约需要一分钟。与 PageSpeed Insights 和搜索控制台相比，CrUX 仪表板的报告包含更多维度，例如，数据可以按设备和连接类型进行细分。</li>
+</ul>
+<p>值得注意的是，虽然上方列出的工具非常适合作为 Web 指标的&quot;入门&quot;测量工具，但这些工具在其他情况下也十分有用。特别要指出的是，CrUX 和 PSI 都可作为 API 使用，还可用于<a href="https://dev.to/chromiumdev/a-step-by-step-guide-to-monitoring-the-competition-with-the-chrome-ux-report-4k1o" rel="noopener">构建仪表板</a>和其他报告。</p>
+<h3 id="rum">收集 RUM 数据 <a class="w-headline-link" href="#rum">#</a></h3>
+<p>尽管基于 CrUX 的工具是调查 Web 指标性能的良好开端，但我们强烈建议您使用自己的 RUM 来对性能数据进行补充。您自己收集的 RUM 数据可以针对您网站的性能提供更详细、即时的反馈，因而更加易于识别问题和测试可能的解决方案。</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>基于 CrUX 的数据源使用大约一个月的粒度来报告数据，但相关具体细节在不同工具中会有细微差别。例如，PSI 和搜索控制台报告过去 28 天观察到的性能，而 CrUX 数据集和仪表板则按日历月进行报告。</p>
+</div></aside>
+<p>您可以通过专用的 RUM 供应商或亲自搭建工具来收集您自己的 RUM 数据。</p>
+<p>专用的 RUM 供应商专门收集和报告 RUM 数据。如需在这些服务的基础上同时使用核心 Web 指标，请向您的 RUM 供应商咨询为您的网站启用核心 Web 指标监控的相关信息。</p>
+<p>如果您没有 RUM 供应商，那么可以通过使用<a href="https://github.com/GoogleChrome/web-vitals" rel="noopener"><code>web-vitals</code> JavaScript 库</a>来扩充您现有的分析手段，从而对这些指标进行收集和报告。以下内容对该方法进行了更详细的解释。</p>
+<h3 id="web-vitals-javascript">web-vitals JavaScript 库 <a class="w-headline-link" href="#web-vitals-javascript">#</a></h3>
+<p>如果您正在为 Web 指标搭建和实现自己的 RUM，那么收集 Web 指标测量值最简单的方法是使用<a href="https://github.com/GoogleChrome/web-vitals" rel="noopener"><code>web-vitals</code></a> JavaScript 库。<code>web-vitals</code>是一个小型的模块化库 (约 1KB)，可以提供一个便捷的 API 来为每个<a href="/user-centric-performance-metrics/#in-the-field">可实际测量的</a> Web 指标进行收集和报告工作。</p>
+<p>Web 指标的构成指标并非都由浏览器的内置性能 API 直接公开，而是直接基于这些 API 所构建。例如，<a href="/cls/">Cumulative Layout Shift 累积布局偏移 (CLS)</a>是使用<a href="https://wicg.github.io/layout-instability/" rel="noopener">布局不稳定性 API</a>实现的。通过使用<code>web-vitals</code> ，您无需自己实现这些指标。该 JavaScript 库还能确保您收集的数据与每项指标的方法论和最佳实践相匹配。</p>
+<p>如需进一步了解执行<code>web-vitals</code>的更多相关信息，请参考<a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">文档</a>和<a href="/vitals-field-measurement-best-practices/">实测 Web 指标的最佳实践</a>指南。</p>
+<h3 id="-2">数据聚合 <a class="w-headline-link" href="#-2">#</a></h3>
+<p>对<code>web-vitals</code>收集的测量值进行报告至关重要。如果在测量数据后不进行报告，那么您就无法看到这些数据。 <code>web-vitals</code>文档包含的一些示例说明了如何将数据发送到<a href="https://github.com/GoogleChrome/web-vitals#send-the-results-to-an-analytics-endpoint" rel="noopener">一个通用 API 端点</a>、<a href="https://github.com/GoogleChrome/web-vitals#send-the-results-to-google-analytics" rel="noopener">Google 分析</a>或<a href="https://github.com/GoogleChrome/web-vitals#send-the-results-to-google-tag-manager" rel="noopener">Google 跟踪代码管理器</a>。</p>
+<p>如果您已经有特别中意的报告工具，则可以考虑使用该工具。如果还没有，那么可以使用免费的 Google 分析来实现这一目的。</p>
+<p>在考虑使用哪种工具时，思考谁会需要访问数据往往十分有帮助。当整个公司（而非单个部门）都希望提高绩效时，企业通常会取得最高的绩效。请参阅<a href="/fixing-website-speed-cross-functionally/">跨功能修复网站速度</a>，了解如何获得不同部门的支持。</p>
+<h3 id="-3">数据解读 <a class="w-headline-link" href="#-3">#</a></h3>
+<p>在分析性能数据时，留意分布的尾部数据十分重要。RUM 数据经常显示出非常大的性能差异，有些用户的速度体验很快，而有些用户的速度体验很慢。但是，使用中位数来汇总数据就会很轻易地掩盖掉这种特性。</p>
+<p>在 Web 指标方面，Google 使用&quot;良好&quot;体验的百分比，而不是中位数或平均值等统计数据来确定一个网站或页面是否符合建议阈值。具体而言，只有当一个网站或页面 75% 的页面访问量在每项指标下都满足&quot;良好&quot;阈值时，这个网站或页面才会被视为符合核心 Web 指标阈值。</p>
+<h2 id="web">使用实验室数据测量 Web 指标 <a class="w-headline-link" href="#web">#</a></h2>
+<p><a href="/user-centric-performance-metrics/#in-the-lab">实验室数据</a>，也称为合成数据，是从受控环境，而非实际用户中收集的数据。与 RUM 数据不同，实验室数据可以在预上线环境中进行收集，因此可以整合到开发者工作流程和持续集成过程中。收集合成数据的工具包括灯塔和 WebPageTest 网页性能测试工具等。</p>
+<h3 id="-4">注意事项 <a class="w-headline-link" href="#-4">#</a></h3>
+<p>RUM 数据和实验室数据之间始终会存在差异，特别是在实验室环境的网络条件、设备类型或地理位置与用户相对应的信息之间存在显著差异的情况下。但是，在收集有关 Web 指标的实验室数据时，尤为需要注意以下几条具体注意事项：</p>
+<ul>
+<li>**累积布局偏移 (CLS)：**在实验室环境中测量的<a href="/cls/">累积布局偏移</a>可能会由于人为因素低于在 RUM 数据中观察到的 CLS。CLS 的定义为&quot;<em>整个页面生命周期内</em>针对发生的每次意外布局偏移得出的所有单次布局偏移分数的总和。&quot;然而，真实用户加载的页面生命周期通常会与虚拟性能测量工具加载的页面生命周期有很大不同。许多实验室工具只加载页面，而不进行交互。因此，这些工具只能捕获初始页面加载期间发生的布局偏移。相比之下，由 RUM 工具测量的 CLS 能够捕获整个页面生命周期中发生的<a href="/cls/#expected-vs.-unexpected-layout-shifts">意外布局偏移</a>。</li>
+<li><strong>First Input Delay 首次输入延迟 (FID)：</strong><a href="/fid/">首次输入延迟</a>无法在实验室环境中进行测量，因为该项指标需要用户与页面进行交互。因此，<a href="/tbt/">Total Blocking Time 总阻塞时间</a> (TBT) 是我们推荐的 FID 实验室代理。 TBT 测量&quot;First Contentful Paint 首次内容绘制和 Time to Interactive 可交互时间之间页面被阻塞而无法对用户输入作出响应的总时间&quot;。虽然 FID 和 TBT 的计算方式不同，但这两项指标都能体现出引导进程中被阻塞的主线程。当主线程被阻塞时，浏览器就会对用户交互作出延迟响应。 FID 测量用户首次尝试与页面交互时发生的延迟（如果存在）。</li>
+</ul>
+<h3 id="-5">工具集 <a class="w-headline-link" href="#-5">#</a></h3>
+<p>这些工具可用于收集 Web 指标的实验室测量值：</p>
+<ul>
+<li><strong>Web 指标 Chrome 扩展程序：</strong> Web 指标 Chrome <a href="https://github.com/GoogleChrome/web-vitals-extension" rel="noopener">扩展程序</a>对给定页面的核心 Web 指标（LCP 最大内容绘制、FID 和 CLS）进行测量和报告。该工具旨在为开发者进行代码更改时提供实时性能反馈。</li>
+<li>**灯塔：**灯塔对 LCP、CLS 和 TBT 进行报告，并突出显示合适的性能改进。灯塔在 Chrome 开发者工具中既可以作为 Chrome 扩展程序运行，也可以作为 npm 包运行。灯塔还可以通过<a href="https://github.com/GoogleChrome/lighthouse-ci" rel="noopener">灯塔 CI</a>整合到持续集成工作流程中。</li>
+<li><strong>WebPageTest 网页性能测试工具：</strong><a href="https://webpagetest.org/" rel="noopener">WebPageTest</a>将 Web 指标作为其标准报告的一部分。 WebPageTest 可用于在特定设备和网络条件下收集 Web 指标的相关信息。</li>
+</ul>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/performance/">性能</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/web-vitals/">网页指标</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>May 27, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/zh/blog/vitals-measurement-getting-started/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@katiehempenius"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">分享</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            提交错误
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            查看源代码
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">相关内容</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome 动态
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            网站开发基础
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            案例研究
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            播客
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            节目
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">连接</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          所有产品
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="zh"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          条款和隐私权
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          社区准则
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

@@ -1,0 +1,804 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=18aa58d64b5a3">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Web Vitals</title>
+<meta name="description" content="정상적인 사이트를 위한 필수 메트릭" />
+
+<link rel="canonical" href="https://web.dev/i18n/ko/vitals/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/vitals/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/vitals/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/vitals/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/vitals/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/vitals/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/vitals/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/vitals/" />
+<meta itemprop="name" content="Web Vitals" />
+<meta itemprop="description" content="정상적인 사이트를 위한 필수 메트릭" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/ko/vitals/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Web Vitals" />
+<meta property="og:description" content="정상적인 사이트를 위한 필수 메트릭" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="metrics" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Web Vitals" />
+<meta name="twitter:description" content="정상적인 사이트를 위한 필수 메트릭" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=e23772410afab', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=23fd51b2c00ca', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="메뉴 열기">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">메뉴 열기</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        배우기
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        측정
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        블로그
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        정보
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="닫기"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">닫기</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        배우기
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        측정
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        블로그
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        정보
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+    <img     alt="Hero Image"     class="w-hero w-hero--cover"     decoding="auto"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/BHaoqqR73jDWe6FL2kfw.png?auto=format&w=1600 1600w"          width="1600"   />
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#web-vitals" class="w-toc__header--link">
+        Web Vitals
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#core-web-vitals">Core Web Vitals</a><ol><li><a href="#core-web-vitals-2">Core Web Vitals를 측정하고 보고하는 도구</a></li><li><a href="#-2">점수 향상을 위한 권장 사항</a></li></ol></li><li><a href="#web-vitals">기타 Web Vitals</a></li><li><a href="#web-vitals-2">진화하는 Web Vitals</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@philwalton"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>공유</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="web-vitals" class="w-article-header__headline">Web Vitals</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Apr 30, 2020</time>
+           <span class="w-author__separator">•</span> 업데이트됨 <time>Jul 21, 2020</time> 
+        </div>
+      
+
+      
+      
+      <div class="w-layout-container--narrow w-post-signpost">
+        <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/vitals/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/vitals/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/vitals/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/vitals/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/vitals/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/vitals/">
+      English</a></span>
+      </div>
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/philipwalton/"><img     alt="Philip Walton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/philipwalton/">Philip Walton</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/philwalton"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/philipwalton">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://philipwalton.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <p>사용자 경험의 품질을 최적화하는 것은 웹 사이트의 장기적인 성공의 핵심입니다. 비즈니스 소유자, 마케팅 담당자 또는 개발자에 관계없이 Web Vitals는 사이트 경험을 수량화하고 개선할 기회를 식별하는 데 도움이 될 수 있습니다.</p>
+<h2 id="">개요 <a class="w-headline-link" href="#">#</a></h2>
+<p>Web Vitals는 웹에서 우수한 사용자 경험을 제공하는 데 필수적인 품질 신호에 대한 통합 지침을 제공하기 위한 Google의 이니셔티브입니다.</p>
+<p>Google은 성능을 측정하고 보고하기 위해 수년 동안 다양한 도구를 제공해 왔습니다. 이러한 도구를 사용하는 데 전문가가 된 일부 개발자도 존재하지만, 너무나 풍부한 도구와 메트릭에 버거워하는 이들도 있습니다.</p>
+<p>사이트 소유자의 경우 사용자에게 제공하는 경험의 품질을 이해하고자 성능에 관한 모든 것을 알고 있을 필요는 없습니다. Web Vitals 이니셔티브는 전망을 단순화하고, 사이트에서 가장 중요한 메트릭인 <strong>Core Web Vitals</strong>에 초점을 맞추도록 지원합니다.</p>
+<h2 id="core-web-vitals">Core Web Vitals <a class="w-headline-link" href="#core-web-vitals">#</a></h2>
+<p>Core Web Vitals는 모든 웹페이지에 적용되는 Web Vitals의 하위 집합으로 모든 사이트 소유자가 측정해야 하며 모든 Google 도구의 표면에 위치합니다. 각각의 Core Web Vitals는 사용자 경험의 고유한 측면을 나타내고, <a href="/user-centric-performance-metrics/#how-metrics-are-measured">필드에서</a> 측정 가능하며, 필수적인 <a href="/user-centric-performance-metrics/#how-metrics-are-measured">사용자 중심</a> 결과에 대한 현실의 경험을 반영합니다.</p>
+<p>Core Web Vitals를 구성하는 메트릭은 시간이 지남에 따라 <a href="#evolving-web-vitals">진화</a>합니다. 2020년 현재 세트는 사용자 경험의 세 가지 측면인 <em>로딩</em>, <em>상호 작용</em>, <em>시각적 안정성</em>에 중점을 두고 있으며 다음 메트릭(및 각각의 임계값)을 포함합니다.</p>
+<div class="w-stack w-stack--center w-stack--md"><img     alt="최대 콘텐츠풀 페인트 권장 임계값"          decoding="async"     height="350"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ZZU8Z7TMKXmzZT2mCjJU.svg"               width="400"   /> <img     alt="최초 입력 지연 권장 임계값"          decoding="async"     height="350"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/iHYrrXKe4QRcb2uu8eV8.svg"               width="400"   /> <img     alt="누적 레이아웃 이동 권장 임계값"          decoding="async"     height="350"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/dgpDFckbHwwOKdIGDa3N.svg"               width="400"   /></div>
+<ul>
+<li><strong><a href="/lcp/">Largest Contentful Paint(최대 콘텐츠풀 페인트, LCP)</a></strong>: <em>로딩</em> 성능을 측정합니다. 우수한 사용자 경험을 제공하려면 페이지가 처음으로 로딩된 후 <strong>2.5초</strong> 이내에 LCP가 발생해야 합니다.</li>
+<li><strong><a href="/fid/">First Input Delay(최초 입력 지연, FID)</a></strong>: <em>상호 작용</em>을 측정합니다. 우수한 사용자 경험을 제공하려면 페이지의 FID가 <strong>100밀리초</strong> 이하여야 합니다.</li>
+<li><strong><a href="/cls/">Cumulative Layout Shift(누적 레이아웃 시프트, CLS)</a></strong>: <em>시각적 안정성</em>을 측정합니다. 우수한 사용자 경험을 제공하려면 페이지에서 <strong>0.1</strong> 이하의 CLS를 유지해야 합니다.</li>
+</ul>
+<p>위의 각 메트릭이 대부분의 사용자를 위해 권장되는 목표에 도달했는지 확인하기 위해 측정하기 좋은 임계값은 모바일 및 데스크톱 장치 전반을 세분화했을 때 페이지 로드의 <strong>75번째 백분위수</strong>입니다.</p>
+<p>Core Web Vitals 규정 준수를 평가하는 도구는 페이지가 위의 세 가지 메트릭 모두에 대해 75번째 백분위수에서 권장 목표를 충족한다면 통과한다고 간주해야 합니다.</p>
+<div class="w-aside w-aside--note">
+<p>이러한 권장 사항의 기반이 되는 연구 및 방법론에 대해 자세히 알아보려면 <a href="/defining-core-web-vitals-thresholds/">Core Web Vitals 메트릭 임계값</a>을 참조하시기 바랍니다. </div></p>
+<h3 id="core-web-vitals-2">Core Web Vitals를 측정하고 보고하는 도구 <a class="w-headline-link" href="#core-web-vitals-2">#</a></h3>
+<p>Google은 Core Web Vitals가 모든 웹 경험에 필수적이라고 생각하며, <a href="/vitals-tools/">사용자에게 널리 사용되는 도구</a>의 표면에 이러한 메트릭을 표시하도록 최선을 다하고 있습니다. 다음 섹션에서는 Core Web Vitals를 지원하는 도구가 무엇인지에 대한 상세한 정보를 확인하실 수 있습니다.</p>
+<h4 id="core-web-vitals-3">Core Web Vitals를 측정하기 위한 필드 도구 <a class="w-headline-link" href="#core-web-vitals-3">#</a></h4>
+<p><a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome User Experience Report</a>는 각 Core Web Vital에 대해 익명으로 실제 사용자 측정 데이터를 수집합니다. 사이트 소유자는 페이지에 대해 분석 도구를 사용할 필요 없이, 이 데이터를 활용해 신속하게 성능을 평가하고 <a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">PageSpeed Insights</a> 및 Search Console의 <a href="https://support.google.com/webmasters/answer/9205520" rel="noopener">Core Web Vitals Report</a> 같은 도구를 지원할 수 있습니다.</p>
+<div class="w-table-wrapper">
+  <table>
+    <tr>
+      <td> </td>
+      <td>LCP</td>
+      <td>FID</td>
+      <td>CLS</td>
+    </tr>
+    <tr>
+      <td><a href="https://developers.google.com/web/tools/chrome-user-experience-report">Chrome User Experience Report</a></td>
+      <td>✔</td>
+      <td>✔</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td><a href="https://developers.google.com/speed/pagespeed/insights/">PageSpeed Insights</a></td>
+      <td>✔</td>
+      <td>✔</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td><a href="https://support.google.com/webmasters/answer/9205520">Search Console(Core Web Vitals Report)</a></td>
+      <td>✔</td>
+      <td>✔</td>
+      <td>✔</td>
+    </tr>
+  </table>
+</div>
+<div class="w-aside w-aside--note">
+<p>이러한 도구를 사용하는 방법과 자신의 사용 사례에 알맞은 도구를 알아보려면 <a href="/vitals-measurement-getting-started/">Web Vitals로 측정 시작하기</a>를 참조하시기 바랍니다. </div></p>
+<p>Chrome User Experience Report의 데이터는 사이트의 성능을 빠르게 평가할 수 있게 해주지만 정확한 진단이나 모니터링, 회귀에 대한 신속한 대응에 필수적인 상세한 페이지 뷰당 원격 분석은 제공하지 않습니다. 그러므로 필드에서 자체적으로 실제 사용자 모니터링을 진행하길 강력하게 추천합니다.</p>
+<h4 id="javascript-core-web-vitals">JavaScript에서 Core Web Vitals 측정 <a class="w-headline-link" href="#javascript-core-web-vitals">#</a></h4>
+<p>표준 웹 API를 사용하여 JavaScript에서 각 Core Web Vitals를 측정할 수 있습니다.</p>
+<p>모든 Core Web Vitals를 가장 쉽게 측정할 수 있는 방법은 <a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">web-vitals</a> JavaScript 라이브러리를 사용하는 것입니다. 이러한 라이브러리는 위에 나열된 모든 Google 도구가 보고하는 것과 정확히 일치하는 방식으로 각 메트릭을 측정하는 기본 웹 API 주변에 위치한 소규모의 프로덕션 래퍼입니다.</p>
+<p><a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">web-vitals</a> 라이브러리를 사용하면 각 메트릭을 측정하는 것이 단일 함수를 호출하는 것만큼 간단해집니다(완전한 <a href="https://github.com/GoogleChrome/web-vitals#usage" rel="noopener">사용 방법</a> 및 <a href="https://github.com/GoogleChrome/web-vitals#api" rel="noopener">API</a> 세부 정보는 해당 문서 참조).</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span>getCLS<span class="token punctuation">,</span> getFID<span class="token punctuation">,</span> getLCP<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'web-vitals'</span><span class="token punctuation">;</span><br><br><span class="token keyword">function</span> <span class="token function">sendToAnalytics</span><span class="token punctuation">(</span><span class="token parameter">metric</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token keyword">const</span> body <span class="token operator">=</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span>metric<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token comment">// Use `navigator.sendBeacon()` if available, falling back to `fetch()`.</span><br>  <span class="token punctuation">(</span>navigator<span class="token punctuation">.</span>sendBeacon <span class="token operator">&amp;&amp;</span> navigator<span class="token punctuation">.</span><span class="token function">sendBeacon</span><span class="token punctuation">(</span><span class="token string">'/analytics'</span><span class="token punctuation">,</span> body<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">||</span><br>      <span class="token function">fetch</span><span class="token punctuation">(</span><span class="token string">'/analytics'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>body<span class="token punctuation">,</span> method<span class="token operator">:</span> <span class="token string">'POST'</span><span class="token punctuation">,</span> keepalive<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><br><br><span class="token function">getCLS</span><span class="token punctuation">(</span>sendToAnalytics<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token function">getFID</span><span class="token punctuation">(</span>sendToAnalytics<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token function">getLCP</span><span class="token punctuation">(</span>sendToAnalytics<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p><a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">web-vitals</a> 라이브러리를 사용하여 Core Web Vitals 데이터를 측정하고 분석 엔드포인트로 전송하도록 사이트를 구성했다면, 다음 단계는 해당 데이터를 집계하고 보고하여 페이지가 페이지 방문의 최소 75%에 대해 권장 임계값을 충족하는지 확인하는 것입니다.</p>
+<p>일부 분석 제공업체에서는 Core Web Vitals 메트릭에 대한 지원을 기본적으로 제공합니다. 그렇지 않은 곳이더라도, 자신의 도구에 Core Web Vitals를 측정하도록 허용하는 기본 커스텀 메트릭 기능은 포함해야 합니다.</p>
+<p><a href="https://github.com/GoogleChromeLabs/web-vitals-report" rel="noopener">Web Vitals Report</a>를 이에 대한 예시로 들 수 있습니다. 이 보고서를 통해 사이트 소유자는 Google Analytics를 사용하여 Core Web Vitals를 측정할 수 있습니다. 다른 분석 도구를 사용하여 Core Web Vitals를 측정하는 방법에 대한 지침은 <a href="/vitals-field-measurement-best-practices/">필드에서 Web Vitals를 측정하기 위한 모범 사례</a>를 참조하시기 바랍니다.</p>
+<p>또한 <a href="https://github.com/GoogleChrome/web-vitals-extension" rel="noopener">Web Vitals Chrome 확장 프로그램</a>을 사용해 코드를 작성하지 않고도 각 Core Web Vitals에 대해 보고할 수 있습니다. 이러한 확장 프로그램은 <a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">web-vitals</a> 라이브러리를 사용하여 각 메트릭을 측정하고 사용자가 웹을 탐색할 때 표시합니다.</p>
+<p>이 확장 프로그램은 귀하의 사이트, 경쟁업체 사이트는 물론 전반적인 웹의 성능을 이해하는 데 도움이 될 수 있습니다.</p>
+<div class="w-table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th> </th>
+        <th>LCP</th>
+        <th>FID</th>
+        <th>CLS</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a href="https://github.com/GoogleChrome/web-vitals">web-vitals</a></td>
+        <td>✔</td>
+        <td>✔</td>
+        <td>✔</td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/GoogleChrome/web-vitals-extension">Web Vitals 확장 프로그램</a></td>
+        <td>✔</td>
+        <td>✔</td>
+        <td>✔</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<p>기본 웹 API를 통해 이러한 메트릭을 직접 측정하는 것을 선호하는 개발자는 구현 세부 정보에 대해 다음과 같은 메트릭 가이드를 참조할 수 있습니다.</p>
+<ul>
+<li><a href="/lcp/#measure-lcp-in-javascript">JavaScript에서 LCP 측정</a></li>
+<li><a href="/fid/#measure-fid-in-javascript">JavaScript에서 FID 측정</a></li>
+<li><a href="/cls/#measure-cls-in-javascript">JavaScript에서 CLS 측정</a></li>
+</ul>
+<div class="w-aside w-aside--note">
+<p>인기 분석 서비스(또는 자체적인 인하우스 분석 툴)를 사용해 이러한 메트릭을 측정하는 법에 대한 자세한 내용은 <a href="/vitals-field-measurement-best-practices/">필드 Web Vitals 측정 모범 사례</a>를 참조하시기 바랍니다. </div></p>
+<h4 id="core-web-vitals-4">Core Web Vitals를 측정하기 위한 실험실 도구 <a class="w-headline-link" href="#core-web-vitals-4">#</a></h4>
+<p>모든 Core Web Vitals는 기본적으로 필드용 메트릭이지만, 대부분은 실험실에서도 측정할 수 있습니다.</p>
+<p>실험실 측정은 기능을 사용자에게 출시하기 전에 개발 중 기능의 성능을 테스트하고, 성능 회귀가 발생하기 전에 이를 포착해낼 수 있는 가장 좋은 방법입니다.</p>
+<p>다음 도구를 사용하여 실험실 환경에서 Core Web Vitals를 측정할 수 있습니다.</p>
+<div class="w-table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th> </th>
+        <th>LCP</th>
+        <th>FID</th>
+        <th>CLS</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a href="https://developers.google.com/web/tools/chrome-devtools">Chrome DevTools</a></td>
+        <td>✔</td>
+        <td>✘ (대신 <a href="/tbt/">TBT</a> 사용)</td>
+        <td>✔</td>
+      </tr>
+      <tr>
+        <td><a href="https://developers.google.com/web/tools/lighthouse">Lighthouse</a></td>
+        <td>✔</td>
+        <td>✘ (대신 <a href="/tbt/">TBT</a> 사용)</td>
+        <td>✔</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="w-aside w-aside--note">
+<p>사용자 없이 시뮬레이션된 환경에서 페이지를 로드하는 Lighthouse와 같은 도구로는 FID를 측정할 수 없습니다(사용자 입력이 없음). 그러나 Total Blocking Time(총 차단 시간, TBT) 메트릭은 실험실에서 측정할 수 있으며 FID를 충분히 대체할 수 있습니다. 실험실에서 TBT를 개선하는 성능 최적화는 필드에서 FID를 개선합니다(아래 성능 권장 사항 참조). </div></p>
+<p>실험실 측정은 훌륭한 경험을 제공하는 데 필수적인 부분이지만 필드 측정을 대신할 수는 없습니다.</p>
+<p>사이트의 성능은 사용자의 장치 기능, 네트워크 조건, 장치에서 실행 중인 다른 프로세스, 페이지와 상호 작용하는 방식에 따라 크게 달라질 수 있습니다. 사실, 각 Core Web Vitals 메트릭의 점수는 사용자 상호 작용에 영향을 받을 수 있습니다. 그러므로 필드 측정만이 전체 그림을 정확하게 포착할 수 있는 방법입니다.</p>
+<h3 id="-2">점수 향상을 위한 권장 사항 <a class="w-headline-link" href="#-2">#</a></h3>
+<p>Core Web Vitals를 측정하고 개선할 영역을 식별한 후 다음 단계는 최적화입니다. 다음 가이드는 각 Core Web Vitals에 대해 페이지를 최적화하는 방법에 대한 구체적인 권장 사항을 제공합니다.</p>
+<ul>
+<li><a href="/optimize-lcp/">LCP 최적화</a></li>
+<li><a href="/optimize-fid/">FID 최적화</a></li>
+<li><a href="/optimize-cls/">CLS 최적화</a></li>
+</ul>
+<h2 id="web-vitals">기타 Web Vitals <a class="w-headline-link" href="#web-vitals">#</a></h2>
+<p>Core Web Vitals는 우수한 사용자 경험을 이해하고 제공하는 데 중요한 메트릭이지만 다른 중요 메트릭 또한 존재합니다.</p>
+<p>이러한 기타 Web Vitals 메트릭은 경험의 더 큰 부분을 포착하고, 특정 문제의 진단을 지원하는 등 주로 Core Web Vitals를 대체하거나 보완하는 역할을 합니다.</p>
+<p>예를 들어, <a href="/ttfb/">Time to First Byte(최초 바이트까지의 시간, TTFB)</a> 및 <a href="/fcp/">First Contentful Paint(최초 콘텐츠풀 페인트, FCP)</a> 메트릭은 모두 <em>로딩</em> 경험에 중요한 요소이며 LCP와 함께 문제(각각 느린 <a href="/overloaded-server/">서버 응답 시간</a> 또는 <a href="/render-blocking-resources/">렌더링 차단 리소스</a> 문제)를 진단하는 데 유용합니다.</p>
+<p>마찬가지로, <a href="/tbt/">총 차단 시간(TBT)</a> 및 <a href="/tti/">Time to Interactive(상호 작용까지의 시간, TTI)</a>와 같은 메트릭은 FID에 영향을 줄 잠재적인 <em>상호 작용</em> 문제를 파악하고 진단하는 데 필수적인 실험실 메트릭입니다. 그러나 필드에서 측정할 수 없고 <a href="/user-centric-performance-metrics/#how-metrics-are-measured">사용자 중심</a> 결과를 반영하지도 않기 때문에 Core Web Vitals 세트에 속하지는 않습니다.</p>
+<h2 id="web-vitals-2">진화하는 Web Vitals <a class="w-headline-link" href="#web-vitals-2">#</a></h2>
+<p>Web Vitals 및 Core Web Vitals는 개발자가 웹 전반에 대한 경험의 품질을 측정하기 위해 현재 사용할 수 있는 최상의 신호를 나타내지만 이러한 신호는 완벽하지 않으며 향후 개선 또는 추가가 이루어질 수 있습니다.</p>
+<p><strong>Core Web Vitals</strong>는 모든 웹페이지와 관련이 있으며 관련 Google 도구 전반에서 제공됩니다. 이러한 메트릭이 변경되는 경우 광범위한 영향을 미치기 때문에 개발자는 Core Web Vitals의 정의 및 임계값이 안정적이고, 사전 통지 및 예측 가능한 연간 주기로 업데이트가 이루어질 것임을 기대합니다.</p>
+<p>다른 Web Vitals는 컨텍스트 또는 도구별로 달라지며 Core Web Vitals보다 더 실험적일 수 있습니다. 따라서 정의와 임계값이 더 자주 변경될 수 있습니다.</p>
+<p>Web Vitals에 대한 모든 변경 사항은 공개된 이 <a href="http://bit.ly/chrome-speed-metrics-changelog" rel="noopener">변경 로그</a>에 명확하게 문서화됩니다.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/metrics/">메트릭</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">성능</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/web-vitals/">Web Vitals</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        마지막 업데이트: <time>Jul 21, 2020</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/ko/vitals/index.md"
+      >
+        기사 개선하기
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/learn-web-vitals"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              버그 신고
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              소스 보기
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">관련된 콘텐츠</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome 업데이트
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              웹 기초
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              사례 연구
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              팟캐스트
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              쇼
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">연결</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            전체 제품
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="ko"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            약관 및 개인정보 보호
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            커뮤니티 가이드라인
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

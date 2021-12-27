@@ -1,0 +1,825 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=102872804eff1">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=b06f26bc0ac9d">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>通过用户代理客户端提示改善用户隐私和开发者体验</title>
+<meta name="description" content="" />
+
+<link rel="canonical" href="https://web.dev/i18n/zh/user-agent-client-hints/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/user-agent-client-hints/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/user-agent-client-hints/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/user-agent-client-hints/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/user-agent-client-hints/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/user-agent-client-hints/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/user-agent-client-hints/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/user-agent-client-hints/" />
+<meta itemprop="name" content="通过用户代理客户端提示改善用户隐私和开发者体验" />
+<meta itemprop="description" content="" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/hgxRNa56Vb9o3QRwIrm9.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="zh_CN" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/zh/user-agent-client-hints/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="通过用户代理客户端提示改善用户隐私和开发者体验" />
+<meta property="og:description" content="" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/hgxRNa56Vb9o3QRwIrm9.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="雪地上各种不同的脚印。提示了应该有谁来过。" />
+<meta property="tag" content="privacy" />
+<meta property="tag" content="security" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="通过用户代理客户端提示改善用户隐私和开发者体验" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/hgxRNa56Vb9o3QRwIrm9.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=19e6b77343668', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=3761873dd0846', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          学习
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        衡量
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        博客
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        关于
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">关闭</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="雪地上各种不同的脚印。提示了应该有谁来过。"     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="本页内容">
+    <div class="course-toc__heading font-google-sans weight-medium">本页内容</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><span class="toc__span">背景</span><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-2">用户代理字符串的状态</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">推出新的用户代理客户端提示</a></li><li class="toc__listitem"><a class="toc__anchor" href="#chromium-84">Chromium 84 的用户代理客户端提示</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-4">用户代理响应和请求标头</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">示例交换</a></li><li class="toc__listitem"><a class="toc__anchor" href="#javascript-api">JavaScript API</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-6">演示版</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-7">提示生命周期和重设</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-8">提示范围和跨域请求</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-9">在哪里使用用户代理客户端提示？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-10">用户代理字符串会发生什么变化？</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="">通过用户代理客户端提示改善用户隐私和开发者体验</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            用户代理客户端提示是客户端提示 API 的新扩展，能够使开发者以保护隐私和符合工效学的方式访问用户的浏览器信息。
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Jun 25, 2020</time>
+             — 更新日期 <time>Feb 12, 2021</time> 
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/user-agent-client-hints/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/user-agent-client-hints/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/user-agent-client-hints/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/user-agent-client-hints/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/user-agent-client-hints/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/user-agent-client-hints/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/secure"
+          >安全且可靠</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/rowan_m/"> <img     alt="Rowan Merewood"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/rowan_m/">Rowan Merewood</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/rowan_m">Twitter</a>
+               <a href="https://github.com/rowan-m">GitHub</a>
+               <a href="https://glitch.com/@rowan-m">Glitch</a>
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/yoavweiss/"> <img     alt="Yoav Weiss"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/yoavweiss/">Yoav Weiss</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/yoavweiss">Twitter</a>
+               <a href="https://github.com/yoavweiss">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="本页内容">
+      <summary>
+        本页内容
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><span class="toc__span">背景</span><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-2">用户代理字符串的状态</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">推出新的用户代理客户端提示</a></li><li class="toc__listitem"><a class="toc__anchor" href="#chromium-84">Chromium 84 的用户代理客户端提示</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-4">用户代理响应和请求标头</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">示例交换</a></li><li class="toc__listitem"><a class="toc__anchor" href="#javascript-api">JavaScript API</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-6">演示版</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-7">提示生命周期和重设</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-8">提示范围和跨域请求</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-9">在哪里使用用户代理客户端提示？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-10">用户代理字符串会发生什么变化？</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <div class="youtube">  <lite-youtube    videoid="f0YY0o2OAKA"      >  </lite-youtube></div>
+<p>客户端提示使开发者能够主动请求用户设备或条件的相关信息，而无需从用户代理 (UA) 字符串中解析出这些信息。提供这条替代路由是最终减少用户代理字符串粒度的第一步。</p>
+<p>了解针对依赖于解析用户代理字符串的现有功能的更新方式，进而改为使用用户代理客户端提示。</p>
+<div role="banner" class="banner bg-state-bad-bg color-core-text">
+    <div class="banner__content flow">
+      如果您已经在使用用户代理客户端提示，请注意即将到来的变更。我们正在对标头格式进行更改，从而使<code>Accept-CH</code>令牌与返回头完全匹配。网站在以往可以发送<code>Accept-CH: UA-Platform</code>来接收<code>Sec-CH-UA-Platform</code>标头，而网站现在应改为发送<code>Accept-CH: Sec-CH-UA-Platform</code>。如果您已经实现了用户代理客户端提示，请在这一更改在稳定的 Chromium 中完全推出前发送这两种格式。请参阅<a href="https://groups.google.com/a/chromium.org/g/blink-dev/c/t-S9nnos9qU/m/pUFJb00jBAAJ">有意向移除：重命名用户代理客户端提示 ACCEPT-CH 令牌</a>来获取更新。
+    </div>
+    </div>
+<h2 id="">背景 <a class="w-headline-link" href="#">#</a></h2>
+<p>网络浏览器发出请求时，会包含浏览器及其环境的相关信息，以便服务器可以启用分析并自定义响应。这一点早在 1996 年就被定义了（HTTP/1.0 的 RFC 1945），您可以在其中找到<a href="https://tools.ietf.org/html/rfc1945#section-10.15" rel="noopener">用户代理字符串</a>的原始定义，里面包括一个示例：</p>
+<web-copy-code><pre class="language-text"><code class="language-text">User-Agent: CERN-LineMode/2.15 libwww/2.17b3</code></pre>
+</web-copy-code><p>这个标头的目的是按重要性顺序指定产品（例如浏览器或库）和一条注释（例如版本）。</p>
+<h3 id="-2">用户代理字符串的状态 <a class="w-headline-link" href="#-2">#</a></h3>
+<p>在过去的<em>几十年</em>里，这个字符串已经积累了发出请求的客户端的各种相关附加细节（由于向后兼容性，也包括 cruft）。我们在看 Chrome 当前的用户代理字符串时就能发现这一点：</p>
+<web-copy-code><pre class="language-text"><code class="language-text">Mozilla/5.0 (Linux; Android 10; Pixel 3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4076.0 Mobile Safari/537.36</code></pre>
+</web-copy-code><p>上方的字符串包含用户的操作系统和版本、设备型号、浏览器的品牌和完整版本的相关信息，这些线索足以推断出这是一个移动浏览器，更不用说出于历史原因对其他浏览器的一些引用。</p>
+<p>这些参数与可能值的绝对多样性相组合，就意味着用户代理字符串可以包含足够的信息来对单个用户做出唯一标识。如果您在 <a href="https://amiunique.org/" rel="noopener">AmIUnique</a> 中测试自己的浏览器，就可以看出<strong>您自己的</strong>用户代理字符串能够多么准确地识别<strong>您</strong>的身份。得到的&quot;相似率&quot;越低，请求就越独特，服务器也就越容易暗中跟踪您。</p>
+<p>用户代理字符串支持许多合理的<a href="https://github.com/WICG/ua-client-hints/blob/main/README.md#use-cases" rel="noopener">用例</a>，并为开发者和网站所有者提供重要用途。但是，保护用户隐私免受隐蔽跟踪方法的侵害也至关重要，而默认发送 UA 信息与这一目标背道而驰。</p>
+<p>提高网络兼容性对于用户代理字符串也是必须的。用户代理字符串是非结构化的，因此对其进行解析会带来不必要的复杂性，这通常是导致错误和站点兼容性问题并对用户造成困扰的原因。这些问题对不太常用的浏览器的用户造成的伤害也是不成比例的，因为网站可能无法针对这些用户配置进行测试。</p>
+<h2 id="-3">推出新的用户代理客户端提示 <a class="w-headline-link" href="#-3">#</a></h2>
+<p><a href="https://github.com/WICG/ua-client-hints#explainer-reducing-user-agent-granularity" rel="noopener">用户代理客户端提示</a>使您能够通过更加保护隐私的方式访问相同的信息，进而使浏览器能够最终降低用户代理字符串默认公布所有内容的程度。<a href="https://tools.ietf.org/html/draft-ietf-httpbis-client-hints" rel="noopener">客户端提示</a>会强制执行一个模型，其中，服务器必须向浏览器询问有关客户端的一组数据（提示），而浏览器通过应用自己的政策或用户配置来确定返回哪些数据。这意味着<strong>所有</strong>用户代理信息现在不再会被默认公开，而是会以显式的、可审计的方式得到访问管理。开发者还将得益于一个更简单的 API 而不再需要编写正则表达式！</p>
+<p>当前这组客户端提示主要描述了浏览器的显示和连接功能。您可以在<a href="https://developers.google.com/web/updates/2015/09/automating-resource-selection-with-client-hints" rel="noopener">使用客户端提示实现自动化资源选择</a>中探索详细信息，但我先在这里对该过程做一个快速回顾。</p>
+<p>服务器通过标头请求特定的客户端提示：</p>
+<p>⬇️<em>来自服务器的响应</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Accept-CH: Viewport-Width, Width</code></pre>
+</web-copy-code><p>或元标签：</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">http-equiv</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accept-CH<span class="token punctuation">"</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Viewport-Width, Width<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>然后浏览器可以选择在后续请求中发回以下标头：</p>
+<p>⬆️<em>后续请求</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Viewport-Width: 460<br>Width: 230</code></pre>
+</web-copy-code><p>服务器可以选择改变其响应，例如选择以合适的分辨率提供图像。</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>目前关于在初始请求时启用客户端提示的讨论仍在持续进行，但在选定这个方向之前，您应该首先考虑<a href="/responsive-web-design-basics">响应式设计</a>或渐进增强。</p>
+</div></aside>
+<p>用户代理客户端提示能够使用通过<code>Accept-CH</code>服务器响应头指定的<code>Sec-CH-UA</code>前缀来扩展属性范围。如需了解全部详情，请先从<a href="https://github.com/WICG/ua-client-hints/blob/main/README.md" rel="noopener">解释器</a>着手，然后再深入研究<a href="https://wicg.github.io/ua-client-hints/" rel="noopener">完整方案</a>。</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>客户端提示<strong>仅通过安全连接发送</strong>，因此请确保您已<a href="/why-https-matters">将网站迁移到 HTTPS</a>。</p>
+</div></aside>
+<p>Chromium 84 提供了一组新的提示，现在我们就来探索一下这些提示的运作方式。</p>
+<h2 id="chromium-84">Chromium 84 的用户代理客户端提示 <a class="w-headline-link" href="#chromium-84">#</a></h2>
+<p>用户代理客户端提示只会随着<a href="https://bugs.chromium.org/p/chromium/issues/detail?id=1091285" rel="noopener">兼容性问题</a>的逐一解决而在 Chrome 稳定版上逐步启用。强制开启功能进行测试的方式：</p>
+<ul>
+<li>使用 Chrome 84 <strong>测试版</strong>或同等版本。</li>
+<li>启用<code>about://flags/#enable-experimental-web-platform-features</code>标志。</li>
+</ul>
+<p>默认情况下，浏览器会返回浏览器品牌、重要/主要版本以及客户端是否为移动设备的指示符：</p>
+<p>⬆️<em>所有请求</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Sec-CH-UA: "Chromium";v="84", "Google Chrome";v="84"<br>Sec-CH-UA-Mobile: ?0</code></pre>
+</web-copy-code><aside class="aside flow bg-state-bad-bg color-state-bad-text">
+<p class="cluster color-state-bad-text">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error sign">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm0-10v6h2V7h-2z" />
+</svg></span>
+<strong>小心</strong></p>
+<div class=" flow">
+<p>这些属性比单个值更为复杂，因此我们用<a href="https://httpwg.org/http-extensions/draft-ietf-httpbis-header-structure.html" rel="noopener">结构化标头</a>来表示列表和布尔值。</p>
+</div></aside>
+<h3 id="-4">用户代理响应和请求标头 <a class="w-headline-link" href="#-4">#</a></h3>
+<style>
+.table-wrapper th:nth-of-type(1), .table-wrapper th:nth-of-type(2) {
+    width: 28ch;
+}
+
+.table-wrapper td {
+  padding: 4px 8px 4px 0;
+}
+</style>
+<div class="w-table-wrapper">
+<table>
+<thead>
+<tr>
+<th>⬇️ 响应<code>Accept-CH</code><br> ⬆️ 请求标头</th>
+<th>⬆️ 请求<br>示例值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Sec-CH-UA</code></td>
+<td><code>&quot;Chromium&quot;;v=&quot;84&quot;,</code><br><code>&quot;Google Chrome&quot;;v=&quot;84&quot;</code></td>
+<td>浏览器品牌及其重要版本列表。</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Mobile</code></td>
+<td><code>?1</code></td>
+<td>布尔值，指示浏览器是（<code>?1</code>表示真）否（<code>?0</code>表示假）在移动设备上。</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Full-Version</code></td>
+<td><code>&quot;84.0.4143.2&quot;</code></td>
+<td>浏览器的完整版本。</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Platform</code></td>
+<td><code>&quot;Android&quot;</code></td>
+<td>设备平台，通常为操作系统 (OS)。</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Platform-Version</code></td>
+<td><code>&quot;10&quot;</code></td>
+<td>平台或操作系统的版本。</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Arch</code></td>
+<td><code>&quot;arm&quot;</code></td>
+<td>设备的底层架构。虽然这可能与显示页面无关，但网站可能会希望提供默认为正确格式的下载。</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Model</code></td>
+<td><code>&quot;Pixel 3&quot;</code></td>
+<td>设备型号。</td>
+</tr>
+</tbody>
+</table>
+</div><aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>问题</strong></p>
+<div class=" flow">
+<p>出于隐私和兼容性的考虑，该值可能为空、不返回或用一个不同的值来填充。这被称为 <a href="https://wicg.github.io/ua-client-hints/#grease" rel="noopener">GREASE</a>。</p>
+</div></aside>
+<h3 id="-5">示例交换 <a class="w-headline-link" href="#-5">#</a></h3>
+<p>示例交换如下所示：</p>
+<p>⬆️<em>浏览器的初始请求</em><br>浏览器正在向网站请求<code>/downloads</code>页面并发送其默认的基本用户代理。</p>
+<web-copy-code><pre class="language-text"><code class="language-text">GET /downloads HTTP/1.1<br>Host: example.site<br><br>Sec-CH-UA: "Chromium";v="84", "Google Chrome";v="84"<br>Sec-CH-UA-Mobile: ?0</code></pre>
+</web-copy-code><p>⬇️<em>服务器的响应</em><br>服务器将页面发回并另外要求提供完整的浏览器版本和平台。</p>
+<web-copy-code><pre class="language-text"><code class="language-text">HTTP/1.1 200 OK<br>Accept-CH: Sec-CH-UA-Full-Version, Sec-CH-UA-Platform</code></pre>
+</web-copy-code><p>⬆️<em>后续请求</em><br>浏览器授予服务器访问附加信息的权限，并在所有后续响应中发回额外提示。</p>
+<web-copy-code><pre class="language-text"><code class="language-text">GET /downloads/app1 HTTP/1.1<br>Host: example.site<br><br>Sec-CH-UA: "Chromium";v="84", "Google Chrome";v="84"<br>Sec-CH-UA-Mobile: ?0<br>Sec-CH-UA-Full-Version: "84.0.4143.2"<br>Sec-CH-UA-Platform: "Android"</code></pre>
+</web-copy-code><h3 id="javascript-api">JavaScript API <a class="w-headline-link" href="#javascript-api">#</a></h3>
+<p>除了标头外，还可以通过<code>navigator.userAgentData</code>在 JavaScript 中访问用户代理。可以分别通过<code>brands</code>和<code>mobile</code>属性访问默认的<code>Sec-CH-UA</code>和<code>Sec-CH-UA-Mobile</code>：</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token comment">// 记录品牌数据</span><br>console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>navigator<span class="token punctuation">.</span>userAgentData<span class="token punctuation">.</span>brands<span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// 输出</span><br><span class="token punctuation">[</span><br>  <span class="token punctuation">{</span><br>    brand<span class="token operator">:</span> <span class="token string">'Chromium'</span><span class="token punctuation">,</span><br>    version<span class="token operator">:</span> <span class="token string">'84'</span><span class="token punctuation">,</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token punctuation">{</span><br>    brand<span class="token operator">:</span> <span class="token string">'Google Chrome'</span><span class="token punctuation">,</span><br>    version<span class="token operator">:</span> <span class="token string">'84'</span><span class="token punctuation">,</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br><span class="token comment">// 记录移动指示器</span><br>console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>navigator<span class="token punctuation">.</span>userAgentData<span class="token punctuation">.</span>mobile<span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// 输出</span><br><span class="token boolean">false</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>附加值可以通过<code>getHighEntropyValues()</code>调用来进行访问。&quot;高熵&quot;一词指的是<a href="https://en.wikipedia.org/wiki/Entropy_(information_theory)" rel="noopener">信息熵</a>，也就是这些值揭示的有关用户浏览器的信息量。与请求附加标头一样，返回值（如果有）取决于浏览器。</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token comment">// 记录完整的用户代理数据</span><br>navigator<br>  <span class="token punctuation">.</span>userAgentData<span class="token punctuation">.</span><span class="token function">getHighEntropyValues</span><span class="token punctuation">(</span><br>    <span class="token punctuation">[</span><span class="token string">"architecture"</span><span class="token punctuation">,</span> <span class="token string">"model"</span><span class="token punctuation">,</span> <span class="token string">"platform"</span><span class="token punctuation">,</span> <span class="token string">"platformVersion"</span><span class="token punctuation">,</span><br>     <span class="token string">"uaFullVersion"</span><span class="token punctuation">]</span><span class="token punctuation">)</span><br>  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">ua</span> <span class="token operator">=></span> <span class="token punctuation">{</span> console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>ua<span class="token punctuation">)</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// 输出</span><br><span class="token punctuation">{</span><br>  <span class="token string">"architecture"</span><span class="token operator">:</span> <span class="token string">"x86"</span><span class="token punctuation">,</span><br>  <span class="token string">"model"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span><br>  <span class="token string">"platform"</span><span class="token operator">:</span> <span class="token string">"Linux"</span><span class="token punctuation">,</span><br>  <span class="token string">"platformVersion"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span><br>  <span class="token string">"uaFullVersion"</span><span class="token operator">:</span> <span class="token string">"84.0.4143.2"</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><h3 id="-6">演示版 <a class="w-headline-link" href="#-6">#</a></h3>
+<p>您可以在 <a href="https://user-agent-client-hints.glitch.me" rel="noopener">user-agent-client-hints.glitch.me</a> 上尝试对自己的设备使用标头和 JavaScript API。</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>确保您使用的是 Chrome 84 测试版或同等版本，并启用<code>about://flags/#enable-experimental-web-platform-features</code>。</p>
+</div></aside>
+<h3 id="-7">提示生命周期和重设 <a class="w-headline-link" href="#-7">#</a></h3>
+<p>通过<code>Accept-CH</code>标头指定的提示将在浏览器会话期间或直到指定一组不同提示之前进行发送。</p>
+<p>这意味着如果服务器发送：</p>
+<p>⬇️<em>响应</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Accept-CH: Sec-CH-UA-Full-Version</code></pre>
+</web-copy-code><p>然后，浏览器直到关闭前都会为该网站的所有请求发送<code>Sec-CH-UA-Full-Version</code>标头。</p>
+<p>⬆️<em>后续请求</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Sec-CH-UA-Full-Version: "84.0.4143.2"</code></pre>
+</web-copy-code><p>但是，如果收到另一个<code>Accept-CH</code>标头，则该标头将<strong>完全替换</strong>浏览器正在发送的当前提示。</p>
+<p>⬇️<em>响应</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Accept-CH: Sec-CH-UA-Platform</code></pre>
+</web-copy-code><p>⬆️<em>后续请求</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Sec-CH-UA-Platform: "Android"</code></pre>
+</web-copy-code><p>之前请求的<code>Sec-CH-UA-Full-Version</code><strong>将不会被发送</strong>。</p>
+<p>最好将<code>Accept-CH</code>标头的功能视作指定该页面所需的完整提示集，这意味着浏览器随后会为该页面上的所有子资源发送指定的提示。虽然提示会持续到下一次导航，但网站不应依赖或假设这些提示会被传递。</p>
+<aside class="aside flow bg-state-good-bg color-state-good-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg></span>
+<strong>成功</strong></p>
+<div class=" flow">
+<p>始终确保您在没有这些信息的情况下仍能提供有意义的体验。提示是为了增强用户体验，而不是定义用户体验的，所以这些信息才会被称为&quot;提示&quot;，而不是&quot;答案&quot;或&quot;要求&quot;！</p>
+</div></aside>
+<p>利用这一点，您还可以通过在响应中发送一个空的<code>Accept-CH</code>来有效清除浏览器发送的所有提示。可以考虑在任何用户重置首选项或退出网站的位置添加此选项。</p>
+<p>这种模式也符合提示在<code>&lt;meta http-equiv=&quot;Accept-CH&quot; …&gt;</code>标签下的运作方式。所请求的提示只会在页面发起请求时被发送，而不会在任何后续导航时被发送。</p>
+<h3 id="-8">提示范围和跨域请求 <a class="w-headline-link" href="#-8">#</a></h3>
+<p>默认情况下，客户端提示只会在同域请求中被发送。这意味着如果您在<code>https://example.com</code>中要求特定提示，但您要优化的资源在<code>https://downloads.example.com</code>上，那么这些资源<strong>将不会</strong>收到任何提示。</p>
+<p>为了在跨域请求中发送提示，每个提示和域都必须由一个<code>Feature-Policy</code>标头进行指定。如需将这一做法应用在用户代理客户端提示中，您需要将提示小写并删除<code>sec-</code>前缀。例如：</p>
+<p>⬇️*<code>example.com</code>的响应*</p>
+<web-copy-code><pre class="language-text"><code class="language-text">Accept-CH: Sec-CH-UA-Platform, DPR<br>Feature-Policy: ch-ua-platform downloads.example.com;<br>                ch-dpr cdn.provider img.example.com</code></pre>
+</web-copy-code><p>⬆️<em>向<code>downloads.example.com</code>发送的请求</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Sec-CH-UA-Platform: "Android"</code></pre>
+</web-copy-code><p>⬆️<em>向<code>cdn.provider</code>或<code>img.example.com</code>发送的请求</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">DPR: 2</code></pre>
+</web-copy-code><h2 id="-9">在哪里使用用户代理客户端提示？ <a class="w-headline-link" href="#-9">#</a></h2>
+<p>快速的解答就是您应该对正在解析用户代理标头或使用访问相同信息的任何 JavaScript 调用（例如<code>navigator.userAgent</code>、<code>navigator.appVersion</code>或<code>navigator.platform</code>）的任何实例进行重构，进而改用用户代理客户端提示。</p>
+<p>更进一步地，您应该重新检查您对用户代理信息的使用，并尽可能地用其他方法代替。通常情况下，您可以通过使用渐进增强、特征检测或<a href="/responsive-web-design-basics">响应式设计</a>来实现同样的目标。依赖用户代理数据的基本问题是，您始终要对正在检查的属性与其启用行为之间的映射进行维护。这项维护开销可确保您的检测是全面的并保持最新状态。</p>
+<p>考虑到这些注意事项， <a href="https://github.com/WICG/ua-client-hints#use-cases" rel="noopener">用户代理客户端提示存储库列出了一些有效用例</a>（针对网站）。</p>
+<h2 id="-10">用户代理字符串会发生什么变化？ <a class="w-headline-link" href="#-10">#</a></h2>
+<p>该计划是通过减少现有用户代理字符串暴露的识别信息量，同时不对现有网站造成过度干扰，从而最大限度地削弱网络上隐蔽跟踪的能力。用户代理客户端提示的推出使您有机会在我们对用户代理字符串进行任何更改前了解和试验新功能。</p>
+<p><a href="https://groups.google.com/a/chromium.org/d/msg/blink-dev/-2JIRNMWJ7s/u-YzXjZ8BAAJ" rel="noopener">最终</a>，用户代理字符串中的信息将得到减少，从而在保持传统格式的同时，只提供与默认提示相同的高级浏览器和重要版本信息。在 Chromium 中，此更改已至少推迟到 2021 年，以便为生态系统提供更多时间来评估新的用户代理客户端提示功能。</p>
+<p>您可以通过启用 Chrome 93 中的<code>about://flags/#reduce-user-agent</code>标志来测试其中一个版本（注意：此标志在 Chrome 84 - 92 版本中叫做<code>about://flags/#freeze-user-agent</code>)。出于兼容性原因，这将返回一个带有历史条目，但包含已净化具体内容的字符串。如下所示：</p>
+<web-copy-code><pre class="language-text"><code class="language-text">Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.0.0 Mobile Safari/537.36</code></pre>
+</web-copy-code><p><em>照片：<a href="https://unsplash.com/@szolkin?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" rel="noopener">谢尔盖·佐尔金 (Sergey Zolkin)</a>；来源：<a href="https://unsplash.com/photos/m9qMoh-scfE?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" rel="noopener">Unsplash</a></em></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/privacy/">隐私</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/security/">安全</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Feb 12, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/zh/blog/user-agent-client-hints/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@rowan_m | @yoavweiss"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">分享</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            提交错误
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            查看源代码
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">相关内容</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome 动态
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            网站开发基础
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            案例研究
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            播客
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            节目
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">连接</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          所有产品
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="zh"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          条款和隐私权
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          社区准则
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

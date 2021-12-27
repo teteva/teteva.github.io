@@ -1,0 +1,833 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=7b8f896894679">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Cumulative Layout Shift(누적 레이아웃 이동, CLS)</title>
+<meta name="description" content="이 게시물에서는 누적 레이아웃 이동(CLS) 메트릭을 소개하고 이를 측정하는 방법을 설명합니다." />
+
+<link rel="canonical" href="https://web.dev/i18n/ko/cls/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/cls/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/cls/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/cls/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/cls/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/cls/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/cls/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/cls/" />
+<meta itemprop="name" content="Cumulative Layout Shift(누적 레이아웃 이동, CLS)" />
+<meta itemprop="description" content="이 게시물에서는 누적 레이아웃 이동(CLS) 메트릭을 소개하고 이를 측정하는 방법을 설명합니다." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/ko/cls/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Cumulative Layout Shift(누적 레이아웃 이동, CLS)" />
+<meta property="og:description" content="이 게시물에서는 누적 레이아웃 이동(CLS) 메트릭을 소개하고 이를 측정하는 방법을 설명합니다." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="metrics" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Cumulative Layout Shift(누적 레이아웃 이동, CLS)" />
+<meta name="twitter:description" content="이 게시물에서는 누적 레이아웃 이동(CLS) 메트릭을 소개하고 이를 측정하는 방법을 설명합니다." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=67492a20d820d', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=add0e7622c94a', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="메뉴 열기">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">메뉴 열기</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        배우기
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        측정
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        블로그
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        정보
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="닫기"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">닫기</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        배우기
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        측정
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        블로그
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        정보
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#cumulative-layout-shift(-cls)" class="w-toc__header--link">
+        Cumulative Layout Shift(누적 레이아웃 이동, CLS)
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#cls">CLS란 무엇인가요?</a><ol><li><a href="#cls-2">좋은 CLS 점수는 무엇인가요?</a></li></ol></li><ol><li><a href="#-2">레이아웃 이동 점수</a></li><li><a href="#-3">영향분율</a></li><li><a href="#-4">거리분율</a></li><li><a href="#vs.">예상한 레이아웃 이동 vs. 예상치 못한 레이아웃 이동</a></li></ol><li><a href="#cls-3">CLS 측정 방법</a><ol><li><a href="#-7">현장 도구</a></li><li><a href="#-8">실험실 도구</a></li><li><a href="#javascript-cls">JavaScript에서 CLS 측정</a></li></ol></li><li><a href="#cls-4">CLS를 개선하는 방법</a></li><li><a href="#-9">추가 리소스</a></li><li><a href="#changelog">CHANGELOG</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@philwalton | @bibydigital"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>공유</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="cumulative-layout-shift(-cls)" class="w-article-header__headline">Cumulative Layout Shift(누적 레이아웃 이동, CLS)</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Jun 11, 2019</time>
+           <span class="w-author__separator">•</span> 업데이트됨 <time>Jun 1, 2021</time> 
+        </div>
+      
+
+      
+      
+      <div class="w-layout-container--narrow w-post-signpost">
+        <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/cls/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/cls/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/cls/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/cls/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/cls/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/cls/">
+      English</a></span>
+      </div>
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        ><span class="w-post-signpost__divider">|</span><a
+          class="w-post-signpost__link"
+          href="/metrics"
+          >메트릭</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/philipwalton/"><img     alt="Philip Walton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/philipwalton/">Philip Walton</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/philwalton"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/philipwalton">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://philipwalton.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+            <div class="w-author">
+  <a href="/authors/mihajlija/"><img     alt="Milica Mihajlija"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/mihajlija/">Milica Mihajlija</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/bibydigital"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/mihajlija">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://mihajlija.github.io/">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <div role="banner" class="w-banner w-banner--caution w-banner--body">
+   <strong>2021년 6월 1일:</strong> CLS 구현이 변경되었습니다. 변경 이유에 대해 자세히 알아보려면 <a href="/evolving-cls">진화하는 CLS 메트릭</a>을 확인하시기 바랍니다. 
+</div>
+<div class="w-aside w-aside--key-term">
+<p><strong>핵심 용어</strong>:  누적 레이아웃 이동(CLS)은 사용자가 예상치 못한 레이아웃 이동을 경험하는 빈도를 수량화하므로 <a href="/user-centric-performance-metrics/#types-of-metrics">시각적 안정성</a>을 측정할 때 중요한 사용자 중심 메트릭입니다. CLS가 낮으면 <a href="/user-centric-performance-metrics/#questions">우수</a>한 사용자 경험을 보장하는 데 도움이 됩니다. </div></p>
+<p>페이지에 갑자기 바뀌는 부분이 생기는 온라인 기사를 읽으신 경험이 있으신가요? 아무런 경고 없이 텍스트가 움직이며 읽던 부분을 놓치게 되거나, 더 심한 경우 링크나 버튼을 탭하기 직전 갑작스레 링크가 움직이는 바람에 다른 걸 클릭할 수도 있습니다.</p>
+<p>대부분의 경우 이러한 경험은 짜증스러운 정도에서 그치지만, 경우에 따라 실제 피해를 겪게 될 수 있습니다.</p>
+<figure class="w-figure">
+  <video autoplay controls loop muted class="w-screenshot" poster="https://storage.googleapis.com/web-dev-assets/layout-instability-api/layout-instability-poster.png" width="658" height="510">
+    <source src="https://storage.googleapis.com/web-dev-assets/layout-instability-api/layout-instability2.webm" type="video/webm; codecs=vp8">
+    <source src="https://storage.googleapis.com/web-dev-assets/layout-instability-api/layout-instability2.mp4" type="video/mp4; codecs=h264">
+  </source></source></video>
+  <figcaption class="w-figcaption w-figcaption--fullbleed">불안정한 레이아웃이 사용자에게 어떻게 부정적인 영향을 미칠 수 있는지 보여주는 스크린캐스트.</figcaption></figure>
+<p>페이지 콘텐츠의 예기치 않은 이동은 일반적으로 리소스가 비동기식으로 로드되거나 DOM 요소가 기존 콘텐츠 위의 페이지에 동적으로 추가되기 때문에 발생합니다. 원인은 알 수 없는 크기의 이미지나 동영상, 대체 크기보다 크거나 작게 렌더링되는 글꼴, 동적으로 크기가 조정되는 타사 광고 또는 위젯일 수 있습니다.</p>
+<p>이것이 더욱 큰 문제가 되는 이유는 개발 중인 사이트가 기능하는 방식이 종종 사용자가 경험하는 방식과 상당히 다르다는 것입니다. 대부분 개인화된 콘텐츠나 타사 콘텐츠는 프로덕션 환경에서는 개발 환경과 동일하게 작동하지 않고, 테스트 이미지는 이미 개발자의 브라우저 캐시에 존재하며, 로컬에서 실행되는 API 호출이 너무 빨라 지연이 눈에 띄지 않는 경우가 많기 때문입니다.</p>
+<p>누적 레이아웃 이동(CLS) 메트릭은 실제 사용자에게 이러한 일이 발생하는 빈도를 측정하여 이 문제를 해결하는 데 도움을 줍니다.</p>
+<h2 id="cls">CLS란 무엇인가요? <a class="w-headline-link" href="#cls">#</a></h2>
+<p>CLS는 페이지의 전체 수명 동안 발생하는 모든 <a href="/cls/#expected-vs.-unexpected-layout-shifts">예기치 않은</a> 레이아웃 이동에 대해 가장 큰 <em>레이아웃 이동 점수</em> 버스트를 뜻합니다.</p>
+<p><em>레이아웃 이동</em>은 시각적 요소가 렌더링된 프레임에서 다음 프레임으로 위치를 변경할 때마다 발생합니다. 개별 <a href="#layout-shift-score">레이아웃 이동 점수</a> 계산 방법에 대한 자세한 내용은 아래를 참조하세요.</p>
+<p><a href="evolving-cls/#why-a-session-window"><em>세션 기간</em></a>으로 알려진 레이아웃 이동 버스트는 하나 이상의 개별 레이아웃 이동이 빠르게 연속해서 이루어지는 경우를 뜻합니다. 이때 각 레이아웃 사이 간격은 1초 미만이며, 총 기간은 최대 5초입니다.</p>
+<p>가장 큰 버스트는 해당 기간 내 모든 레이아웃 이동에 대해 누적 점수가 최대인 세션 기간입니다.</p>
+<figure class="w-figure">
+  <video controls autoplay loop muted class="w-screenshot" width="658" height="452">
+    <source src="https://storage.googleapis.com/web-dev-assets/better-layout-shift-metric/session-window.webm" type="video/webm">
+    <source src="https://storage.googleapis.com/web-dev-assets/better-layout-shift-metric/session-window.mp4" type="video/mp4">
+  </source></source></video>
+  <figcaption class="w-figcaption">세션 기간의 예시입니다. 파란색 막대는 개별 레이아웃 이동의 점수를 나타냅니다.</figcaption></figure>
+<div class="w-aside w-aside--caution">
+<p><strong>주의</strong>:  이전 CLS는 페이지의 전체 수명 동안 발생한 <em>모든 개별 레이아웃 이동 점수</em>의 합계를 측정했습니다. 원래 구현과 비교하여 벤치마킹할 수 있는 기능을 제공하는 도구가 무엇인지 확인하려면 <a href="/cls-web-tooling">웹 도구에서 진화하는 누적 레이아웃 이동</a>을 참조하세요. </div></p>
+<h3 id="cls-2">좋은 CLS 점수는 무엇인가요? <a class="w-headline-link" href="#cls-2">#</a></h3>
+<p>우수한 사용자 경험을 제공하려면 사이트의 CLS 점수가 <strong>0.1</strong> 이하여야 합니다. 대부분의 사용자에 대해 이 목표를 달성할 수 있도록 하려면 모바일 및 데스크톱 기기 전반에 분할된 페이지 로드의 <strong>75번째 백분위수</strong>를 측정하는 것이 바람직한 임계값입니다.</p>
+<picture>
+  <source srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/9mWVASbWDLzdBUpVcjE1.svg" media="(min-width: 640px)" width="400", height="100">
+  <img     alt="양호한 CLS 값은 0.1 미만이고 불량한 값은 0.25보다 크며 그 사이에는 개선이 필요합니다"     class="w-screenshot w-screenshot--filled width-full"     decoding="async"     height="300"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/uqclEgIlTHhwIgNTXN3Y.svg"               width="400"   />
+</picture>
+<div class="w-aside w-aside--note">
+<p>이러한 권장 사항의 기반이 되는 연구 및 방법론에 대해 자세히 알아보려면 <a href="/defining-core-web-vitals-thresholds/">Core Web Vitals 메트릭 임계값 정의</a>를 참조하시기 바랍니다. </div></p>
+<h2 id="">레이아웃 이동 상세 정보 <a class="w-headline-link" href="#">#</a></h2>
+<p>레이아웃 이동은 <a href="https://developer.mozilla.org/docs/Web/CSS/writing-mode" rel="noopener">Layout Instability API</a>가 정의하는 것으로, 뷰포트 내의 가시적 요소가 두 프레임 사이에서 시작 위치가 변경될 때마다(예: 기본 <a href="https://github.com/WICG/layout-instability" rel="noopener">쓰기 모드</a> 의 상단 및 왼쪽 위치) <code>layout-shift</code> 항목을 보고합니다. 그리고 이러한 요소는 <em>불안정 요소</em>로 간주됩니다.</p>
+<p>레이아웃 이동은 기존 요소가 시작 위치를 변경할 때만 발생합니다. 새 요소가 DOM에 추가되거나 기존 요소의 크기가 변경되면 변경으로 인해 다른 가시적 요소의 시작 위치가 변경되지 않는 한 레이아웃 이동으로 간주되지 않습니다.</p>
+<h3 id="-2">레이아웃 이동 점수 <a class="w-headline-link" href="#-2">#</a></h3>
+<p><em>레이아웃 이동 점수</em>를 계산하기 위해 브라우저는 렌더링된 두 개의 프레임 사이 뷰포트의 크기와 뷰포트 내 <em>불안정 요소</em>의 움직임을 살핍니다. 레이아웃 이동 점수는 해당 움직임에 대한 <em>impact fraction</em>(영향분율)과 <em>distacne fraction</em>(거리분율)이라는 두 가지 측정값을 사용해 계산합니다.</p>
+<web-copy-code><pre class="language-text"><code class="language-text">layout shift score = impact fraction * distance fraction</code></pre>
+</web-copy-code><h3 id="-3">영향분율 <a class="w-headline-link" href="#-3">#</a></h3>
+<p><a href="https://github.com/WICG/layout-instability#Impact-Fraction" rel="noopener">영향분율</a>은 <em>불안정 요소</em>가 두 프레임 사이 뷰포트 영역에 미치는 영향을 측정합니다.</p>
+<p>이전 프레임과 현재 프레임 <em>모두</em>에서 <em>불안정 요소</em> 가시 영역의 합집함은 뷰포트 총 영역의 일부로서 현재 프레임에 대한 <em>영향분율</em>입니다.</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format"><img      alt="*불안정 요소*가 하나 있는 영향분율 예시"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>위 이미지에는 한 프레임에서 뷰포트의 절반을 차지하는 요소가 있습니다. 다음 프레임에서는 요소가 뷰포트 높이의 25%만큼 아래로 이동합니다. 빨간색 점선 직사각형은 두 프레임 모두에서 요소의 가시 영역을 합한 것입니다. 이 경우 전체 뷰포트의 75%이므로 <em>영향분율</em>은 <code>0.75</code>입니다.</p>
+<h3 id="-4">거리분율 <a class="w-headline-link" href="#-4">#</a></h3>
+<p>레이아웃 이동 점수 방정식의 또 다른 부분은 뷰포트를 기준으로 불안정 요소가 이동한 거리를 측정합니다. <em>거리분율</em>은 프레임에서 <em>불안정 요소</em>가 수평 또는 수직으로 이동한 최대 거리를 뷰포트의 가장 큰 치수(너비 또는 높이 중 더 큰 것)로 나눈 값입니다.</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format"><img      alt="*불안정 요소*가 하나 있는 거리분율 예시"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>위의 예에서 가장 큰 뷰포트 치수는 높이이고 불안정한 요소는 뷰포트 높이의 25%만큼 이동하였으므로 <em>거리분율</em>은 0.25가 됩니다.</p>
+<p>따라서 이 예에서 <em>영향분율</em>은 <code>0.75</code>이고 <em>거리분율</em>은 <code>0.25</code>이므로 <em>레이아웃 이동 점수</em> 는 <code>0.75 * 0.25 = 0.1875</code> 입니다.</p>
+<div class="w-aside w-aside--note">
+<p>처음에 레이아웃 이동 점수는 <em>영향분율</em>만을 기준으로 계산되었습니다. 그러다가 크기가 큰 요소가 소량으로 이동하는 경우에 과도한 페널티를 주는 것을 피하기 위해 <em>거리분율</em>이 도입되었습니다. </div></p>
+<p>다음 예는 기존 요소에 콘텐츠를 추가하면 레이아웃 이동 점수에 어떤 영향을 미치는지 보여줍니다.</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format"><img      alt="안정적 요소, *불안정 요소*, 뷰포트 클리핑이 있는 레이아웃 이동 예시"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>&quot;Click Me!&quot; 버튼이 검은색 텍스트가 있는 회색 상자의 맨 아래에 추가되어 흰색 텍스트가 있는 녹색 상자를 아래로(그리고 부분적으로 뷰포트 밖으로) 밀어냅니다.</p>
+<p>이 예에서 회색 상자는 크기가 변경되지만 시작 위치는 변경되지 않으므로 <em>불안정 요소</em> 가 아닙니다.</p>
+<p>&quot;Click Me!&quot; 버튼은 이전에 DOM에 없었으므로 시작 위치도 변경되지 않습니다.</p>
+<p>그러나 녹색 상자의 경우 시작 위치는 변경되었지만 부분적으로 뷰포트 밖으로 이동되었으며 <em>영향분율</em>을 계산할 때 보이지 않는 영역은 고려되지 않습니다. 두 프레임(빨간색 점선 직사각형으로 표시)에서 녹색 상자의 가시 영역 합은 첫 번째 프레임의 녹색 상자 영역(뷰포트의 50%)과 동일합니다. 그러므로 <em>영향분율</em>은 <code>0.5</code>입니다.</p>
+<p><em>거리분율</em>은 보라색 화살표로 표시되어 있습니다. 녹색 상자는 뷰포트의 약 14%만큼 아래로 이동하였으므로 <em>거리분율</em>은 <code>0.14</code>입니다.</p>
+<p>레이아웃 이동 점수는 <code>0.5 x 0.14 = 0.07</code>입니다.</p>
+<p>마지막 예시에는 <em>불안정 요소</em>가 여러 개 있습니다.</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format"><img      alt="안정적 요소, *불안정 요소*가 여러 개 있는 레이아웃 이동 예시"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>위의 첫 번째 프레임에는 동물에 대한 API 요청의 네 가지 결과가 알파벳순으로 정렬되어 있습니다. 두 번째 프레임에서는 정렬된 목록에 더 많은 결과가 추가됩니다.</p>
+<p>목록의 첫 번째 항목(&quot;Cat&quot;)은 프레임 간에 시작 위치를 변경하지 않으므로 안정적입니다. 마찬가지로 목록에 추가된 새 항목은 이전에 DOM에 없었으므로 시작 위치가 변경되지 않았습니다. 그러나 &quot;Dog&quot;, &quot;Horse&quot;, &quot;Zebra&quot;라고 표시된 항목은 모두 시작 위치가 변경되었으므로 <em>불안정 요소</em>입니다.</p>
+<p>다시 말하지만, 빨간색 점선 직사각형은 이 세 가지 <em>불안정 요소</em>에 대한 전후 영역의 합을 나타내며, 이 경우 뷰포트 영역의 약 38%라고 볼 수 있습니다(<em>영향분율</em>: <code>0.38</code>).</p>
+<p>화살표는 <em>불안정 요소</em>가 시작 위치에서 이동한 거리를 나타냅니다. 파란색 화살표로 표시된 &quot;Zebra&quot; 요소가 뷰포트 높이의 30% 정도로 가장 많이 이동했습니다. 따라서 이 예에서 <em>거리분율</em>은 <code>0.3</code>입니다.</p>
+<p>레이아웃 전환 점수는 <code>0.38 x 0.3 = 0.1172</code>입니다.</p>
+<h3 id="vs.">예상한 레이아웃 이동 vs. 예상치 못한 레이아웃 이동 <a class="w-headline-link" href="#vs.">#</a></h3>
+<p>모든 레이아웃 변경이 나쁜 것은 아닙니다. 실제로 많은 동적 웹 응용 프로그램은 페이지에서 요소의 시작 위치를 자주 변경합니다.</p>
+<h4 id="-5">사용자 개시 레이아웃 이동 <a class="w-headline-link" href="#-5">#</a></h4>
+<p>레이아웃 이동은 사용자가 예상하지 않은 경우에만 나쁩니다. 반면에 사용자 상호 작용(링크 클릭, 버튼 누르기, 검색 상자 입력 등)에 대한 응답으로 발생하는 레이아웃 이동은 사용자에게 그 관계가 명확하게 보이는 한 괜찮습니다.</p>
+<p>예를 들어, 사용자 상호 작용이 완료하는 데 시간이 걸릴 수 있는 네트워크 요청을 트리거하는 경우 요청이 완료될 때 사용자에게 불편한 레이아웃 이동을 피하기 위해 즉시 공간을 만들고 로딩 표시기를 표시하는 것이 가장 좋습니다. 사용자가 무언가가 로드되고 있다는 사실을 깨닫지 못하거나 리소스가 언제 준비될지 알지 못하는 경우 대기 시간에 뭔가 다른 것을 클릭하게 될 수도 있습니다.</p>
+<p>사용자 입력 후 500밀리초 이내에 발생하는 레이아웃 이동에는 <a href="https://wicg.github.io/layout-instability/#dom-layoutshift-hadrecentinput" rel="noopener"><code>hadRecentInput</code></a> 플래그가 설정되어 계산에서 제외됩니다.</p>
+<div class="w-aside w-aside--caution">
+<p><strong>주의</strong>:  <code>hadRecentInput</code> 플래그는 탭, 클릭 또는 키 누르기와 같은 개별 입력 이벤트에 대해서만 true가 됩니다. 스크롤, 드래그, 핀치 및 줌 제스처와 같은 지속적인 상호 작용은 &quot;최근 입력&quot;으로 간주되지 않습니다. 자세한 내용은 <a href="https://github.com/WICG/layout-instability#recent-input-exclusion" rel="noopener">레이아웃 불안정 요소 사양</a> 을 참조하세요. </div></p>
+<h4 id="-6">애니메이션 및 전환 <a class="w-headline-link" href="#-6">#</a></h4>
+<p>제대로 된 애니메이션 및 전환은 사용자를 놀라게 하지 않고서도 페이지의 콘텐츠를 업데이트할 수 있는 좋은 방법입니다. 페이지에서 갑자기 예기치 않게 콘텐츠가 이동하는 경우는 거의 항상 좋지 않은 사용자 경험으로 이어집니다 그러나 한 위치에서 다음 위치로 점진적이고 자연스럽게 이동하는 콘텐츠는 사용자가 상황을 더 잘 이해하고, 사용자에게 상태의 변경을 안내하는 데 도움이 됩니다.</p>
+<p>CSS <a href="https://developer.mozilla.org/docs/Web/CSS/transform" rel="noopener"><code>transform</code></a> 속성을 사용하면 레이아웃 이동을 트리거하지 않고 요소에 애니메이션을 적용할 수 있습니다.</p>
+<ul>
+<li><code>height</code> 및 <code>width</code> 속성을 변경하는 대신 <code>transform: scale()</code>을 사용하세요.</li>
+<li>요소를 이동하려면 <code>top</code> , <code>right</code> , <code>bottom</code> 또는 <code>left</code> 속성을 변경하는 것은 피하고, 대신 <code>transform: translate()</code>를 사용하세요.</li>
+</ul>
+<h2 id="cls-3">CLS 측정 방법 <a class="w-headline-link" href="#cls-3">#</a></h2>
+<p>CLS는 <a href="/user-centric-performance-metrics/#in-the-lab">실험실</a>이나 <a href="/user-centric-performance-metrics/#in-the-field">현장</a>에서 측정할 수 있으며 다음 도구에서 사용할 수 있습니다.</p>
+<div class="w-aside w-aside--caution">
+<p><strong>주의</strong>:  실험실 도구는 일반적으로 인공적인 환경에서 페이지를 로드하므로 페이지 로드 중에 발생하는 레이아웃 이동만 측정할 수 있습니다. 결과적으로 주어진 페이지에 대해 랩 도구에서 보고한 CLS 값은 실제 사용자가 실제로 경험하는 것보다 작을 수 있습니다. </div></p>
+<h3 id="-7">현장 도구 <a class="w-headline-link" href="#-7">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome User Experience Report</a></li>
+<li><a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">PageSpeed Insights</a></li>
+<li><a href="https://support.google.com/webmasters/answer/9205520" rel="noopener">Search Console(Core Web Vitals Report)</a></li>
+<li><a href="https://github.com/GoogleChrome/web-vitals" rel="noopener"><code>web-vitals</code> JavaScript 라이브러리</a></li>
+</ul>
+<h3 id="-8">실험실 도구 <a class="w-headline-link" href="#-8">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-devtools/" rel="noopener">Chrome DevTools</a></li>
+<li><a href="https://developers.google.com/web/tools/lighthouse/" rel="noopener">Lighthouse</a></li>
+<li><a href="https://webpagetest.org/" rel="noopener">WebPageTest</a></li>
+</ul>
+<h3 id="javascript-cls">JavaScript에서 CLS 측정 <a class="w-headline-link" href="#javascript-cls">#</a></h3>
+<p>JavaScript에서 CLS를 측정하려면 <a href="https://github.com/WICG/layout-instability" rel="noopener">Layout Instability API를</a> 사용할 수 있습니다. 다음 예시에서는 예기치 않은 <code>layout-shift</code> 항목을 수신 대기하고, 세션으로 그룹화하고, 변경될 때마다 최대 세션 값을 기록하는 <a href="https://developer.mozilla.org/docs/Web/API/PerformanceObserver" rel="noopener"><code>PerformanceObserver</code></a> 를 생성하는 방법을 보여줍니다.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">let</span> clsValue <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> clsEntries <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br><span class="token keyword">let</span> sessionValue <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> sessionEntries <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br><span class="token keyword">new</span> <span class="token class-name">PerformanceObserver</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">entryList</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">const</span> entry <span class="token keyword">of</span> entryList<span class="token punctuation">.</span><span class="token function">getEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token comment">// Only count layout shifts without recent user input.</span><br>    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>entry<span class="token punctuation">.</span>hadRecentInput<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>      <span class="token keyword">const</span> firstSessionEntry <span class="token operator">=</span> sessionEntries<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br>      <span class="token keyword">const</span> lastSessionEntry <span class="token operator">=</span> sessionEntries<span class="token punctuation">[</span>sessionEntries<span class="token punctuation">.</span>length <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br>      <span class="token comment">// If the entry occurred less than 1 second after the previous entry and</span><br>      <span class="token comment">// less than 5 seconds after the first entry in the session, include the</span><br>      <span class="token comment">// entry in the current session. Otherwise, start a new session.</span><br>      <span class="token keyword">if</span> <span class="token punctuation">(</span>sessionValue <span class="token operator">&amp;&amp;</span><br>          entry<span class="token punctuation">.</span>startTime <span class="token operator">-</span> lastSessionEntry<span class="token punctuation">.</span>startTime <span class="token operator">&lt;</span> <span class="token number">1000</span> <span class="token operator">&amp;&amp;</span><br>          entry<span class="token punctuation">.</span>startTime <span class="token operator">-</span> firstSessionEntry<span class="token punctuation">.</span>startTime <span class="token operator">&lt;</span> <span class="token number">5000</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>        sessionValue <span class="token operator">+=</span> entry<span class="token punctuation">.</span>value<span class="token punctuation">;</span><br>        sessionEntries<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>entry<span class="token punctuation">)</span><span class="token punctuation">;</span><br>      <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span><br>        sessionValue <span class="token operator">=</span> entry<span class="token punctuation">.</span>value<span class="token punctuation">;</span><br>        sessionEntries <span class="token operator">=</span> <span class="token punctuation">[</span>entry<span class="token punctuation">]</span><span class="token punctuation">;</span><br>      <span class="token punctuation">}</span><br><br>      <span class="token comment">// If the current session value is larger than the current CLS value,</span><br>      <span class="token comment">// update CLS and the entries contributing to it.</span><br>      <span class="token keyword">if</span> <span class="token punctuation">(</span>sessionValue <span class="token operator">></span> clsValue<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>        clsValue <span class="token operator">=</span> sessionValue<span class="token punctuation">;</span><br>        clsEntries <span class="token operator">=</span> sessionEntries<span class="token punctuation">;</span><br><br>        <span class="token comment">// Log the updated value (and its entries) to the console.</span><br>        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'CLS:'</span><span class="token punctuation">,</span> clsValue<span class="token punctuation">,</span> clsEntries<span class="token punctuation">)</span><br>      <span class="token punctuation">}</span><br>    <span class="token punctuation">}</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span><span class="token punctuation">{</span>type<span class="token operator">:</span> <span class="token string">'layout-shift'</span><span class="token punctuation">,</span> buffered<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><div class="w-aside w-aside--warning">
+<p><strong>경고</strong>:</p>
+<p>이 코드는 CLS를 계산하고 기록하는 기본적인 방법을 보여줍니다. 그러나 <a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome User Experience Report</a>(CrUX)에서 측정된 것과 일치하는 방식으로 CLS를 정확하게 측정하는 것은 보다 복잡한 문제입니다. 자세한 내용은 아래를 참조하세요.</p>
+</div>
+<p>대부분의 경우 페이지가 언로드되는 시점의 현재 CLS 값이 해당 페이지의 최종 CLS 값이지만 몇 가지 중요한 예외 사항이 있습니다.</p>
+<p>다음 섹션에는 API가 보고하는 내용과 메트릭이 계산되는 방법 사이의 차이점이 나열되어 있습니다.</p>
+<h4 id="api">메트릭과 API의 차이점 <a class="w-headline-link" href="#api">#</a></h4>
+<ul>
+<li>페이지가 백그라운드에서 로드되거나 브라우저가 콘텐츠를 페인팅하기 전에 백그라운드화된 경우 CLS 값을 보고하지 않습니다.</li>
+<li>페이지가 <a href="/bfcache/#impact-on-core-web-vitals">백/포워드 캐시</a>에서 복원될 때 사용자는 이를 별개의 페이지 방문으로 경험하므로 해당 CLS 값을 0으로 재설정해야 합니다.</li>
+<li>API는 iframe 내에서 발생하는 이동에 대한 <code>layout-shift</code> 항목을 보고하지 않지만 CLS를 적절하게 측정하려면 이를 고려해야 합니다. 하위 프레임은 <a href="https://github.com/WICG/layout-instability#cumulative-scores" rel="noopener">집계</a>를 위해 API를 사용하여 상위 프레임에 <code>layout-shift</code> 항목을 보고할 수 있습니다.</li>
+</ul>
+<p>이러한 예외 외에도 CLS는 페이지의 전체 수명을 측정하기 때문에 조금 더 복잡해집니다.</p>
+<ul>
+<li>사용자는 며칠, 몇 주, 몇 달 등 <em>매우</em> 오랫동안 탭을 열어 둘 수 있습니다. 실제로 사용자는 탭을 닫지 않을 수도 있습니다.</li>
+<li>모바일 운영 체제에서 브라우저는 일반적으로 백그라운드 탭에 대해 페이지 언로드 콜백을 실행하지 않으므로 &quot;최종&quot; 값을 보고하기 어렵습니다.</li>
+</ul>
+<p>이러한 경우를 처리하려면 페이지가 언로드될 때뿐 아니라 페이지가 백그라운드일 때마다 CLS를 보고해야 합니다(<a href="https://developers.google.com/web/updates/2018/07/page-lifecycle-api#event-visibilitychange" rel="noopener"><code>visibilitychange</code> 이벤트</a>는 이 두 시나리오 모두에 적용됨). 그리고 이 데이터를 수신하는 분석 시스템은 백엔드에서 최종 CLS 값을 계산해야 합니다.</p>
+<p>개발자는 이러한 모든 경우를 직접 암기하고 고심하지 않아도, <a href="https://github.com/GoogleChrome/web-vitals" rel="noopener"><code>web-vitals</code> JavaScript 라이브러리</a>를 사용해 위에서 언급한 모든 것을 처리하는 CLS를 측정할 수 있습니다.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span>getCLS<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'web-vitals'</span><span class="token punctuation">;</span><br><br><span class="token comment">// Measure and log CLS in all situations</span><br><span class="token comment">// where it needs to be reported.</span><br><span class="token function">getCLS</span><span class="token punctuation">(</span>console<span class="token punctuation">.</span>log<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>JavaScript에서 CLS를 측정하는 방법에 대한 전체 예제는 <a href="https://github.com/GoogleChrome/web-vitals/blob/master/src/getCLS.ts" rel="noopener"><code>getCLS)</code> 의 소스 코드</a>를 참조하세요.</p>
+<div class="w-aside w-aside--note">
+<p>일부 경우(예: 교차 원본 iframe) JavaScript에서 CLS를 측정할 수 없습니다. 자세한 내용은 <code>web-vitals</code> 라이브러리의 <a href="https://github.com/GoogleChrome/web-vitals#limitations" rel="noopener">제한 사항</a> 섹션을 참조하세요. </div></p>
+<h2 id="cls-4">CLS를 개선하는 방법 <a class="w-headline-link" href="#cls-4">#</a></h2>
+<p>대부분의 웹사이트에서 다음과 같은 몇 가지 기본 원칙을 준수하면 예기치 않은 레이아웃 이동을 모두 방지할 수 있습니다.</p>
+<ul>
+<li><strong>이미지 및 비디오 요소에 항상 크기 속성을 포함하거나 <a href="https://css-tricks.com/aspect-ratio-boxes/" rel="noopener">CSS 가로 세로 비율 상자</a>와 같은 방식으로 필요한 공간을 미리 확보하세요.</strong> 이러한 접근 방식을 사용하면 이미지가 로드되는 동안 브라우저가 문서에 올바른 양의 공간을 할당할 수 있습니다. <a href="https://github.com/w3c/webappsec-feature-policy/blob/master/policies/unsized-media.md" rel="noopener">unsized-media 기능 정책</a>을 사용하여 기능 정책을 지원하는 브라우저에서 이 동작을 강제할 수도 있습니다.</li>
+<li><strong>사용자 상호 작용에 대한 응답을 제외하고는 기존 콘텐츠 위에 콘텐츠를 삽입하지 마세요.</strong> 이렇게 하면 레이아웃 이동이 발생하기 때문입니다.</li>
+<li><strong>레이아웃 변경을 트리거하는 속성의 애니메이션보다 전환 애니메이션을 사용하세요.</strong> 상태에서 상태로 컨텍스트와 연속성을 제공하는 방식으로 애니메이션 전환을 수행하는 것이 좋습니다.</li>
+</ul>
+<p>CLS를 개선하는 방법에 대한 자세한 내용은 <a href="/optimize-cls/">CLS 최적화</a> 및 <a href="/debug-layout-shifts">레이아웃 이동 디버그</a>를 참조하세요.</p>
+<h2 id="-9">추가 리소스 <a class="w-headline-link" href="#-9">#</a></h2>
+<ul>
+<li><a href="https://developers.google.com/doubleclick-gpt/guides/minimize-layout-shift" rel="noopener">레이아웃 이동 최소화</a>에 대한 Google Publisher Tag 지침</li>
+<li><a href="https://youtu.be/zIJuY-JCjqw" rel="noopener">#PerfMatters</a>(2020년), <a href="https://anniesullie.com/" rel="noopener">Annie Sullivan</a>과 <a href="https://kobes.ca/" rel="noopener">Steve Kobes</a>의 <a href="https://perfmattersconf.com/" rel="noopener">누적 레이아웃 이동 이해</a> 동영상</li>
+</ul>
+<h2 id="changelog">CHANGELOG <a class="w-headline-link" href="#changelog">#</a></h2>
+<p>Occasionally, bugs are discovered in the APIs used to measure metrics, and
+sometimes in the definitions of the metrics themselves. As a result, changes
+must sometimes be made, and these changes can show up as improvements or
+regressions in your internal reports and dashboards.</p>
+<p>To help you manage this, all changes to either the implementation or definition
+of these metrics will be surfaced in this
+<a href="http://bit.ly/chrome-speed-metrics-changelog" rel="noopener">CHANGELOG</a>.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">성능</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/metrics/">메트릭</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/web-vitals/">Web Vitals</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        마지막 업데이트: <time>Jun 1, 2021</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/ko/metrics/cls/index.md"
+      >
+        기사 개선하기
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/learn-web-vitals"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              버그 신고
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              소스 보기
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">관련된 콘텐츠</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome 업데이트
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              웹 기초
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              사례 연구
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              팟캐스트
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              쇼
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">연결</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            전체 제품
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="ko"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            약관 및 개인정보 보호
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            커뮤니티 가이드라인
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

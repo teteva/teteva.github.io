@@ -1,0 +1,890 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=3181dcf0fe9d6">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=1b1c567d08c43">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Richer offline experiences with the Periodic Background Sync API</title>
+<meta name="description" content="Periodic Background Sync enables web applications to periodically synchronize data in the background, bringing web apps closer to the behavior of an iOS/Android/desktop app. " />
+
+<link rel="canonical" href="https://web.dev/periodic-background-sync/" />
+
+<meta itemprop="name" content="Richer offline experiences with the Periodic Background Sync API" />
+<meta itemprop="description" content="Periodic Background Sync enables web applications to periodically synchronize data in the background, bringing web apps closer to the behavior of an iOS/Android/desktop app. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/periodic-background-sync/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Richer offline experiences with the Periodic Background Sync API" />
+<meta property="og:description" content="Periodic Background Sync enables web applications to periodically synchronize data in the background, bringing web apps closer to the behavior of an iOS/Android/desktop app. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="Colorful airplanes flying in sync" />
+<meta property="tag" content="capabilities" />
+<meta property="tag" content="progressive-web-apps" />
+<meta property="tag" content="service-worker" />
+<meta property="tag" content="chrome-80" />
+<meta property="tag" content="origin-trials" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Richer offline experiences with the Periodic Background Sync API" />
+<meta name="twitter:description" content="Periodic Background Sync enables web applications to periodically synchronize data in the background, bringing web apps closer to the behavior of an iOS/Android/desktop app. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=451b88df0c2e3', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=9ec099818ed06', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="Colorful airplanes flying in sync"     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/Bz7MndcsUGPLAnQwIMfJ.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#current-status">Current status</a></li><li class="toc__listitem"><a class="toc__anchor" href="#try-it">Try it</a></li><li class="toc__listitem"><a class="toc__anchor" href="#concepts-and-usage">Concepts and usage</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#getting-user-engagement-right">Getting user engagement right</a></li><li class="toc__listitem"><a class="toc__anchor" href="#when-can-it-be-used">When can it be used?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#when-should-it-be-used">When should it be used?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#permissions">Permissions</a></li><li class="toc__listitem"><a class="toc__anchor" href="#registering-a-periodic-sync">Registering a periodic sync</a></li><li class="toc__listitem"><a class="toc__anchor" href="#verifying-a-registration">Verifying a registration</a></li><li class="toc__listitem"><a class="toc__anchor" href="#responding-to-a-periodic-background-sync-event">Responding to a periodic background sync event</a></li><li class="toc__listitem"><a class="toc__anchor" href="#unregistering-a-sync">Unregistering a sync</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#interfaces">Interfaces</a></li><li class="toc__listitem"><a class="toc__anchor" href="#example">Example</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#updating-content">Updating content</a></li><li class="toc__listitem"><a class="toc__anchor" href="#adding-periodic-background-sync-to-an-existing-web-app">Adding periodic background sync to an existing web app</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#debugging">Debugging</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#recording-local-activity">Recording local activity</a></li><li class="toc__listitem"><a class="toc__anchor" href="#simulating-events">Simulating events</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#using-the-devtools-interface">Using the DevTools interface</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="richer-offline-experiences-with-the-periodic-background-sync-api">Richer offline experiences with the Periodic Background Sync API</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            Sync your web app's data in the background for a more-like experience
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Nov 10, 2019</time>
+             — Updated <time>Aug 18, 2020</time> 
+          </div>
+        
+
+        
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/progressive-web-apps"
+          >Progressive Web Apps</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/jeffposnick/"> <img     alt="Jeff Posnick"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/uskKSRCW1HyOTCjtdMdo.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/uskKSRCW1HyOTCjtdMdo.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/uskKSRCW1HyOTCjtdMdo.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/uskKSRCW1HyOTCjtdMdo.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/uskKSRCW1HyOTCjtdMdo.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/uskKSRCW1HyOTCjtdMdo.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/jeffposnick/">Jeff Posnick</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/jeffposnick">Twitter</a>
+               <a href="https://github.com/jeffposnick">GitHub</a>
+               <a href="https://glitch.com/@jeffposnick">Glitch</a>
+               <a href="https://twitter.com/jeffposnick">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/joemedley/"> <img     alt="Joe Medley"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ynJFmvKEbD9diZZsTdkD.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ynJFmvKEbD9diZZsTdkD.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ynJFmvKEbD9diZZsTdkD.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ynJFmvKEbD9diZZsTdkD.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ynJFmvKEbD9diZZsTdkD.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ynJFmvKEbD9diZZsTdkD.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/joemedley/">Joe Medley</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/medleyjp">Twitter</a>
+               <a href="https://github.com/jpmedley">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#current-status">Current status</a></li><li class="toc__listitem"><a class="toc__anchor" href="#try-it">Try it</a></li><li class="toc__listitem"><a class="toc__anchor" href="#concepts-and-usage">Concepts and usage</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#getting-user-engagement-right">Getting user engagement right</a></li><li class="toc__listitem"><a class="toc__anchor" href="#when-can-it-be-used">When can it be used?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#when-should-it-be-used">When should it be used?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#permissions">Permissions</a></li><li class="toc__listitem"><a class="toc__anchor" href="#registering-a-periodic-sync">Registering a periodic sync</a></li><li class="toc__listitem"><a class="toc__anchor" href="#verifying-a-registration">Verifying a registration</a></li><li class="toc__listitem"><a class="toc__anchor" href="#responding-to-a-periodic-background-sync-event">Responding to a periodic background sync event</a></li><li class="toc__listitem"><a class="toc__anchor" href="#unregistering-a-sync">Unregistering a sync</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#interfaces">Interfaces</a></li><li class="toc__listitem"><a class="toc__anchor" href="#example">Example</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#updating-content">Updating content</a></li><li class="toc__listitem"><a class="toc__anchor" href="#adding-periodic-background-sync-to-an-existing-web-app">Adding periodic background sync to an existing web app</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#debugging">Debugging</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#recording-local-activity">Recording local activity</a></li><li class="toc__listitem"><a class="toc__anchor" href="#simulating-events">Simulating events</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#using-the-devtools-interface">Using the DevTools interface</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Web apps should be able to do anything iOS/Android/desktop apps can. The
+<a href="https://developers.google.com/web/updates/capabilities" rel="noopener">Capabilities project</a>,
+of which Periodic Background Sync is only a part, aims
+to do just that. To learn about other capabilities and to keep up with their
+progress, follow <a href="https://developers.google.com/web/updates/capabilities" rel="noopener">Unlocking new capabilities for the
+web</a>.</p>
+</div></aside>
+<p>Have you ever been in any of the following situations?</p>
+<ul>
+<li>Riding a train or subway with flaky or no connectivity</li>
+<li>Been throttled by your carrier after watching too many videos</li>
+<li>Living in a country where bandwidth struggles to keep up with the demand</li>
+</ul>
+<p>If you have, then you've surely felt the frustration of getting
+certain things done on the web, and wondered why platform-specific apps so often do better
+in these scenarios. Platform-specific apps can fetch fresh content such as news articles or weather
+information ahead of time. Even if there's no network in the subway, you can still read the
+news.</p>
+<p>Periodic Background Sync enables web applications to periodically synchronize
+data in the background, bringing web apps closer to the behavior of a platform-specific
+app.</p>
+<h2 id="current-status">Current status <a class="w-headline-link" href="#current-status">#</a></h2>
+<p>The table below explains the current status of the Periodic Background Sync API.</p>
+<table>
+<tr>
+<th markdown="block">
+Step
+</th>
+<th markdown="block">
+Status
+</th>
+</tr>
+<tr>
+<td markdown="block">
+1. Create explainer
+</td>
+<td markdown="block">
+<a href="https://github.com/WICG/BackgroundSync/tree/master/explainers" >Complete</a>
+</td>
+</tr>
+<tr>
+<td markdown="block">
+2. Create initial draft of specification
+</td>
+<td markdown="block">
+<a href="https://wicg.github.io/periodic-background-sync/" rel="noopener">Complete</a>
+</td>
+</tr>
+<tr>
+<td markdown="block">
+3. Gather feedback and iterate on design
+</td>
+<td markdown="block">
+In Progress
+</td>
+</tr>
+<tr>
+<td markdown="block">
+4. Origin trial
+</td>
+<td markdown="block">
+Complete
+</td>
+</tr>
+<tr>
+<td markdown="block">
+<strong>5. Launch</strong>
+</td>
+<td markdown="block">
+<strong>Chrome 80</strong>
+</td>
+</tr>
+</table>
+<h2 id="try-it">Try it <a class="w-headline-link" href="#try-it">#</a></h2>
+<p>You can try periodic background sync with the <a href="https://webplatformapis.com/periodic_sync/periodicSync_improved.html" rel="noopener">live demo
+app</a>.
+Before using it, make sure that:</p>
+<ul>
+<li>You're using Chrome 80 or later.</li>
+<li>You
+<a href="https://developers.google.com/web/fundamentals/app-install-banners/" rel="noopener">install</a>
+the web app before enabling periodic background sync.</li>
+</ul>
+<h2 id="concepts-and-usage">Concepts and usage <a class="w-headline-link" href="#concepts-and-usage">#</a></h2>
+<p>Periodic background sync lets you show fresh content when a progressive web app
+or service worker-backed page is launched. It does this by downloading data in
+the background when the app or page is not being used. This prevents the app's
+content from refreshing after launch while it's being viewed. Better yet, it
+prevents the app from showing a content spinner before refreshing.</p>
+<p>Without periodic background sync, web apps must use alternative methods to
+download data. A common example is using a push notification to wake a service
+worker. The user is interrupted by a message such as 'new data available'.
+Updating the data is essentially a side effect. You still have the option of
+using push notifications for truly important updates, such as significant
+breaking news.</p>
+<p>Periodic background sync is easily confused with background sync. Though they
+have similar names, their use cases are different. Among other things,
+background sync is most commonly used for resending data to a server when a
+previous request has failed.</p>
+<h3 id="getting-user-engagement-right">Getting user engagement right <a class="w-headline-link" href="#getting-user-engagement-right">#</a></h3>
+<p>Done incorrectly, periodic background sync could be wasteful of users'
+resources. Before releasing it, Chrome put it through a trial period to make
+sure it was right. This section explains some of the design decisions Chrome
+took to make this feature as helpful as possible.</p>
+<p>The first design decision Chrome made is that a web app can only use periodic
+background sync after a person has installed it on their device, and has
+launched it as a distinct application. Periodic background sync is not available
+in the context of a regular tab in Chrome.</p>
+<p>Furthermore, since Chrome doesn't want unused or seldom used web apps to gratuitously
+consume battery or data, Chrome designed periodic background sync such that
+developers will have to earn it by providing value to their users. Concretely,
+Chrome is using a <a href="https://www.chromium.org/developers/design-documents/site-engagement" rel="noopener">site engagement score</a>
+(<code>about://site-engagement/</code>) to determine if and how often periodic background syncs can happen
+for a given web app. In other words, a <code>periodicsync</code> event won't be fired at all unless the engagement
+score is greater than zero, and its value affects the frequency at which the
+<code>periodicsync</code> event fires. This ensures that the only apps syncing in the
+background are the ones you are actively using.</p>
+<p>Periodic background sync shares some similarities with existing APIs and
+practices on popular platforms. For instance, one-off background sync as well as
+push notifications allow a web app's logic to live a little longer (via its
+service worker) after a person has closed the page. On most platforms, it's
+common for people to have installed apps that periodically access the network in
+the background to provide a better user experience for critical updates,
+prefetching content, syncing data, and so on. Similarly, periodic background sync also
+extends the lifetime of a web app's logic to run at regular periods for what
+might be a few minutes at a time.</p>
+<p>If the browser allowed this to occur frequently and without restrictions, it
+could result in some privacy concerns. Here's how Chrome has addressed this
+risk for periodic background sync:</p>
+<ul>
+<li>The background sync activity only occurs on a network that the device has
+previously connected to. Chrome recommends to only connect to networks operated by
+trustworthy parties.</li>
+<li>As with all internet communications, periodic background sync reveals the IP
+addresses of the client, the server it's talking to, and the name of the
+server. To reduce this exposure to roughly what it would be if the app only
+synced when it was in the foreground, the browser limits the frequency of an
+app's background syncs to align with how often the person uses that app. If
+the person stops frequently interacting with the app, periodic background sync
+will stop triggering. This is a net improvement over the status quo in platform-specific
+apps.</li>
+</ul>
+<h3 id="when-can-it-be-used">When can it be used? <a class="w-headline-link" href="#when-can-it-be-used">#</a></h3>
+<p>Rules for use vary by browser. To summarize from above, Chrome puts the
+following requirements on periodic background sync:</p>
+<ul>
+<li>A particular user engagement score.</li>
+<li>Presence of a previously used network.</li>
+</ul>
+<p>The timing of synchronizations are not controlled by developers. The
+synchronization frequency will align with how often the app is used. (Note that
+platform-specific apps currently don't do this.) It also takes into the device's power and
+connectivity state.</p>
+<h3 id="when-should-it-be-used">When should it be used? <a class="w-headline-link" href="#when-should-it-be-used">#</a></h3>
+<p>When your service worker wakes up to handle a <code>periodicsync</code> event, you have the
+<em>opportunity</em> to request data, but not the <em>obligation</em> to do so. When handling
+the event you should take network conditions and available storage into
+consideration and download different amounts of data in response. You can use
+the following resources to help:</p>
+<ul>
+<li><a href="https://developer.mozilla.org/docs/Web/API/Network_Information_API" rel="noopener">Network Information API</a></li>
+<li><a href="https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/save-data/#detecting_the_save-data_setting" rel="noopener">Detecting data saver mode</a></li>
+<li><a href="https://developers.google.com/web/updates/2017/08/estimating-available-storage-space" rel="noopener">Estimating available storage</a></li>
+</ul>
+<h3 id="permissions">Permissions <a class="w-headline-link" href="#permissions">#</a></h3>
+<p>After the service worker is installed, use the <a href="https://developer.mozilla.org/docs/Web/API/Permissions_API" rel="noopener">Permissions
+API</a> to query
+for <code>periodic-background-sync</code>. You can do this from either a window or a
+service worker context.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">const</span> status <span class="token operator">=</span> <span class="token keyword">await</span> navigator<span class="token punctuation">.</span>permissions<span class="token punctuation">.</span><span class="token function">query</span><span class="token punctuation">(</span><span class="token punctuation">{</span><br>  name<span class="token operator">:</span> <span class="token string">'periodic-background-sync'</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">if</span> <span class="token punctuation">(</span>status<span class="token punctuation">.</span>state <span class="token operator">===</span> <span class="token string">'granted'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token comment">// Periodic background sync can be used.</span><br><span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span><br>  <span class="token comment">// Periodic background sync cannot be used.</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><h3 id="registering-a-periodic-sync">Registering a periodic sync <a class="w-headline-link" href="#registering-a-periodic-sync">#</a></h3>
+<p>As already stated, periodic background sync requires a service worker. Retrieve
+a <code>PeriodicSyncManager</code> using <code>ServiceWorkerRegistration.periodicSync</code> and call
+<code>register()</code> on it. Registering requires both a tag and a minimum
+synchronization interval (<code>minInterval</code>). The tag identifies the registered sync
+so that multiple syncs can be registered. In the example below, the tag name is
+<code>'content-sync'</code> and the <code>minInterval</code> is one day.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line"><span class="token keyword">const</span> registration <span class="token operator">=</span> <span class="token keyword">await</span> navigator<span class="token punctuation">.</span>serviceWorker<span class="token punctuation">.</span>ready<span class="token punctuation">;</span></span><br><span class="highlight-line"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'periodicSync'</span> <span class="token keyword">in</span> registration<span class="token punctuation">)</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">  <span class="token keyword">try</span> <span class="token punctuation">{</span></span><br><mark class="highlight-line highlight-line-active">    <span class="token keyword">await</span> registration<span class="token punctuation">.</span>periodicSync<span class="token punctuation">.</span><span class="token function">register</span><span class="token punctuation">(</span><span class="token string">'content-sync'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span></mark><br><mark class="highlight-line highlight-line-active">      <span class="token comment">// An interval of one day.</span></mark><br><mark class="highlight-line highlight-line-active">      minInterval<span class="token operator">:</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">1000</span><span class="token punctuation">,</span></mark><br><span class="highlight-line">    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line">  <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span>error<span class="token punctuation">)</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">    <span class="token comment">// Periodic background sync cannot be used.</span></span><br><span class="highlight-line">  <span class="token punctuation">}</span></span><br><span class="highlight-line"><span class="token punctuation">}</span></span></code></pre>
+</web-copy-code><h3 id="verifying-a-registration">Verifying a registration <a class="w-headline-link" href="#verifying-a-registration">#</a></h3>
+<p>Call <code>periodicSync.getTags()</code> to retrieve an array of registration tags. The
+example below uses tag names to confirm that cache updating is active to avoid
+updating again.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line"><span class="token keyword">const</span> registration <span class="token operator">=</span> <span class="token keyword">await</span> navigator<span class="token punctuation">.</span>serviceWorker<span class="token punctuation">.</span>ready<span class="token punctuation">;</span></span><br><span class="highlight-line"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'periodicSync'</span> <span class="token keyword">in</span> registration<span class="token punctuation">)</span> <span class="token punctuation">{</span></span><br><mark class="highlight-line highlight-line-active">  <span class="token keyword">const</span> tags <span class="token operator">=</span> <span class="token keyword">await</span> registration<span class="token punctuation">.</span>periodicSync<span class="token punctuation">.</span><span class="token function">getTags</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></mark><br><span class="highlight-line">  <span class="token comment">// Only update content if sync isn't set up.</span></span><br><mark class="highlight-line highlight-line-active">  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>tags<span class="token punctuation">.</span><span class="token function">includes</span><span class="token punctuation">(</span><span class="token string">'content-sync'</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></mark><br><span class="highlight-line">    <span class="token function">updateContentOnPageLoad</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line">  <span class="token punctuation">}</span></span><br><span class="highlight-line"><span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">  <span class="token comment">// If periodic background sync isn't supported, always update.</span></span><br><span class="highlight-line">  <span class="token function">updateContentOnPageLoad</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line"><span class="token punctuation">}</span></span></code></pre>
+</web-copy-code><p>You can also use <code>getTags()</code> to show a list of active registrations in your web
+app's settings page so that users can enable or disable specific types of
+updates.</p>
+<h3 id="responding-to-a-periodic-background-sync-event">Responding to a periodic background sync event <a class="w-headline-link" href="#responding-to-a-periodic-background-sync-event">#</a></h3>
+<p>To respond to a periodic background sync event add a <code>periodicsync</code> event
+handler to your service worker. The <code>event</code> object passed to it will contain a
+<code>tag</code> parameter matching the value used during registration. For example if a
+periodic background sync was registered with the name <code>'content-sync'</code>, then
+<code>event.tag</code> will be <code>'content-sync'</code>.</p>
+<web-copy-code><pre class="language-js"><code class="language-js">self<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'periodicsync'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token keyword">if</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>tag <span class="token operator">===</span> <span class="token string">'content-sync'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token comment">// See the "Think before you sync" section for</span><br>    <span class="token comment">// checks you could perform before syncing.</span><br>    event<span class="token punctuation">.</span><span class="token function">waitUntil</span><span class="token punctuation">(</span><span class="token function">syncContent</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><br>  <span class="token comment">// Other logic for different tags as needed.</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><h3 id="unregistering-a-sync">Unregistering a sync <a class="w-headline-link" href="#unregistering-a-sync">#</a></h3>
+<p>To end a registered sync, call <code>periodicSync.unregister()</code> with the name of the
+sync you want to unregister.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">const</span> registration <span class="token operator">=</span> <span class="token keyword">await</span> navigator<span class="token punctuation">.</span>serviceWorker<span class="token punctuation">.</span>ready<span class="token punctuation">;</span><br><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'periodicSync'</span> <span class="token keyword">in</span> registration<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token keyword">await</span> registration<span class="token punctuation">.</span>periodicSync<span class="token punctuation">.</span><span class="token function">unregister</span><span class="token punctuation">(</span><span class="token string">'content-sync'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><h2 id="interfaces">Interfaces <a class="w-headline-link" href="#interfaces">#</a></h2>
+<p>Here's a quick run down of the interfaces provided by the Periodic Background
+Sync API.</p>
+<ul>
+<li><code>PeriodicSyncEvent</code>. Passed to the <code>ServiceWorkerGlobalScope.onperiodicsync</code> event handler at a
+time of the browser's choosing.</li>
+<li><code>PeriodicSyncManager</code>. Registers and unregisters periodic syncs and provides tags for registered
+syncs. Retrieve an instance of this class from the ServiceWorkerRegistration.periodicSync`
+property.</li>
+<li><code>ServiceWorkerGlobalScope.onperiodicsync</code>. Registers a handler to receive the <code>PeriodicSyncEvent</code>.</li>
+<li><code>ServiceWorkerRegistration.periodicSync</code>. Returns a reference to the <code>PeriodicSyncManager</code>.</li>
+</ul>
+<h2 id="example">Example <a class="w-headline-link" href="#example">#</a></h2>
+<h3 id="updating-content">Updating content <a class="w-headline-link" href="#updating-content">#</a></h3>
+<p>The following example uses periodic background sync to download and cache up-to-date articles for a news site or blog. Notice the tag name, which indicates the kind of sync this is (<code>'update-articles'</code>). The call to <code>updateArticles()</code> is wrapped in <code>event.waitUntil()</code> so that the service worker won't terminate before the articles are downloaded and stored.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line"><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">updateArticles</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">  <span class="token keyword">const</span> articlesCache <span class="token operator">=</span> <span class="token keyword">await</span> caches<span class="token punctuation">.</span><span class="token function">open</span><span class="token punctuation">(</span><span class="token string">'articles'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line">  <span class="token keyword">await</span> articlesCache<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">'/api/articles'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line"><span class="token punctuation">}</span></span><br><span class="highlight-line"></span><br><span class="highlight-line">self<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'periodicsync'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span></span><br><span class="highlight-line">  <span class="token keyword">if</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>tag <span class="token operator">===</span> <span class="token string">'update-articles'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span><br><mark class="highlight-line highlight-line-active">    event<span class="token punctuation">.</span><span class="token function">waitUntil</span><span class="token punctuation">(</span><span class="token function">updateArticles</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></mark><br><span class="highlight-line">  <span class="token punctuation">}</span></span><br><span class="highlight-line"><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span></code></pre>
+</web-copy-code><h3 id="adding-periodic-background-sync-to-an-existing-web-app">Adding periodic background sync to an existing web app <a class="w-headline-link" href="#adding-periodic-background-sync-to-an-existing-web-app">#</a></h3>
+<p><a href="https://github.com/GoogleChromeLabs/so-pwa/pull/11" rel="noopener">This set of changes</a> were needed to add
+periodic background sync to an <a href="https://so-pwa.firebaseapp.com/" rel="noopener">existing PWA</a>. This example includes a number of helpful logging statements that describe the
+state of periodic background sync in the web app.</p>
+<h2 id="debugging">Debugging <a class="w-headline-link" href="#debugging">#</a></h2>
+<p>It can be a challenge to get and end-to-end view of periodic background sync
+while testing locally. Information about active registrations, approximate sync
+intervals, and logs of past sync events provide valuable context while debugging
+your web app's behavior. Fortunately, you can find all of that information
+through an experimental feature in Chrome DevTools.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Periodic background sync debugging is enabled in Chrome 81 and later.</p>
+</div></aside>
+<h3 id="recording-local-activity">Recording local activity <a class="w-headline-link" href="#recording-local-activity">#</a></h3>
+<p>The <strong>Periodic Background Sync</strong> section of DevTools is organized around key events
+in the periodic background sync lifecycle: registering for sync, performing a
+background sync, and unregistering. To obtain information about these events,
+click <strong>Start recording</strong>.</p>
+<figure>
+  <img     alt="The record button in DevTools"     class="w-screenshot"     decoding="async"     height="90"          loading="lazy"     sizes="(min-width: 708px) 708px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/wcl5Bm6Pe9xn5Dps6IN6.png?auto=format&w=1416 1416w"          width="708"   />
+  <figcaption>
+    The record button in DevTools
+  </figcaption>
+</figure>
+<p>While recording, entries will appear in DevTools corresponding to events, with
+context and metadata logged for each.</p>
+<figure>
+  <img     alt="An example of recorded periodic background sync data"     class="w-screenshot"     decoding="async"     height="357"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/m92Art0OwiM0VyI7czFB.png?auto=format&w=1600 1600w"     style="max-width: 75%"     width="800"   />
+  <figcaption>
+    An example of recorded periodic background sync data
+  </figcaption>
+</figure>
+<p>After enabling recording once, it will stay enabled for up to three days,
+allowing DevTools to capture local debugging information about background syncs
+that might take place, even hours in the future.</p>
+<h3 id="simulating-events">Simulating events <a class="w-headline-link" href="#simulating-events">#</a></h3>
+<p>While recording background activity can be helpful, there are times when you'll
+want to test your <code>periodicsync</code> handler immediately, without waiting for an
+event to fire on its normal cadence.</p>
+<p>You can do this via the <strong>Service Workers</strong> section within the Application panel in
+Chrome DevTools. The <strong>Periodic Sync</strong> field allows you to provide a tag for the
+event to use, and to trigger it as many times as you'd like.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Manually triggering a <code>periodicsync</code> event requires Chrome 81 or later.</p>
+</div></aside>
+<figure>
+  <img     alt="The &#x27;Service Workers&#x27; section of the Application panel shows a &#x27;Periodic Sync&#x27; text field and button."     class="w-screenshot"     decoding="async"     height="321"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BQ5QdjwaRDP42cHqW98W.png?auto=format&w=1600 1600w"     style="max-width: 90%"     width="800"   />
+</figure>
+<h2 id="using-the-devtools-interface">Using the DevTools interface <a class="w-headline-link" href="#using-the-devtools-interface">#</a></h2>
+<p>Starting in Chrome 81, you'll see a <strong>Periodic Background Sync</strong> section in the
+DevTools <em>Application</em> panel.</p>
+<figure>
+  <img     alt="The Application panel showing the Periodic Background Sync section"     class="w-screenshot"     decoding="async"     height="253"          loading="lazy"     sizes="(min-width: 382px) 382px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eYJtJfZ9Qo145lUQe4Ur.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eYJtJfZ9Qo145lUQe4Ur.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eYJtJfZ9Qo145lUQe4Ur.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eYJtJfZ9Qo145lUQe4Ur.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eYJtJfZ9Qo145lUQe4Ur.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eYJtJfZ9Qo145lUQe4Ur.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eYJtJfZ9Qo145lUQe4Ur.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eYJtJfZ9Qo145lUQe4Ur.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eYJtJfZ9Qo145lUQe4Ur.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eYJtJfZ9Qo145lUQe4Ur.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eYJtJfZ9Qo145lUQe4Ur.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eYJtJfZ9Qo145lUQe4Ur.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eYJtJfZ9Qo145lUQe4Ur.png?auto=format&w=764 764w"     style="max-width: 75%"     width="382"   />
+</figure>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/capabilities/">Capabilities</a>
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/progressive-web-apps/">Progressive Web Apps</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/service-worker/">Service Worker</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/chrome-80/">Chrome 80</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/origin-trials/">Origin Trials</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Aug 18, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/blog/periodic-background-sync/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@jeffposnick | @medleyjp"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

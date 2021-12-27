@@ -1,0 +1,833 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=e7d802d8aee3d">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Совокупное смещение макета (CLS)</title>
+<meta name="description" content="В этой статье описывается метрика CLS (Совокупное смещение макета) и объясняются принципы ее измерения" />
+
+<link rel="canonical" href="https://web.dev/i18n/ru/cls/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/cls/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/cls/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/cls/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/cls/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/cls/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/cls/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/cls/" />
+<meta itemprop="name" content="Совокупное смещение макета (CLS)" />
+<meta itemprop="description" content="В этой статье описывается метрика CLS (Совокупное смещение макета) и объясняются принципы ее измерения" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="ru_RU" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/ru/cls/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Совокупное смещение макета (CLS)" />
+<meta property="og:description" content="В этой статье описывается метрика CLS (Совокупное смещение макета) и объясняются принципы ее измерения" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="metrics" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Совокупное смещение макета (CLS)" />
+<meta name="twitter:description" content="В этой статье описывается метрика CLS (Совокупное смещение макета) и объясняются принципы ее измерения" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=e20b2415d5f9f', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=4e204a97e6dd1', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Открыть меню">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Открыть меню</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Обучение
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Измерение
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Блог
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        О сайте
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Закрыть"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Закрыть</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Обучение
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Измерение
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Блог
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        О сайте
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#sovokupnoe-smeshenie-maketa-(cls)" class="w-toc__header--link">
+        Совокупное смещение макета (CLS)
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#chto-takoe-cls">Что такое CLS?</a><ol><li><a href="#kakoe-znachenie-pokazatelya-cls-mozhno-schitat-horoshim">Какое значение показателя CLS можно считать хорошим?</a></li></ol></li><li><a href="#podrobno-o-smesheniyah-maketa">Подробно о смещениях макета</a><ol><li><a href="#ocenka-smesheniya-maketa">Оценка смещения макета</a></li><li><a href="#udarnaya-frakciya">Ударная фракция</a></li><li><a href="#dolya-rasstoyaniya">Доля расстояния</a></li><li><a href="#ozhidaemye-i-neozhidannye-smesheniya-maketa">Ожидаемые и неожиданные смещения макета</a></li></ol></li><li><a href="#kak-izmerit-cls">Как измерить CLS</a><ol><li><a href="#instrumenty-dlya-izmereniya-v-polevyh-usloviyah">Инструменты для измерения в полевых условиях</a></li><li><a href="#instrumenty-dlya-izmereniya-v-laboratornyh-usloviyah">Инструменты для измерения в лабораторных условиях</a></li><li><a href="#izmerenie-cls-v-javascript">Измерение CLS в JavaScript</a></li></ol></li><li><a href="#kak-uluchshit-pokazatel-cls">Как улучшить показатель CLS</a></li><li><a href="#dopolnitelnye-resursy">Дополнительные ресурсы</a></li><li><a href="#changelog">CHANGELOG</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@philwalton | @bibydigital"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Поделиться</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="sovokupnoe-smeshenie-maketa-(cls)" class="w-article-header__headline">Совокупное смещение макета (CLS)</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Jun 11, 2019</time>
+           <span class="w-author__separator">•</span> Обновлено <time>Jun 1, 2021</time> 
+        </div>
+      
+
+      
+      
+      <div class="w-layout-container--narrow w-post-signpost">
+        <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/cls/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/cls/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/cls/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/cls/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/cls/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/cls/">
+      English</a></span>
+      </div>
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        ><span class="w-post-signpost__divider">|</span><a
+          class="w-post-signpost__link"
+          href="/metrics"
+          >Показатели</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/philipwalton/"><img     alt="Philip Walton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/philipwalton/">Philip Walton</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/philwalton"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/philipwalton">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://philipwalton.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+            <div class="w-author">
+  <a href="/authors/mihajlija/"><img     alt="Milica Mihajlija"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/mihajlija/">Milica Mihajlija</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/bibydigital"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/mihajlija">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://mihajlija.github.io/">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <div role="banner" class="w-banner w-banner--caution w-banner--body">
+   <strong>1 июня 2021 г.:</strong> Реализация CLS изменилась. Чтобы узнать больше о причинах изменения, прочтите статью <a href="/evolving-cls">«Развитие метрики CLS»</a>. 
+</div>
+<div class="w-aside w-aside--key-term">
+<p><strong>Ключевой термин</strong>:  Совокупное смещение макета (CLS)важный, ориентированный на пользователя показатель для измерения <a href="/user-centric-performance-metrics/#types-of-metrics">визуальной стабильности,</a> так как он помогает количественно оценить, как часто пользователи сталкиваются с неожиданными сдвигами макета. Низкое значение показателя CLS говорит о том, что страница выглядит <a href="/user-centric-performance-metrics/#questions">восхитительно</a>. </div></p>
+<p>Вы когда-нибудь сталкивались с тем, что во время чтения статьи в Интернете внезапно что-то менялось? Без предупреждения текст смещался в сторону, и вы теряли читаемую строчку. Или, еще хуже: вы хотели нажать ссылку или кнопку, но за мгновение до этогоБУМссылка смещалась, и вы в конечном итоге нажимали что-то другое!</p>
+<p>В большинстве случаев подобные ситуации просто раздражают, но иногда они могут нанести реальный ущерб.</p>
+<figure class="w-figure">
+  <video autoplay controls loop muted class="w-screenshot" poster="https://storage.googleapis.com/web-dev-assets/layout-instability-api/layout-instability-poster.png" width="658" height="510">
+    <source src="https://storage.googleapis.com/web-dev-assets/layout-instability-api/layout-instability2.webm" type="video/webm; codecs=vp8">
+    <source src="https://storage.googleapis.com/web-dev-assets/layout-instability-api/layout-instability2.mp4" type="video/mp4; codecs=h264">
+  </source></source></video>
+  <figcaption class="w-figcaption w-figcaption--fullbleed">Видео, демонстрирующее негативные последствия нестабильности макета для пользователей.</figcaption></figure>
+<p>Неожиданное перемещение содержимого страницы обычно происходит из-за асинхронной загрузки ресурсов или динамического добавления элементов DOM к странице поверх уже существующего контента. Причиной может быть изображение или видео с неизвестными размерами, шрифт, отображаемый крупнее или меньше, чем его запасной вариант, сторонние объявления или виджеты, которые динамически изменяют размер.</p>
+<p>Ещё сильнее эта проблема усугубляется тем, что запланированная в процессе разработки функциональность сайта может сильно отличаться от реальной, воспринимаемой пользователями. Персонализированный или сторонний контент часто ведёт себя иначе, чем при разработке, например: тестовые изображения обычно уже находятся в кеше браузера разработчика, а вызовы API, которые выполняются локально, получают ответ сервера слишком быстро и возможные задержки не заметны.</p>
+<p>Показатель CLS (Совокупное смещение макета) помогает решить эту проблему, измеряя, как часто такие проблемы случаются у реальных пользователей.</p>
+<h2 id="chto-takoe-cls">Что такое CLS? <a class="w-headline-link" href="#chto-takoe-cls">#</a></h2>
+<p>CLSэто показатель по временному окну с максимальными <em>оценками смещения макета</em> для каждого <a href="/cls/#expected-vs.-unexpected-layout-shifts">неожиданного</a> смещения макета, которые происходят в течение всего времени жизни страницы.</p>
+<p><em>Смещение макета</em> происходит каждый раз, когда видимый элемент меняет свое положение от одного отрисованного фрейма к другому (см. ниже подробные сведения о том, как рассчитываются <a href="#layout-shift-score">оценки смещения макета</a>).</p>
+<p>Временное окно смещений макета или <a href="evolving-cls/#why-a-session-window"><em>окно сеанса</em></a>это период времени, который начинает отсчитываться в момент первого смещения макета и длится до выполнения одного из двух критериев: появления промежутка в 1 секунду или больше без смещений макета; достижения максимальной продолжительности временного окна, равной 5 секундам.</p>
+<p>Временное окно с максимальными оценками смещения макетаэто окно сеанса с максимальной совокупной оценкой всех сдвигов макета в этом окне.</p>
+<figure class="w-figure">
+  <video controls autoplay loop muted class="w-screenshot" width="658" height="452">
+    <source src="https://storage.googleapis.com/web-dev-assets/better-layout-shift-metric/session-window.webm" type="video/webm">
+    <source src="https://storage.googleapis.com/web-dev-assets/better-layout-shift-metric/session-window.mp4" type="video/mp4">
+  </source></source></video>
+  <figcaption class="w-figcaption">Пример окон сеанса. Синие полосы представляют собой оценки каждого отдельного сдвига макета.</figcaption></figure>
+<div class="w-aside w-aside--caution">
+<p><strong>Внимание</strong>:  Ранее метрика CLS измеряла общую сумму <em>всех индивидуальных смещений макета</em>, произошедших в течение всего времени жизни страницы. Чтобы узнать, какие инструменты по-прежнему обеспечивают возможность сравнения с исходной реализацией метрики, ознакомьтесь со статьей <a href="/cls-web-tooling">«Развитие метрики CLS (Совокупного смещения макета) в веб-инструментах»</a>. </div></p>
+<h3 id="kakoe-znachenie-pokazatelya-cls-mozhno-schitat-horoshim">Какое значение показателя CLS можно считать хорошим? <a class="w-headline-link" href="#kakoe-znachenie-pokazatelya-cls-mozhno-schitat-horoshim">#</a></h3>
+<p>Для обеспечения удобства работы пользователей сайты должны стремиться к тому, чтобы показатель CLS не превышал <strong>0,1</strong>. Чтобы убедиться, что вы достигли этой цели для большинства пользователей, рекомендуется в качестве порогового значения использовать <strong>75-й процентиль</strong> загрузки страниц, сегментированный по мобильным и настольным устройствам.</p>
+<picture>
+  <source srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/9mWVASbWDLzdBUpVcjE1.svg" media="(min-width: 640px)" width="400", height="100">
+  <img     alt="Хорошие значения CLS ниже 0,1, плохие значения больше 0,25 и все промежуточные значения требуют улучшения"     class="w-screenshot w-screenshot--filled width-full"     decoding="async"     height="300"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/uqclEgIlTHhwIgNTXN3Y.svg"               width="400"   />
+</picture>
+<div class="w-aside w-aside--note">
+<p>Чтобы узнать больше об исследованиях и методологии, лежащих в основе этой рекомендации, см. <a href="/defining-core-web-vitals-thresholds/">«Определение пороговых значений показателей Core Web Vitals»</a> </div></p>
+<h2 id="podrobno-o-smesheniyah-maketa">Подробно о смещениях макета <a class="w-headline-link" href="#podrobno-o-smesheniyah-maketa">#</a></h2>
+<p>Смещения макета определяются <a href="https://github.com/WICG/layout-instability" rel="noopener">Layout Instability API (API нестабильности макета)</a>, который возвращает запись <code>layout-shift</code> каждый раз, когда элемент, видимый в области просмотра, меняет свое начальное положение (например, верхнее и левое положение в значении по умолчанию свойства <a href="https://developer.mozilla.org/docs/Web/CSS/writing-mode" rel="noopener">writing mode</a>) между двумя фреймами. Такие элементы считаются <em>нестабильными</em>.</p>
+<p>Обратите внимание, что смещения макета происходят только тогда, когда существующие элементы меняют свое положение. Если новый элемент добавляется в DOM-модель или существующий элемент меняет размерэто не будет считаться смещением макета до тех пор, пока данные изменения не заставят другие видимые элементы изменить свое начальное положение.</p>
+<h3 id="ocenka-smesheniya-maketa">Оценка смещения макета <a class="w-headline-link" href="#ocenka-smesheniya-maketa">#</a></h3>
+<p>Чтобы вычислить <em>оценку смещения макета</em>, браузер смотрит на размер области просмотра и перемещение <em>нестабильных элементов</em> в пределах области просмотра между двумя отрисованными фреймами. Оценка смещения макетаэто результат умножения двух показателей этого движения: <em>доли воздействия</em> и <em>доли расстояния</em> (описаны ниже).</p>
+<web-copy-code><pre class="language-text"><code class="language-text">оценка смещения макета = доля воздействия * доля расстояния</code></pre>
+</web-copy-code><h3 id="udarnaya-frakciya">Ударная фракция <a class="w-headline-link" href="#udarnaya-frakciya">#</a></h3>
+<p><a href="https://github.com/WICG/layout-instability#Impact-Fraction" rel="noopener">Доля воздействия</a> измеряет, как <em>нестабильные элементы</em> влияют на область просмотра между двумя фреймами.</p>
+<p>Объединение видимых областей всех <em>нестабильных элементов</em> для предыдущего <em>и</em> текущего фреймав виде доли от общей площади области просмотраи будет являться <em>долей воздействия</em> для текущего фрейма.</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format"><img      alt="Пример доли воздействия с одним *нестабильным элементом*"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>На изображении выше есть элемент, который занимает половину области просмотра в одном фрейме. Затем в следующем фрейме элемент сдвигается вниз на 25% от высоты области просмотра. Красный пунктирный прямоугольник указывает на объединение видимой области элемента в обоих фреймах, которая в данном случае составляет 75% от всего окна просмотра, поэтому <em>доля воздействия</em> составляет <code>0,75</code>.</p>
+<h3 id="dolya-rasstoyaniya">Доля расстояния <a class="w-headline-link" href="#dolya-rasstoyaniya">#</a></h3>
+<p>Другая часть выражения оценки смещения макета измеряет расстояние, на которое нестабильные элементы переместились относительно области просмотра. <em>Доля расстояния</em>это наибольшее расстояние, на которое любой <em>нестабильный элемент</em> переместился в фрейме (по горизонтали или по вертикали), деленное на наибольший размер области просмотра (ширина или высота, в зависимости от того, что больше).</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format"><img      alt="Пример доли расстояния с одним *нестабильным элементом*"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>В приведенном выше примере наибольший линейный размер области просмотраэто высота, а нестабильный элемент переместился на 25% от высоты области просмотра, поэтому <em>доля расстояния</em> составляет 0,25.</p>
+<p>Итак, в этом примере <em>доля воздействия</em> составляет <code>0,75</code>, а <em>доля расстояния</em><code>0,25</code>, поэтому <em>оценка смещения макета</em> равна <code>0,75 * 0,25 = 0,1875</code>.</p>
+<div class="w-aside w-aside--note">
+<p>Первоначально оценка смещения макета рассчитывалась только на основании <em>доли воздействия</em>. <em>Доля расстояния</em> была введена, чтобы избежать чрезмерного значения показателя в случаях, когда большие элементы смещаются на небольшую величину. </div></p>
+<p>В следующем примере показано, как добавление содержимого к существующему элементу влияет на оценку смещения макета:</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format"><img      alt="Пример смещения макета со стабильными и *нестабильными элементами* и обрезкой области просмотра"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>Кнопка «Щелкни меня!» (Click Me!) добавляется в нижнюю часть серого поля с черным текстом, который толкает зеленое поле с белым текстом вниз (и частично за пределы области просмотра).</p>
+<p>В этом примере серый прямоугольник меняет размер, но его начальное положение не меняется, поэтому он не считается <em>нестабильным элементом</em>.</p>
+<p>Кнопки «Щелкни меня!» ранее не было в DOM, поэтому ее начальное положение также не изменится.</p>
+<p>Хотя начальное положение зеленого прямоугольника изменилось, но так как он был частично перемещен из области просмотра, невидимая область не учитывается при вычислении <em>доли воздействия</em>. Объединение видимых областей для зеленого прямоугольника в обоих фреймах (показано красным пунктирным прямоугольником) совпадает с площадью зеленого прямоугольника в первом кадре50% области просмотра. <em>Доля воздействия</em><code>0,5</code>.</p>
+<p><em>Доля расстояния</em> показана фиолетовой стрелкой. Зеленая рамка сместилась вниз примерно на 14% от области просмотра, поэтому <em>доля расстояния</em> составляет <code>0,14</code>.</p>
+<p>Оценка смещения макета равна <code>0,5 x 0,14 = 0,07</code>.</p>
+<p>Последний пример иллюстрирует несколько <em>нестабильных элементов</em>:</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format"><img      alt="Пример смещения макета с несколькими стабильными и *нестабильными элементами*"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>В первом фрейме выше представлены четыре результата запроса к API для животных, отсортированных в алфавитном порядке. Во втором фрейме в отсортированный список добавляется еще несколько результатов.</p>
+<p>Первый элемент в списке (Cat, «Кот») не меняет свое начальное положение между фреймами, поэтому он стабильный. Точно так же новые элементы, добавленные в список, ранее не были в DOM, поэтому их начальные позиции также не меняются. Но остальные элементы Dog («Собака»), Horse («Лошадь») и Zebra («Зебра») меняют свои начальные позиции, что делает их <em>нестабильными элементами</em>.</p>
+<p>Опять же, красные пунктирные прямоугольники представляют собой объединение этих трех <em>нестабильных элементов</em> до и после областей, которые в этом случае составляют около 38% площади области просмотра (<em>доля воздействия</em> равна <code>0,38</code>).</p>
+<p>Стрелки показывают расстояния, на которые <em>нестабильные элементы</em> переместились из начальных положений. Элемент Zebra («Зебра»), обозначенный синей стрелкой, сместился больше прочих, примерно на 30% высоты области просмотра. Таким образом, <em>доля расстояния</em> в этом примере равна <code>0,3</code>.</p>
+<p>Оценка смещения макета составляет <code>0,38 x 0,3 = 0,114</code>.</p>
+<h3 id="ozhidaemye-i-neozhidannye-smesheniya-maketa">Ожидаемые и неожиданные смещения макета <a class="w-headline-link" href="#ozhidaemye-i-neozhidannye-smesheniya-maketa">#</a></h3>
+<p>Не все сдвиги в макетеэто плохо. Фактически многие динамические веб-приложения часто меняют начальное положение элементов на странице.</p>
+<h4 id="izmeneniya-maketa-po-iniciative-polzovatelya">Изменения макета по инициативе пользователя <a class="w-headline-link" href="#izmeneniya-maketa-po-iniciative-polzovatelya">#</a></h4>
+<p>Смещение макета плохо только в том случае, если пользователь этого не ожидает. С другой стороны, смещения макета, которые происходят в ответ на действия пользователя (щелчок по ссылке, нажатие кнопки, ввод в поле поиска и т. д.), как правило, допустимы, если смещение достаточно близко к взаимодействию, чтобы взаимосвязь между ними была понятна пользователю.</p>
+<p>Например, если взаимодействие с пользователем запускает сетевой запрос, выполнение которого может занять некоторое время, лучше сразу освободить место и показать индикатор загрузки, чтобы избежать неприятного смещения макета после завершения запроса. Если пользователь не понимает, что что-то загружается, или не знает, когда ресурс будет готов, он может попытаться щелкнуть что-нибудь еще во время ожидания.</p>
+<p>Для смещений макета, которые происходят в течение 500 миллисекунд после ввода пользователя, будет установлен флаг <a href="https://wicg.github.io/layout-instability/#dom-layoutshift-hadrecentinput" rel="noopener"><code>hadRecentInput</code></a>, поэтому их можно исключить из вычислений.</p>
+<div class="w-aside w-aside--caution">
+<p><strong>Внимание</strong>:  Флаг <code>hadRecentInput</code> становится true только для дискретных событий ввода, таких как касание, щелчок или нажатие клавиши. Непрерывные взаимодействияпрокрутка, перетаскивание или жесты сжатия и масштабированияне считаются «недавним вводом». Дополнительные сведения см. в <a href="https://github.com/WICG/layout-instability#recent-input-exclusion" rel="noopener">«Спецификации нестабильности макета»</a>. </div></p>
+<h4 id="animacii-i-perehody">Анимации и переходы <a class="w-headline-link" href="#animacii-i-perehody">#</a></h4>
+<p>Если всё сделано правильно, анимация и переходыэто отличный способ обновить контент на странице, не удивляя пользователя. Резко и неожиданно перемещающийся контент на странице почти всегда создает неудобства для пользователей. Но контент, который постепенно и естественно перемещается из одной позиции в другую, часто помогает пользователю лучше понять, что происходит и что делать между изменениями состояния.</p>
+<p>CSS-свойство <a href="https://developer.mozilla.org/docs/Web/CSS/transform" rel="noopener"><code>transform</code></a> позволяет анимировать элементы, не вызывая смещений макета:</p>
+<ul>
+<li>Вместо изменения свойств высоты <code>height</code> и ширины <code>width</code> можно использовать <code>transform: scale()</code>.</li>
+<li>Чтобы перемещать элементы, следует избегать изменения свойств <code>top</code>, <code>right</code>, <code>bottom</code> или <code>left</code> и использовать вместо них <code>transform: translate()</code>.</li>
+</ul>
+<h2 id="kak-izmerit-cls">Как измерить CLS <a class="w-headline-link" href="#kak-izmerit-cls">#</a></h2>
+<p>CLS можно измерить в <a href="/user-centric-performance-metrics/#in-the-lab">лабораторных</a> или <a href="/user-centric-performance-metrics/#in-the-field">полевых условиях</a> с помощью следующих инструментов:</p>
+<div class="w-aside w-aside--caution">
+<p><strong>Внимание</strong>:  Инструменты для измерения в лабораторных условиях обычно загружают страницы в имитируемой среде и поэтому могут измерять только смещения макета, которые происходят во время загрузки страницы. В результате значения CLS, сообщаемые лабораторными инструментами для данной страницы, могут быть меньше, чем у реальных пользователей в полевых условиях. </div>.</p>
+<h3 id="instrumenty-dlya-izmereniya-v-polevyh-usloviyah">Инструменты для измерения в полевых условиях <a class="w-headline-link" href="#instrumenty-dlya-izmereniya-v-polevyh-usloviyah">#</a></h3>
+<ul>
+<li>Отчет <a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome User Experience Report</a></li>
+<li><a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">PageSpeed Insights</a></li>
+<li><a href="https://support.google.com/webmasters/answer/9205520" rel="noopener">Search Console (отчет Core Web Vitals report)</a></li>
+<li><a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">JavaScript-библиотека <code>web-vitals</code></a></li>
+</ul>
+<h3 id="instrumenty-dlya-izmereniya-v-laboratornyh-usloviyah">Инструменты для измерения в лабораторных условиях <a class="w-headline-link" href="#instrumenty-dlya-izmereniya-v-laboratornyh-usloviyah">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-devtools/" rel="noopener">Chrome DevTools</a></li>
+<li><a href="https://developers.google.com/web/tools/lighthouse/" rel="noopener">Lighthouse</a></li>
+<li><a href="https://webpagetest.org/" rel="noopener">WebPageTest</a></li>
+</ul>
+<h3 id="izmerenie-cls-v-javascript">Измерение CLS в JavaScript <a class="w-headline-link" href="#izmerenie-cls-v-javascript">#</a></h3>
+<p>Чтобы измерить CLS с помощью JavaScript, можно воспользоваться <a href="https://github.com/WICG/layout-instability" rel="noopener">Layout Instability API (API нестабильности макета)</a>. В следующем примере показано, как создать <a href="https://developer.mozilla.org/docs/Web/API/PerformanceObserver" rel="noopener"><code>PerformanceObserver</code></a> который прослушивает неожиданные записи смещений макета <code>layout-shift</code>, группирует их в сеансы и регистрирует максимальное значение сеанса при каждом его изменении.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">let</span> clsValue <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> clsEntries <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br><span class="token keyword">let</span> sessionValue <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> sessionEntries <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br><span class="token keyword">new</span> <span class="token class-name">PerformanceObserver</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">entryList</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">const</span> entry <span class="token keyword">of</span> entryList<span class="token punctuation">.</span><span class="token function">getEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token comment">// Only count layout shifts without recent user input.</span><br>    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>entry<span class="token punctuation">.</span>hadRecentInput<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>      <span class="token keyword">const</span> firstSessionEntry <span class="token operator">=</span> sessionEntries<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br>      <span class="token keyword">const</span> lastSessionEntry <span class="token operator">=</span> sessionEntries<span class="token punctuation">[</span>sessionEntries<span class="token punctuation">.</span>length <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br>      <span class="token comment">// If the entry occurred less than 1 second after the previous entry and</span><br>      <span class="token comment">// less than 5 seconds after the first entry in the session, include the</span><br>      <span class="token comment">// entry in the current session. Otherwise, start a new session.</span><br>      <span class="token keyword">if</span> <span class="token punctuation">(</span>sessionValue <span class="token operator">&amp;&amp;</span><br>          entry<span class="token punctuation">.</span>startTime <span class="token operator">-</span> lastSessionEntry<span class="token punctuation">.</span>startTime <span class="token operator">&lt;</span> <span class="token number">1000</span> <span class="token operator">&amp;&amp;</span><br>          entry<span class="token punctuation">.</span>startTime <span class="token operator">-</span> firstSessionEntry<span class="token punctuation">.</span>startTime <span class="token operator">&lt;</span> <span class="token number">5000</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>        sessionValue <span class="token operator">+=</span> entry<span class="token punctuation">.</span>value<span class="token punctuation">;</span><br>        sessionEntries<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>entry<span class="token punctuation">)</span><span class="token punctuation">;</span><br>      <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span><br>        sessionValue <span class="token operator">=</span> entry<span class="token punctuation">.</span>value<span class="token punctuation">;</span><br>        sessionEntries <span class="token operator">=</span> <span class="token punctuation">[</span>entry<span class="token punctuation">]</span><span class="token punctuation">;</span><br>      <span class="token punctuation">}</span><br><br>      <span class="token comment">// If the current session value is larger than the current CLS value,</span><br>      <span class="token comment">// update CLS and the entries contributing to it.</span><br>      <span class="token keyword">if</span> <span class="token punctuation">(</span>sessionValue <span class="token operator">></span> clsValue<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>        clsValue <span class="token operator">=</span> sessionValue<span class="token punctuation">;</span><br>        clsEntries <span class="token operator">=</span> sessionEntries<span class="token punctuation">;</span><br><br>        <span class="token comment">// Log the updated value (and its entries) to the console.</span><br>        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'CLS:'</span><span class="token punctuation">,</span> clsValue<span class="token punctuation">,</span> clsEntries<span class="token punctuation">)</span><br>      <span class="token punctuation">}</span><br>    <span class="token punctuation">}</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span><span class="token punctuation">{</span>type<span class="token operator">:</span> <span class="token string">'layout-shift'</span><span class="token punctuation">,</span> buffered<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><div class="w-aside w-aside--warning">
+<p><strong>Предупреждение</strong>:</p>
+<p>Этот код показывает основной способ вычисления и регистрации CLS. Однако точно измерить CLS таким образом, чтобы метрика соответствовала измерениям в <a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">отчете Chrome User Experience Report</a> (CrUX), довольно сложно. Подробности см. ниже:</p>
+</div>
+<p>В большинстве случаев текущее значение CLS на момент выгрузки страницы является окончательным значением CLS для этой страницы, но есть несколько важных исключений.</p>
+<p>Далее приведем различия между тем, что сообщает API, и тем, как рассчитывается метрика.</p>
+<h4 id="razlichiya-mezhdu-metrikoj-i-api">Различия между метрикой и API <a class="w-headline-link" href="#razlichiya-mezhdu-metrikoj-i-api">#</a></h4>
+<ul>
+<li>Если страница загружается в фоновом режиме или если она находилась в фоновом режиме до того, как браузер отрисовал любой контент, она не должна сообщать значение CLS.</li>
+<li>Если страница восстанавливается функцией <a href="/bfcache/#impact-on-core-web-vitals">back/forward cache</a>, значение CLS данной страницы должно быть сброшено до нуля, поскольку пользователи воспринимают такие посещения страниц как отдельные.</li>
+<li>API не сообщает о записях <code>layout-shift</code> для смещений внутри iframe, но для правильного измерения CLS их нужно учитывать. Подфреймы могут использовать API, чтобы сообщать о своих записях <code>layout-shift</code> в родительский фрейм для <a href="https://github.com/WICG/layout-instability#cumulative-scores" rel="noopener">агрегирования</a>.</li>
+</ul>
+<p>Более того, CLS трудно определять из-за того, что показатель измеряется на протяжении всей продолжительности жизни страницы:</p>
+<ul>
+<li>Пользователи могут держать вкладку открытой в течение <em>очень</em> долгого временидней, недель, месяцев. Фактически пользователь может никогда не закрыть вкладку.</li>
+<li>В мобильных операционных системах браузеры обычно не запускают обратные вызовы выгрузки страницы для фоновых вкладок, что затрудняет сообщение «окончательного» значения.</li>
+</ul>
+<p>Чтобы справиться с такими случаями, CLS следует сообщать каждый раз, когда страница находится в фоновом режиме, в дополнение к любому времени, когда она выгружается (<a href="https://developers.google.com/web/updates/2018/07/page-lifecycle-api#event-visibilitychange" rel="noopener">событие <code>visibilitychange</code></a> охватывает оба этих сценария). Системы аналитики, получающие эти данные, должны будут затем вычислить окончательное значение CLS на бэкенде.</p>
+<p>Вместо того чтобы запоминать все эти тонкости, разработчики могут использовать для измерения CLS <a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">JavaScript-библиотеку <code>web-vitals</code></a>, которая учитывает вышеупомянутые моменты:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span>getCLS<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'web-vitals'</span><span class="token punctuation">;</span><br><br><span class="token comment">// Measure and log CLS in all situations</span><br><span class="token comment">// where it needs to be reported.</span><br><span class="token function">getCLS</span><span class="token punctuation">(</span>console<span class="token punctuation">.</span>log<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>Полный пример измерения CLS в JavaScript приводится в <a href="https://github.com/GoogleChrome/web-vitals/blob/master/src/getCLS.ts" rel="noopener">исходном коде <code>getCLS()</code></a>.</p>
+<div class="w-aside w-aside--note">
+<p>В некоторых случаях (например, в iframe с перекрестным происхождением) невозможно измерить CLS в JavaScript. См. подробности в разделе <a href="https://github.com/GoogleChrome/web-vitals#limitations" rel="noopener">«Ограничения»</a> библиотеки <code>web-vitals</code>. </div></p>
+<h2 id="kak-uluchshit-pokazatel-cls">Как улучшить показатель CLS <a class="w-headline-link" href="#kak-uluchshit-pokazatel-cls">#</a></h2>
+<p>Для большинства веб-сайтов можно избежать всех неожиданных смещений макета, придерживаясь нескольких основополагающих принципов:</p>
+<ul>
+<li><strong>Всегда следует включать атрибуты размеров для изображений и видеоэлементов или иным образом резервировать необходимое пространство с помощью, например, <a href="https://css-tricks.com/aspect-ratio-boxes/" rel="noopener">CSS-свойства aspect-ratio</a>.</strong> Такой подход гарантирует, что браузер сможет выделить правильный объем места в документе во время загрузки изображения. Кроме того, можно также применять <a href="https://github.com/w3c/webappsec-feature-policy/blob/master/policies/unsized-media.md" rel="noopener">политику функции unized-media,</a> чтобы принудительно использовать это поведение в браузерах, поддерживающих политики функций.</li>
+<li><strong>Никогда не следует вставлять контент поверх существующего, кроме случаев, когда это требуется в ответ на взаимодействие с пользователем.</strong> Это гарантирует, что любые изменения макета будут ожидаемыми.</li>
+<li><strong>Лучше выбирать анимацию трансформации, чем анимацию изменения свойств, запускающих изменение макета.</strong> Нужно анимировать переходы таким образом, чтобы обеспечить контекст и непрерывность от состояния к состоянию.</li>
+</ul>
+<p>Подробные сведения о том, как улучшить CLS, см. в статьях <a href="/optimize-cls/">«Оптимизация CLS»</a> и <a href="/debug-layout-shifts">«Отладка смещений макета»</a>.</p>
+<h2 id="dopolnitelnye-resursy">Дополнительные ресурсы <a class="w-headline-link" href="#dopolnitelnye-resursy">#</a></h2>
+<ul>
+<li>Руководство Google Publisher Tag по <a href="https://developers.google.com/doubleclick-gpt/guides/minimize-layout-shift" rel="noopener">минимизации смещения макета</a></li>
+<li><a href="https://youtu.be/zIJuY-JCjqw" rel="noopener">Понимание совокупного смещения макета</a>, <a href="https://anniesullie.com/" rel="noopener">Энни Салливан</a> и <a href="https://kobes.ca/" rel="noopener">Стив Кобес,</a> <a href="https://perfmattersconf.com/" rel="noopener">#PerfMatters</a> (2020)</li>
+</ul>
+<h2 id="changelog">CHANGELOG <a class="w-headline-link" href="#changelog">#</a></h2>
+<p>Occasionally, bugs are discovered in the APIs used to measure metrics, and
+sometimes in the definitions of the metrics themselves. As a result, changes
+must sometimes be made, and these changes can show up as improvements or
+regressions in your internal reports and dashboards.</p>
+<p>To help you manage this, all changes to either the implementation or definition
+of these metrics will be surfaced in this
+<a href="http://bit.ly/chrome-speed-metrics-changelog" rel="noopener">CHANGELOG</a>.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">Производительность</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/metrics/">Показатели</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/web-vitals/">Web Vitals</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Последнее обновление: <time>Jun 1, 2021</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/ru/metrics/cls/index.md"
+      >
+        Улучшить статью
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/learn-web-vitals"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Сообщить об ошибке
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Просмотреть исходный код
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Дополнительная информация</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Новости Chrome
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Разборы конкретных случаев
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Подкасты
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Шоу
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Соцсети</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            Все продукты
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="ru"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Условия и конфиденциальность
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Правила сообщества
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

@@ -1,0 +1,741 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=dc473a22c05ac">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+<meta name="robots" content="noindex" />
+
+
+<title>Build a push notifications server</title>
+<meta name="description" content="In this codelab, learn how to build a push notifications server. " />
+
+<link rel="canonical" href="https://web.dev/codelab-notifications-push-server/" />
+
+<meta itemprop="name" content="Build a push notifications server" />
+<meta itemprop="description" content="In this codelab, learn how to build a push notifications server. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/codelab-notifications-push-server/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Build a push notifications server" />
+<meta property="og:description" content="In this codelab, learn how to build a push notifications server. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="notifications" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Build a push notifications server" />
+<meta name="twitter:description" content="In this codelab, learn how to build a push notifications server. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=8f1dee79a85d3', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=185d36960f968', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+    
+<div class="codelab-landing-page">
+  
+    
+    
+    
+  
+  <web-codelab class="web-codelab" glitch="codelab-notifications-push-server"  >
+    <div class="web-codelab__instructions">
+      
+      <article class="prose legacy-rollout">
+        <header class="flow gap-bottom-size-3">
+
+          <h1 id="build-a-push-notifications-server">Build a push notifications server</h1>
+          
+
+          
+            <div class="flow-space-size-1 color-mid-text text-size-0">
+              <time>Nov 20, 2019</time>
+              
+            </div>
+          
+
+          
+
+          
+        </header>
+
+        
+          <div class="banner bg-state-warn-bg color-core-text">
+            <p><strong>🚨 This post is a draft! 🚨</strong></p>
+          </div>
+        
+
+        <p>In this codelab, you'll build a push notifications server. The server will manage a list of push subscriptions and send notifications to them.</p>
+<p>The client code is already complete–in this codelab, you'll work on the server-side functionality.</p>
+<h2 id="remix-the-sample-app-and-view-it-in-a-new-tab">Remix the sample app and view it in a new tab <a class="w-headline-link" href="#remix-the-sample-app-and-view-it-in-a-new-tab">#</a></h2>
+<p>Notifications are automatically blocked from the embedded Glitch app, so you won't be able to preview the app on this page. Instead, here's what to do:</p>
+<ol>
+<li>Click <strong>Remix to Edit</strong> to make the project editable.</li>
+<li>To preview the site, press <strong>View App</strong>. Then press
+<strong>Fullscreen</strong>
+<img
+src="/images/glitch/fullscreen.svg"
+alt="fullscreen"
+style="padding: 4px 8px; opacity: .5; border: 1px solid #c3c3c3; border-radius: 5px;"
+/>.</li>
+</ol>
+<p>The live app opens in a new Chrome tab. In the embedded Glitch, click <strong>View Source</strong> to show the code again.</p>
+<p>As you work through this codelab, make changes to the code in the embedded Glitch on this page. Refresh the new tab with your live app to see the changes.</p>
+<h2 id="get-familiar-with-the-starting-app-and-its-code">Get familiar with the starting app and its code <a class="w-headline-link" href="#get-familiar-with-the-starting-app-and-its-code">#</a></h2>
+<p>Start by taking a look at the app's client UI.</p>
+<p><strong>In the new Chrome tab:</strong></p>
+<ol>
+<li>
+<p>Press `Control+Shift+J` (or `Command+Option+J` on Mac) to open DevTools.
+Click the <strong>Console</strong> tab.</p>
+</li>
+<li>
+<p>Try clicking buttons in the UI (check the Chrome dev console for output).</p>
+<ul>
+<li>
+<p><strong>Register service worker</strong> registers a service worker for the scope of your Glitch project URL. <strong>Unregister service worker</strong> removes the service worker. If a push subscription is attached to it, the push subscription will also be de-activated.</p>
+</li>
+<li>
+<p><strong>Subscribe to push</strong> creates a push subscription. It is only available when a service worker has been registered and a <code>VAPID_PUBLIC_KEY</code> constant is present in the client code (more about this later), so you can't click it just yet.</p>
+</li>
+<li>
+<p>When you have an active push subscription, <strong>Notify current subscription</strong> requests that the server send a notification to its endpoint.</p>
+</li>
+<li>
+<p><strong>Notify all subscriptions</strong> tells the server to send a notification to all of the subscription endpoints in its database.</p>
+<p>Note that some of these endpoints might be inactive. It's always possible that a subscription will disappear by the time the server sends a notification to it.</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>Let's look at what's going on server-side. To see messages from the server code, look at the Node.js log within the Glitch interface.</p>
+<ul>
+<li>
+<p>In the Glitch app, click <strong>Tools -&gt; Logs</strong>.</p>
+<p>You'll probably see a message like <code>Listening on port 3000</code>.</p>
+<p>If you tried clicking <strong>Notify current subscription</strong> or <strong>Notify all subscriptions</strong> in the live app UI, you'll also see the following message:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash">TODO: Implement sendNotifications<span class="token punctuation">(</span><span class="token punctuation">)</span><br>Endpoints to send to:  <span class="token punctuation">[</span><span class="token punctuation">]</span></code></pre>
+</web-copy-code></li>
+</ul>
+<p>Now let's look at some code.</p>
+<ul>
+<li>
+<p><code>public/index.js</code> contains the completed client code. It performs feature detection, registers and unregisters the service worker, and controls the user's subscription to push notifications. It also sends information about new and deleted subscriptions to the server.</p>
+<p>Since you're only going to be working on the server functionality, you won't be editing this file (apart from populating the <code>VAPID_PUBLIC_KEY</code> constant).</p>
+</li>
+<li>
+<p><code>public/service-worker.js</code> is a simple service worker that captures push events and displays notifications.</p>
+</li>
+<li>
+<p><code>/views/index.html</code> contains the app UI.</p>
+</li>
+<li>
+<p><code>.env</code> contains the environment variables that Glitch loads into your app server when it starts up. You'll populate <code>.env</code> with authentication details for sending notifications.</p>
+</li>
+<li>
+<p><code>server.js</code> is the file you'll be doing most of your work in during this codelab.</p>
+<p>The starting code creates a simple <a href="https://www.npmjs.com/package/express" rel="noopener">Express</a> web server. There are four TODO items for you, marked in code comments with <code>TODO:</code>. You need to:</p>
+<ul>
+<li>
+<p><a href="#load-vapid-details-from-environment-variables">Load VAPID details from environment variables</a>.</p>
+</li>
+<li>
+<p><a href="#implement-functionality-to-send-notifications">Implement functionality to send notifications</a>.</p>
+</li>
+<li>
+<p><a href="#handle-new-subscriptions">Handle new subscriptions</a>.</p>
+</li>
+<li>
+<p><a href="#handle-subscription-cancellations">Handle subscription cancellations</a>.</p>
+</li>
+</ul>
+<p>In this codelab, you'll work through these TODO items one at a time.</p>
+</li>
+</ul>
+<h2 id="generate-and-load-vapid-details">Generate and load VAPID details <a class="w-headline-link" href="#generate-and-load-vapid-details">#</a></h2>
+<p>Your first TODO item is to generate VAPID details, add them to the Node.js environment variables, and update the client and server code with the new values.</p>
+<h3 id="background">Background <a class="w-headline-link" href="#background">#</a></h3>
+<p>When users subscribe to notifications, they need to trust the identity of the app and its server. Users also need to be confident that, when they receive a notification, it's from the same app that set up the subscription. They also need to trust that nobody else can read the notification content.</p>
+<p>The protocol that makes push notifications secure and private is called Voluntary Application Server Identification for Web Push (VAPID). VAPID uses public key cryptography to verify the identity of apps, servers, and subscription endpoints, and to encrypt notification content.</p>
+<p>In this app, you'll use the <a href="https://www.npmjs.com/package/web-push" rel="noopener">web-push npm package</a> to generate VAPID keys, and to encrypt and send notifications.</p>
+<h3 id="implementation">Implementation <a class="w-headline-link" href="#implementation">#</a></h3>
+<p>In this step, generate a pair of VAPID keys for your app and add them to the environment variables. Load the environment variables in the server and add the public key as a constant in the client code.</p>
+<ol>
+<li>
+<p>Use the <code>generateVAPIDKeys</code> function of the <code>web-push</code> library to create a pair of VAPID keys.</p>
+<p>In <strong>server.js</strong>, remove the comments from around the following lines of code:</p>
+<p><em><code>server.js</code></em></p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line"><span class="token comment">// Generate VAPID keys (only do this once).</span></span><br><span class="token comment">/*<br><span class="highlight-line"> * const vapidKeys = webpush.generateVAPIDKeys();</span><br><span class="highlight-line"> * console.log(vapidKeys);</span><br> */</span><br><ins class="highlight-line highlight-line-add"><span class="token keyword">const</span> vapidKeys <span class="token operator">=</span> webpush<span class="token punctuation">.</span><span class="token function">generateVAPIDKeys</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>vapidKeys<span class="token punctuation">)</span><span class="token punctuation">;</span></ins></code></pre>
+</web-copy-code></li>
+<li>
+<p>After Glitch restarts your app, it outputs the generated keys to the Node.js log within the Glitch interface (<strong>not</strong> to the Chrome console). To see the VAPID keys, select <strong>Tools -&gt; Logs</strong> in the Glitch interface.</p>
+<p>Make sure that you copy your public and private keys from the same key pair!</p>
+<p>Glitch restarts your app every time you edit your code, so the first pair of keys you generate might scroll out of view as more output follows.</p>
+</li>
+<li>
+<p>In <strong>.env</strong>, copy and paste the VAPID keys. Enclose the keys in double quotes (<code>&quot;...&quot;</code>).</p>
+<p>For <code>VAPID_SUBJECT</code>, you can enter <code>&quot;mailto:test@test.test&quot;</code>.</p>
+<p><em><code>.env</code></em></p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line"># process<span class="token punctuation">.</span>env<span class="token punctuation">.</span><span class="token constant">SECRET</span></span><br><del class="highlight-line highlight-line-remove"><span class="token constant">VAPID_PUBLIC_KEY</span><span class="token operator">=</span></del><br><del class="highlight-line highlight-line-remove"><span class="token constant">VAPID_PRIVATE_KEY</span><span class="token operator">=</span></del><br><del class="highlight-line highlight-line-remove"><span class="token constant">VAPID_SUBJECT</span><span class="token operator">=</span></del><br><ins class="highlight-line highlight-line-add"><span class="token constant">VAPID_PUBLIC_KEY</span><span class="token operator">=</span><span class="token string">"BN3tWzHp3L3rBh03lGLlLlsq..."</span></ins><br><ins class="highlight-line highlight-line-add"><span class="token constant">VAPID_PRIVATE_KEY</span><span class="token operator">=</span><span class="token string">"I_lM7JMIXRhOk6HN..."</span></ins><br><ins class="highlight-line highlight-line-add"><span class="token constant">VAPID_SUBJECT</span><span class="token operator">=</span><span class="token string">"mailto:test@test.test"</span></ins></code></pre>
+</web-copy-code></li>
+<li>
+<p>In <strong>server.js</strong>, comment out those two lines of code again, since you only need to generate VAPID keys once.</p>
+<p><em><code>server.js</code></em></p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line"><span class="token comment">// Generate VAPID keys (only do this once).</span></span><br><span class="token comment">/*<br><span class="highlight-line">const vapidKeys = webpush.generateVAPIDKeys();</span><br><span class="highlight-line">console.log(vapidKeys);</span><br>*/</span><br><del class="highlight-line highlight-line-remove"><span class="token keyword">const</span> vapidKeys <span class="token operator">=</span> webpush<span class="token punctuation">.</span><span class="token function">generateVAPIDKeys</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></del><br><del class="highlight-line highlight-line-remove">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>vapidKeys<span class="token punctuation">)</span><span class="token punctuation">;</span></del></code></pre>
+</web-copy-code></li>
+<li>
+<p>In <strong>server.js</strong>, load the VAPID details from the environment variables.</p>
+<p><em><code>server.js</code></em></p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line"><span class="token keyword">const</span> vapidDetails <span class="token operator">=</span> <span class="token punctuation">{</span></span><br><del class="highlight-line highlight-line-remove">  <span class="token comment">// TODO: Load VAPID details from environment variables.</span></del><br><ins class="highlight-line highlight-line-add">  publicKey<span class="token operator">:</span> process<span class="token punctuation">.</span>env<span class="token punctuation">.</span><span class="token constant">VAPID_PUBLIC_KEY</span><span class="token punctuation">,</span></ins><br><ins class="highlight-line highlight-line-add">  privateKey<span class="token operator">:</span> process<span class="token punctuation">.</span>env<span class="token punctuation">.</span><span class="token constant">VAPID_PRIVATE_KEY</span><span class="token punctuation">,</span></ins><br><ins class="highlight-line highlight-line-add">  subject<span class="token operator">:</span> process<span class="token punctuation">.</span>env<span class="token punctuation">.</span><span class="token constant">VAPID_SUBJECT</span></ins><br><span class="highlight-line"><span class="token punctuation">}</span></span></code></pre>
+</web-copy-code></li>
+<li>
+<p>Copy and paste the <strong>public</strong> key into the client code as well.</p>
+<p>In <strong>public/index.js</strong>, enter the same value for <code>VAPID_PUBLIC_KEY</code> that you copied into the .env file:</p>
+<p><em><code>public/index.js</code></em></p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line"><span class="token comment">// Copy from .env</span></span><br><del class="highlight-line highlight-line-remove"><span class="token keyword">const</span> <span class="token constant">VAPID_PUBLIC_KEY</span> <span class="token operator">=</span> <span class="token string">''</span><span class="token punctuation">;</span></del><br><ins class="highlight-line highlight-line-add"><span class="token keyword">const</span> <span class="token constant">VAPID_PUBLIC_KEY</span> <span class="token operator">=</span> <span class="token string">'BN3tWzHp3L3rBh03lGLlLlsq...'</span><span class="token punctuation">;</span></ins></code></pre>
+</web-copy-code></li>
+</ol>
+<div class="w-aside w-aside--note">
+<p>The values for the environment variables in <strong>.env</strong> are unique to a single Glitch project. If you remix your code, you'll need to repeat the steps above in your new Glitch project.</p>
+</div>
+<h2 id="implement-functionality-to-send-notifications">Implement functionality to send notifications <a class="w-headline-link" href="#implement-functionality-to-send-notifications">#</a></h2>
+<h3 id="background-2">Background <a class="w-headline-link" href="#background-2">#</a></h3>
+<p>In this app, you'll use the <a href="https://www.npmjs.com/package/web-push" rel="noopener">web-push npm package</a> to send notifications.</p>
+<p>This package automatically encrypts notifications when     <code>webpush.sendNotification()</code> is called, so you don't need to worry about that.</p>
+<p>web-push accepts multiple options for notifications–for example, you can attach headers to the message, and specify content encoding.</p>
+<p>In this codelab, you'll only use two options, defined with the following lines of code:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">let</span> options <span class="token operator">=</span> <span class="token punctuation">{</span><br>  <span class="token constant">TTL</span><span class="token operator">:</span> <span class="token number">10000</span><span class="token punctuation">;</span> <span class="token comment">// Time-to-live. Notifications expire after this.</span><br>  vapidDetails<span class="token operator">:</span> vapidDetails<span class="token punctuation">;</span> <span class="token comment">// VAPID keys from .env</span><br><span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>The <code>TTL</code> (time-to-live) option sets an expiry timeout on a notification. This is a way for the server to avoid sending a notification to a user after it is no longer relevant.</p>
+<p>The <code>vapidDetails</code> option contains the VAPID keys you loaded from the environment variables.</p>
+<h3 id="implementation-2">Implementation <a class="w-headline-link" href="#implementation-2">#</a></h3>
+<p>In <strong>server.js</strong>, modify the <code>sendNotifications</code> function as follows:</p>
+<p><em><code>server.js</code></em></p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line"><span class="token keyword">function</span> <span class="token function">sendNotifications</span><span class="token punctuation">(</span><span class="token parameter">database<span class="token punctuation">,</span> endpoints</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span><br><del class="highlight-line highlight-line-remove">  <span class="token comment">// TODO: Implement functionality to send notifications.</span></del><br><del class="highlight-line highlight-line-remove">  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'TODO: Implement sendNotifications()'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></del><br><del class="highlight-line highlight-line-remove">  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Endpoints to send to: '</span><span class="token punctuation">,</span> endpoints<span class="token punctuation">)</span><span class="token punctuation">;</span></del><br><ins class="highlight-line highlight-line-add">  <span class="token keyword">let</span> notification <span class="token operator">=</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span><span class="token function">createNotification</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add">  <span class="token keyword">let</span> options <span class="token operator">=</span> <span class="token punctuation">{</span></ins><br><ins class="highlight-line highlight-line-add">    <span class="token constant">TTL</span><span class="token operator">:</span> <span class="token number">10000</span><span class="token punctuation">,</span> <span class="token comment">// Time-to-live. Notifications expire after this.</span></ins><br><ins class="highlight-line highlight-line-add">    vapidDetails<span class="token operator">:</span> vapidDetails <span class="token comment">// VAPID keys from .env</span></ins><br><ins class="highlight-line highlight-line-add">  <span class="token punctuation">}</span><span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add">  endpoints<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token parameter">endpoint</span> <span class="token operator">=></span> <span class="token punctuation">{</span></ins><br><ins class="highlight-line highlight-line-add">    <span class="token keyword">let</span> subscription <span class="token operator">=</span> database<span class="token punctuation">[</span>endpoint<span class="token punctuation">]</span><span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add">    webpush<span class="token punctuation">.</span><span class="token function">sendNotification</span><span class="token punctuation">(</span>subscription<span class="token punctuation">,</span> notification<span class="token punctuation">,</span> options<span class="token punctuation">)</span><span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add">  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></ins><br><span class="highlight-line"><span class="token punctuation">}</span></span></code></pre>
+</web-copy-code><p>Since <code>webpush.sendNotification()</code> returns a promise, you can easily add error handling.</p>
+<p>In <strong>server.js</strong>, modify the <code>sendNotifications</code> function again:</p>
+<p><em><code>server.js</code></em></p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line"><span class="token keyword">function</span> <span class="token function">sendNotifications</span><span class="token punctuation">(</span><span class="token parameter">database<span class="token punctuation">,</span> endpoints</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">  <span class="token keyword">let</span> notification <span class="token operator">=</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span><span class="token function">createNotification</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line">  <span class="token keyword">let</span> options <span class="token operator">=</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">    <span class="token constant">TTL</span><span class="token operator">:</span> <span class="token number">10000</span><span class="token punctuation">;</span> <span class="token comment">// Time-to-live. Notifications expire after this.</span></span><br><span class="highlight-line">    vapidDetails<span class="token operator">:</span> vapidDetails<span class="token punctuation">;</span> <span class="token comment">// VAPID keys from .env</span></span><br><span class="highlight-line">  <span class="token punctuation">}</span><span class="token punctuation">;</span></span><br><span class="highlight-line">  endpoints<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token parameter">endpoint</span> <span class="token operator">=></span> <span class="token punctuation">{</span></span><br><span class="highlight-line">    <span class="token keyword">let</span> subscription <span class="token operator">=</span> database<span class="token punctuation">[</span>endpoint<span class="token punctuation">]</span><span class="token punctuation">;</span></span><br><del class="highlight-line highlight-line-remove">    webpush<span class="token punctuation">.</span><span class="token function">sendNotification</span><span class="token punctuation">(</span>subscription<span class="token punctuation">,</span> notification<span class="token punctuation">,</span> options<span class="token punctuation">)</span><span class="token punctuation">;</span></del><br><ins class="highlight-line highlight-line-add">    <span class="token keyword">let</span> id <span class="token operator">=</span> endpoint<span class="token punctuation">.</span><span class="token function">substr</span><span class="token punctuation">(</span><span class="token punctuation">(</span>endpoint<span class="token punctuation">.</span>length <span class="token operator">-</span> <span class="token number">8</span><span class="token punctuation">)</span><span class="token punctuation">,</span> endpoint<span class="token punctuation">.</span>length<span class="token punctuation">)</span><span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add">    webpush<span class="token punctuation">.</span><span class="token function">sendNotification</span><span class="token punctuation">(</span>subscription<span class="token punctuation">,</span> notification<span class="token punctuation">,</span> options<span class="token punctuation">)</span></ins><br><ins class="highlight-line highlight-line-add">    <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">result</span> <span class="token operator">=></span> <span class="token punctuation">{</span></ins><br><ins class="highlight-line highlight-line-add">      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Endpoint ID: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>id<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add">      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Result: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>result<span class="token punctuation">.</span>statusCode<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> </span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add">    <span class="token punctuation">}</span><span class="token punctuation">)</span></ins><br><ins class="highlight-line highlight-line-add">    <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token parameter">error</span> <span class="token operator">=></span> <span class="token punctuation">{</span></ins><br><ins class="highlight-line highlight-line-add">      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Endpoint ID: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>id<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add">      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Error: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>error<span class="token punctuation">.</span>body<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> </span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add">    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></ins><br><span class="highlight-line">  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line"><span class="token punctuation">}</span></span></code></pre>
+</web-copy-code><h2 id="handle-new-subscriptions">Handle new subscriptions <a class="w-headline-link" href="#handle-new-subscriptions">#</a></h2>
+<h3 id="background-3">Background <a class="w-headline-link" href="#background-3">#</a></h3>
+<p>Here's what happens when the user subscribes to push notifications:</p>
+<ol>
+<li>
+<p>User clicks <strong>Subscribe to push</strong>.</p>
+</li>
+<li>
+<p>Client uses the <code>VAPID_PUBLIC_KEY</code> constant (the server's public VAPID key) to generate a unique, server-specific <code>subscription</code> object. The <code>subscription</code> object looks like this:</p>
+<web-copy-code><pre class="language-json"><code class="language-json"><span class="token punctuation">{</span><br>  <span class="token property">"endpoint"</span><span class="token operator">:</span> <span class="token string">"https://fcm.googleapis.com/fcm/send/cpqAgzGzkzQ:APA9..."</span><span class="token punctuation">,</span><br>  <span class="token property">"expirationTime"</span><span class="token operator">:</span> <span class="token null keyword">null</span><span class="token punctuation">,</span><br>  <span class="token property">"keys"</span><span class="token operator">:</span><br>  <span class="token punctuation">{</span><br>    <span class="token property">"p256dh"</span><span class="token operator">:</span> <span class="token string">"BNYDjQL9d5PSoeBurHy2e4d4GY0sGJXBN..."</span><span class="token punctuation">,</span><br>    <span class="token property">"auth"</span><span class="token operator">:</span> <span class="token string">"0IyyvUGNJ9RxJc83poo3bA"</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code></li>
+<li>
+<p>Client sends a <code>POST</code> request to the <code>/add-subscription</code> URL, including the subscription as stringified JSON in the body.</p>
+</li>
+<li>
+<p>Server retrieves the stringified <code>subscription</code> from the body of the POST request, parses it back to JSON, and adds it to the subscriptions database.</p>
+<p>The database stores subscriptions using their own endpoints as a key:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token punctuation">{</span><br>  <span class="token string">"https://fcm...1234"</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>    endpoint<span class="token operator">:</span> <span class="token string">"https://fcm...1234"</span><span class="token punctuation">,</span><br>    expirationTime<span class="token operator">:</span> <span class="token operator">...</span><span class="token punctuation">,</span><br>    keys<span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token operator">...</span> <span class="token punctuation">}</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token string">"https://fcm...abcd"</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>    endpoint<span class="token operator">:</span> <span class="token string">"https://fcm...abcd"</span><span class="token punctuation">,</span><br>    expirationTime<span class="token operator">:</span> <span class="token operator">...</span><span class="token punctuation">,</span><br>    keys<span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token operator">...</span> <span class="token punctuation">}</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token string">"https://fcm...zxcv"</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>    endpoint<span class="token operator">:</span> <span class="token string">"https://fcm...zxcv"</span><span class="token punctuation">,</span><br>    expirationTime<span class="token operator">:</span> <span class="token operator">...</span><span class="token punctuation">,</span><br>    keys<span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token operator">...</span> <span class="token punctuation">}</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code></li>
+</ol>
+<p>Now, the new subscription is available to the server for sending notifications.</p>
+<h3 id="implementation-3">Implementation <a class="w-headline-link" href="#implementation-3">#</a></h3>
+<p>Requests for new subscriptions come to the <code>/add-subscription</code> route, which is a POST URL. You'll see a stub route handler in <strong>server.js</strong>:</p>
+<p><em><code>server.js</code></em></p>
+<web-copy-code><pre class="language-js"><code class="language-js">app<span class="token punctuation">.</span><span class="token function">post</span><span class="token punctuation">(</span><span class="token string">'/add-subscription'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">request<span class="token punctuation">,</span> response</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token comment">// TODO: implement handler for /add-subscription</span><br>  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'TODO: Implement handler for /add-subscription'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Request body: '</span><span class="token punctuation">,</span> request<span class="token punctuation">.</span>body<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  response<span class="token punctuation">.</span><span class="token function">sendStatus</span><span class="token punctuation">(</span><span class="token number">200</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>In your implementation, this handler must:</p>
+<ul>
+<li>Retrieve the new subscription from the body of the request.</li>
+<li>Access the database of active subscriptions.</li>
+<li>Add the new subscription to the list of active subscriptions.</li>
+</ul>
+<div class="w-aside w-aside--note">
+<p>In this example, we use the <code>express-session</code> npm package to store a list of active subscriptions in a session variable.</p>
+<p>This works for a demonstration, but it's not suitable for production. For compatible production packages, see the <a href="https://www.npmjs.com/package/express-session" rel="noopener">express-session documentation</a>.</p>
+</div>
+<p><strong>To handle new subscriptions:</strong></p>
+<ul>
+<li>
+<p>In <strong>server.js</strong>, modify the route handler for <code>/add-subscription</code> as follows:</p>
+<p><em><code>server.js</code></em></p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line">app<span class="token punctuation">.</span><span class="token function">post</span><span class="token punctuation">(</span><span class="token string">'/add-subscription'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">request<span class="token punctuation">,</span> response</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span></span><br><del class="highlight-line highlight-line-remove">  <span class="token comment">// TODO: implement handler for /add-subscription</span></del><br><del class="highlight-line highlight-line-remove">  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'TODO: Implement handler for /add-subscription'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></del><br><del class="highlight-line highlight-line-remove">  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Request body: '</span><span class="token punctuation">,</span> request<span class="token punctuation">.</span>body<span class="token punctuation">)</span><span class="token punctuation">;</span></del><br><ins class="highlight-line highlight-line-add">  <span class="token keyword">let</span> subscriptions <span class="token operator">=</span> Object<span class="token punctuation">.</span><span class="token function">assign</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span> request<span class="token punctuation">.</span>session<span class="token punctuation">.</span>subscriptions<span class="token punctuation">)</span><span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add">  subscriptions<span class="token punctuation">[</span>request<span class="token punctuation">.</span>body<span class="token punctuation">.</span>endpoint<span class="token punctuation">]</span> <span class="token operator">=</span> request<span class="token punctuation">.</span>body<span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add">  request<span class="token punctuation">.</span>session<span class="token punctuation">.</span>subscriptions <span class="token operator">=</span> subscriptions<span class="token punctuation">;</span></ins><br><span class="highlight-line">  response<span class="token punctuation">.</span><span class="token function">sendStatus</span><span class="token punctuation">(</span><span class="token number">200</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line"><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span></code></pre>
+</web-copy-code></li>
+</ul>
+<h2 id="handle-subscription-cancellations">Handle subscription cancellations <a class="w-headline-link" href="#handle-subscription-cancellations">#</a></h2>
+<h3 id="background-4">Background <a class="w-headline-link" href="#background-4">#</a></h3>
+<p>The server won't always know when a subscription becomes inactive–for example, a subscription could be wiped when the browser shuts down the service worker.</p>
+<p>The server can, however, find out about subscriptions that are cancelled through the app UI. In this step, you'll implement functionality to remove a subscription from the database.</p>
+<p>This way, the server avoids sending out a bunch of notifications to non-existent endpoints. Obviously this doesn't really matter with a simple test app, but it becomes important at a larger scale.</p>
+<h3 id="implementation-4">Implementation <a class="w-headline-link" href="#implementation-4">#</a></h3>
+<p>Requests to cancel subscriptions come to the  <code>/remove-subscription</code> POST URL.</p>
+<p>The stub route handler in <strong>server.js</strong> looks like this:</p>
+<p><em><code>server.js</code></em></p>
+<web-copy-code><pre class="language-js"><code class="language-js">app<span class="token punctuation">.</span><span class="token function">post</span><span class="token punctuation">(</span><span class="token string">'/remove-subscription'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">request<span class="token punctuation">,</span> response</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token comment">// TODO: implement handler for /remove-subscription</span><br>  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'TODO: Implement handler for /remove-subscription'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Request body: '</span><span class="token punctuation">,</span> request<span class="token punctuation">.</span>body<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  response<span class="token punctuation">.</span><span class="token function">sendStatus</span><span class="token punctuation">(</span><span class="token number">200</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>In your implementation, this handler must:</p>
+<ul>
+<li>Retrieve the endpoint of the cancelled subscription from the body of the request.</li>
+<li>Access the database of active subscriptions.</li>
+<li>Remove the cancelled subscription from the list of active subscriptions.</li>
+</ul>
+<p>The body of the POST request from the client contains the endpoint that you need to remove:</p>
+<web-copy-code><pre class="language-json"><code class="language-json"><span class="token punctuation">{</span><br>  <span class="token property">"endpoint"</span><span class="token operator">:</span> <span class="token string">"https://fcm.googleapis.com/fcm/send/cpqAgzGzkzQ:APA9..."</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p><strong>To handle subscription cancellations:</strong></p>
+<ul>
+<li>
+<p>In <strong>server.js</strong>, modify the route handler for <code>/remove-subscription</code> as follows:</p>
+<p><em><code>server.js</code></em></p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line">app<span class="token punctuation">.</span><span class="token function">post</span><span class="token punctuation">(</span><span class="token string">'/remove-subscription'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">request<span class="token punctuation">,</span> response</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span></span><br><del class="highlight-line highlight-line-remove">  <span class="token comment">// TODO: implement handler for /remove-subscription</span></del><br><del class="highlight-line highlight-line-remove">  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'TODO: Implement handler for /remove-subscription'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></del><br><del class="highlight-line highlight-line-remove">  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Request body: '</span><span class="token punctuation">,</span> request<span class="token punctuation">.</span>body<span class="token punctuation">)</span><span class="token punctuation">;</span></del><br><ins class="highlight-line highlight-line-add">  <span class="token keyword">let</span> subscriptions <span class="token operator">=</span> Object<span class="token punctuation">.</span><span class="token function">assign</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span> request<span class="token punctuation">.</span>session<span class="token punctuation">.</span>subscriptions<span class="token punctuation">)</span><span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add">  <span class="token keyword">delete</span> subscriptions<span class="token punctuation">[</span>request<span class="token punctuation">.</span>body<span class="token punctuation">.</span>endpoint<span class="token punctuation">]</span><span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add">  request<span class="token punctuation">.</span>session<span class="token punctuation">.</span>subscriptions <span class="token operator">=</span> subscriptions<span class="token punctuation">;</span></ins><br><span class="highlight-line">  response<span class="token punctuation">.</span><span class="token function">sendStatus</span><span class="token punctuation">(</span><span class="token number">200</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line"><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span></code></pre>
+</web-copy-code></li>
+</ul>
+<div class="w-aside w-aside--success">
+<p><strong>Success</strong>:
+You have implemented a push notifications server. Try it out in the live app UI! Register a service worker, subscribe to push, and send yourself some test notifications.</p>
+</div>
+
+
+        <div class="text-size-0 color-mid-text">
+          <span>
+            
+            Last updated: <time>Nov 20, 2019</time>
+            
+          </span>
+          —
+          <a
+            href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/notifications/codelab-notifications-push-server/index.md"
+          >
+            Improve article
+          </a>
+        </div>
+
+        
+          
+          
+        
+
+        
+          <div class="flow-space-size-2">
+            <a href="/use-push-notifications-to-engage-users" class="button" data-type="secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+              <span>Return to article</span>
+            </a>
+          </div>
+        
+      </article>
+    </div>
+  </web-codelab>
+</div>
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

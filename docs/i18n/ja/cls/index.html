@@ -1,0 +1,833 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=d44a80d163e92">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Cumulative Layout Shift (CLS)</title>
+<meta name="description" content="この投稿では、Cumulative Layout Shift (累積レイアウト シフト数、CLS) という指標について紹介し、その測定方法に関する説明を行います。" />
+
+<link rel="canonical" href="https://web.dev/i18n/ja/cls/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/cls/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/cls/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/cls/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/cls/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/cls/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/cls/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/cls/" />
+<meta itemprop="name" content="Cumulative Layout Shift (CLS)" />
+<meta itemprop="description" content="この投稿では、Cumulative Layout Shift (累積レイアウト シフト数、CLS) という指標について紹介し、その測定方法に関する説明を行います。" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="ja_JP" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/ja/cls/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Cumulative Layout Shift (CLS)" />
+<meta property="og:description" content="この投稿では、Cumulative Layout Shift (累積レイアウト シフト数、CLS) という指標について紹介し、その測定方法に関する説明を行います。" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="metrics" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Cumulative Layout Shift (CLS)" />
+<meta name="twitter:description" content="この投稿では、Cumulative Layout Shift (累積レイアウト シフト数、CLS) という指標について紹介し、その測定方法に関する説明を行います。" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=ea9d88d167376', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=afd11d220c14e', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="メニューを開く">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">メニューを開く</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        学習する
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        測定する
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        ブログ
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        概要
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="閉じる"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">閉じる</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        学習する
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        測定する
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        ブログ
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        概要
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#cumulative-layout-shift-(cls)" class="w-toc__header--link">
+        Cumulative Layout Shift (CLS)
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#cls">CLS とは？</a><ol><li><a href="#cls-2">CLS における良いスコアとは？</a></li></ol></li><ol><li><a href="#-2">レイアウト シフト スコア</a></li><li><a href="#-3">インパクト係数</a></li><li><a href="#-4">距離係数</a></li><li><a href="#-5">意図的に行われるレイアウト シフトと予期しないレイアウト シフト</a></li></ol><li><a href="#cls-3">CLS の測定方法</a><ol><li><a href="#-8">フィールド測定を実施するためのツール</a></li><li><a href="#-9">ラボ測定を実施するためのツール</a></li><li><a href="#javascript-cls">JavaScript を使用して CLS を測定する</a></li></ol></li><li><a href="#cls-4">CLS の改善方法</a></li><li><a href="#-10">その他のリソース</a></li><li><a href="#changelog">CHANGELOG</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@philwalton | @bibydigital"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>共有する</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="cumulative-layout-shift-(cls)" class="w-article-header__headline">Cumulative Layout Shift (CLS)</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Jun 11, 2019</time>
+           <span class="w-author__separator">•</span> 更新済み <time>Jun 1, 2021</time> 
+        </div>
+      
+
+      
+      
+      <div class="w-layout-container--narrow w-post-signpost">
+        <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/cls/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/cls/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/cls/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/cls/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/cls/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/cls/">
+      English</a></span>
+      </div>
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        ><span class="w-post-signpost__divider">|</span><a
+          class="w-post-signpost__link"
+          href="/metrics"
+          >指標</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/philipwalton/"><img     alt="Philip Walton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/philipwalton/">Philip Walton</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/philwalton"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/philipwalton">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://philipwalton.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+            <div class="w-author">
+  <a href="/authors/mihajlija/"><img     alt="Milica Mihajlija"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/mihajlija/">Milica Mihajlija</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/bibydigital"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/mihajlija">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://mihajlija.github.io/">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <div role="banner" class="w-banner w-banner--caution w-banner--body">
+  <strong>2021 年 6 月 1 日:</strong> CLS の実装が変更されました。変更の理由に関する詳細については、「<a href="/evolving-cls">進化を続ける CLS 指標</a>」を参照してください。
+</div>
+<div class="w-aside w-aside--key-term">
+<p><strong>重要な用語</strong>: Cumulative Layout Shift (累積レイアウト シフト数、CLS) は、<a href="/user-centric-performance-metrics/#types-of-metrics">視覚的な安定性</a>を測定するための重要なユーザーを中心とした指標です。これは、ユーザーが予期しないレイアウト シフトに遭遇する頻度の数値化に役立つ指標であり、CLS が低ければ低いほど、そのページが<a href="/user-centric-performance-metrics/#questions">快適</a>であることが保証されます。</div></p>
+<p>インターネットで記事を読んでいて、突然ページのレイアウトが変わってしまったことはありませんか？何の警告もなく文字が移動してしまい、自分がページ内のどこを読んでいたのか分からなくなってしまうことがあります。さらにひどい場合には、リンクやボタンをタップしようとしてから画面に指が触れるまでのほんの一瞬の間に &quot;パッ&quot; とリンクが移動してしまい、結局別のものをクリックしてしまう場合もあります。</p>
+<p>ほとんどの場合、こういったユーザー体験は単に煩わしいだけなのですが、中には実害をもたらしてしまう場合もあります。</p>
+<figure class="w-figure">
+  <video autoplay controls loop muted class="w-screenshot" poster="https://storage.googleapis.com/web-dev-assets/layout-instability-api/layout-instability-poster.png" width="658" height="510">
+    <source src="https://storage.googleapis.com/web-dev-assets/layout-instability-api/layout-instability2.webm" type="video/webm; codecs=vp8">
+    <source src="https://storage.googleapis.com/web-dev-assets/layout-instability-api/layout-instability2.mp4" type="video/mp4; codecs=h264">
+  </source></source></video>
+  <figcaption class="w-figcaption w-figcaption--fullbleed">レイアウトの不安定さがユーザーにネガティブな影響を及ぼす状況について説明しているスクリーンキャスト。</figcaption></figure>
+<p>ページ コンテンツの予期しない移動は、一般的にリソースが非同期的に読み込まれたり、ページ上の既存のコンテンツの上側に DOM 要素が動的に追加されたりする場合に発生します。原因としては、サイズが明示されていない画像や動画、フォールバックとして用意されているフォントよりも大きく、または小さくレンダリングされるフォント、動的にサイズが変更されるサードパーティ製の広告やウィジェットなどが考えられます。</p>
+<p>この問題をさらに深刻なものにしているのは、開発段階でのサイトの機能が、実際にユーザーが体験するものとはかなり異なる場合が多いという点です。カスタマイズされたコンテンツやサードパーティ製のコンテンツは開発段階では本番環境と同じように動作しませんし、テスト画像については開発者のブラウザー キャッシュにすでに保存されている場合が多く、ローカル環境で実行される API コールも遅延に気付くことができないほど高速である場合が多いです。</p>
+<p>Cumulative Layout Shift (CLS) 指標は、実際のユーザーに対するこの現象の発生頻度を測定することにより、この問題への対処をサポートします。</p>
+<h2 id="cls">CLS とは？ <a class="w-headline-link" href="#cls">#</a></h2>
+<p>CLS は、ページの表示中に発生した<a href="/cls/#expected-vs.-unexpected-layout-shifts">予期しない</a>レイアウトシフトごとに<em>レイアウト シフト スコア</em>の最大バーストを測定します。</p>
+<p><em>レイアウト シフト</em>は、表示された要素がレンダリングされたフレームから次のフレームへと位置を変更する際に発生します。(個々の<a href="#layout-shift-score">レイアウト シフト スコア</a>の計算方法に関する詳細については、以下を参照してください)。</p>
+<p><a href="evolving-cls/#why-a-session-window"><em>セッション ウィンドウ</em></a>と呼ばれるレイアウト シフトのバーストとは、それぞれが独立した 1 回以上のレイアウト シフトが、1 回のシフトが 1 秒未満、ウィンドウ全体で最大 5 秒間の長さで急速に連続して発生することを指します。</p>
+<p>そして最大バーストとは、そのウィンドウで発生したすべてのレイアウト シフトを累積したスコアが最大となるセッション ウィンドウのことを指します。</p>
+<figure class="w-figure">
+  <video controls autoplay loop muted class="w-screenshot" width="658" height="452">
+    <source src="https://storage.googleapis.com/web-dev-assets/better-layout-shift-metric/session-window.webm" type="video/webm">
+    <source src="https://storage.googleapis.com/web-dev-assets/better-layout-shift-metric/session-window.mp4" type="video/mp4">
+  </source></source></video>
+  <figcaption class="w-figcaption">セッション ウィンドウの例。青いバーは、個々のレイアウト シフトのスコアを表しています。</figcaption></figure>
+<div class="w-aside w-aside--caution">
+<p><strong>注意</strong>: 以前の CLS は、ページの表示期間全体で発生した<em>個々のレイアウト シフト スコアすべて</em>の合計値を測定していました。オリジナルの実装に対応可能なベンチマーク機能を現在も提供しているツールを確認するには、「<a href="/cls-web-tooling">進化を続ける Web ツールでの Cumulative Layout Shift</a>」を参照してください。</div></p>
+<h3 id="cls-2">CLS における良いスコアとは？ <a class="w-headline-link" href="#cls-2">#</a></h3>
+<p>良好なユーザー体験を提供するために、サイトは CLS スコアが <strong>0.1</strong> 以下になるように努力する必要があります。ほぼすべてのユーザーに対してこの目標値を確実に達成するためには、モバイル デバイスとデスクトップ デバイスに分けた上で、総ページロード数の 75 パーセンタイルをしきい値として設定します。</p>
+<picture>
+  <source srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/9mWVASbWDLzdBUpVcjE1.svg" media="(min-width: 640px)" width="400", height="100">
+  <img     alt="良好なCLS値は0.1未満、不良な値は0.25を超え、その間の値は改善が必要"     class="w-screenshot w-screenshot--filled width-full"     decoding="async"     height="300"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/uqclEgIlTHhwIgNTXN3Y.svg"               width="400"   />
+</picture>
+<div class="w-aside w-aside--note">
+<p>この推奨事項の根拠となる調査および方法論に関する詳細については、「<a href="/defining-core-web-vitals-thresholds/">Core Web Vitals 指標のしきい値の定義</a>」を参照してください。</div></p>
+<h2 id="">レイアウト シフトの詳細 <a class="w-headline-link" href="#">#</a></h2>
+<p>レイアウト シフトは <a href="https://github.com/WICG/layout-instability" rel="noopener">Layout Instability API</a> によって定義されており、ビューポート内に表示されている要素が 2 つのフレーム間で開始位置 (たとえば、デフォルトの <a href="https://developer.mozilla.org/docs/Web/CSS/writing-mode" rel="noopener">writing-mode</a> での top と left) を変更すると、<code>layout-shift</code> エントリがレポートされます。こういった要素は、<em>不安定な要素</em>としてみなされます。</p>
+<p>レイアウト シフトは、既存の要素がその開始位置を変更する場合にのみ発生することにご注意ください。新しい要素が DOM に追加されたり、既存の要素のサイズが変更されたりしても、その変更が表示されている他の要素の開始位置の変更を引き起こさない限りはレイアウト シフトとしてカウントされません。</p>
+<h3 id="-2">レイアウト シフト スコア <a class="w-headline-link" href="#-2">#</a></h3>
+<p><em>レイアウト シフト スコア</em>を計算するために、ブラウザーはビューポートのサイズと、2 つのレンダリング フレーム間におけるビューポート内での<em>不安定な要素</em>の移動を確認します。レイアウト シフト スコアは、その移動の 2 つの尺度である<em>インパクト係数</em> (Impact Fraction) と<em>距離係数</em> (Distance Fraction) の積です (いずれも以下のように定義されます)。</p>
+<web-copy-code><pre class="language-text"><code class="language-text">layout shift score = impact fraction * distance fraction</code></pre>
+</web-copy-code><h3 id="-3">インパクト係数 <a class="w-headline-link" href="#-3">#</a></h3>
+<p><a href="https://github.com/WICG/layout-instability#Impact-Fraction" rel="noopener">インパクト係数</a>は、<em>不安定な要素</em>が 2 つのフレーム間におけるビューポート領域にどのような影響を与えるかを測定します。</p>
+<p>前のフレーム<em>と</em>現在のフレームにおけるすべての<em>不安定な要素</em>の表示領域の合計が、ビューポートの総領域の一部として、現在のフレームの<em>インパクト係数</em>となります。</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format"><img      alt="*不安定な要素*が 1 つ含まれているインパクト係数の例"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>上の画像には、1 つのフレームでビューポートの半分を占めている要素があります。そして次のフレームでは、その要素はビューポートの高さの 25% 分下方向に移動しています。赤い点線で囲まれている長方形は両方のフレームにおける要素の表示領域の合計を示しており、この場合にはビューポート全体の 75% となるため、その<em>インパクト係数</em>は <code>0.75</code> となります。</p>
+<h3 id="-4">距離係数 <a class="w-headline-link" href="#-4">#</a></h3>
+<p>レイアウト シフト スコアを算出するための式に含まれているもう一方の構成要素は、不安定な要素がビューポートと比較してどの程度移動したかを測定します。<em>距離係数</em>は、フレーム内での<em>不安定な要素</em>の最大の移動距離 (水平方向または垂直方向のいずれか) をビューポートの最大サイズ (幅または高さのうち大きい方のいずれか) で割ったものです。</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format"><img      alt="*不安定な要素*が 1 つ含まれている距離係数の例"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>上の例では、ビューポートの最大サイズは高さであり、不安定な要素はビューポートの高さの 25% 分移動したことになるため、<em>距離係数</em>は 0.25 となります。</p>
+<p>つまりこの例では、<em>インパクト係数</em>が <code>0.75</code>、<em>距離係数</em>が <code>0.25</code> となるため、<em>レイアウト シフト スコア</em>は <code>0.75 x 0.25 = 0.1875</code> となります。</p>
+<div class="w-aside w-aside--note">
+<p>当初は、レイアウト シフト スコアは<em>インパクト係数</em>のみに基づいて計算されていました。この<em>距離係数</em>は、サイズの大きな要素がわずかな距離のみ移動する場合に、過度にペナルティを課してしまうことを避けるために導入されました。</div></p>
+<p>次の例では、既存の要素へのコンテンツの追加がレイアウト シフト スコアにどのような影響を及ぼすかについて説明します。</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format"><img      alt="安定した要素、*不安定な要素*、ビューポート クリッピングが含まれるレイアウト シフトの例"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>&quot;Click Me!&quot; (クリックしてね！) ボタンが黒色のテキストを含む灰色のボックスの下に追加され、白色のテキストを含む緑色のボックスを下方向に押し下げました (ボックスの一部がビューポートの外に出てしまいました)。</p>
+<p>この例では、灰色のボックスのサイズは変更されていますが、開始位置は変更されていないため、これは<em>不安定な要素</em>ではありません。</p>
+<p>&quot;Click Me!&quot; ボタンはそれまで DOM に存在していなかったため、このボタンの開始位置についても変更はありません。</p>
+<p>緑色のボックスの開始位置は変更されたものの、一部がビューポートから外に出ています。<em>インパクト係数</em>の計算には、非表示領域は考慮されません。両方のフレームでの緑色のボックスの表示領域の合計 (赤い点線で囲まれている長方形で示されています) は、最初のフレームでの緑色のボックスの領域と同じで、ビューポートの 50% になります。この場合の<em>インパクト係数</em>は、<code>0.5</code> です。</p>
+<p><em>距離係数</em>は、紫色の矢印で示されています。緑色のボックスはビューポートの約 14% 分下方向に移動しているため、<em>距離分数</em>は <code>0.14</code> となります。</p>
+<p>レイアウト シフト スコアは、<code>0.5 x 0.14 = 0.07</code> です。</p>
+<p>次の最後の例では、<em>不安定な要素</em>が複数ある場合を示しています。</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format"><img      alt="複数の安定した要素と*不安定な要素*が含まれるレイアウト シフトの例"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>上の画像にある 1 つ目のフレームでは、動物に関する API リクエストの 4 件の結果がアルファベット順に並べ替えられています。2 つ目のフレームでは、並べ替えられたリストに結果がさらに追加されています。</p>
+<p>リストの一番上にある項目 (&quot;Cat&quot;) は、フレーム間で開始位置が変更されていないため、安定した要素であると言えます。同様にリストに追加された新しいアイテムも、それまで DOM に存在していなかったため、開始位置に変更はありません。しかしながら、&quot;Dog&quot;、&quot;Horse&quot;、&quot;Zebra&quot; とラベル付けされている項目はすべて開始位置が変更されているため、これらは<em>不安定な要素</em>となります。</p>
+<p>赤い点線で囲まれている長方形は、これら 3 つの<em>不安定な要素</em>の前後の領域の合計を示しており、この場合はビューポートの領域の約 38% になります (この場合の<em>インパクト係数</em>は <code>0.38</code> です)。</p>
+<p>3 つの矢印は、<em>不安定な要素</em>がそれぞれの開始位置から移動した距離を示しています。そして、青い矢印で示されている &quot;Zebra&quot; 要素がビューポートの高さの約 30% と最も大きく移動しています。よって、この例での<em>距離係数</em>は <code>0.3</code> となります。</p>
+<p>レイアウト シフト スコアは、<code>0.38 x 0.3 = 0.114</code> です。</p>
+<h3 id="-5">意図的に行われるレイアウト シフトと予期しないレイアウト シフト <a class="w-headline-link" href="#-5">#</a></h3>
+<p>すべてのレイアウト シフトが問題となるわけではありません。実際に、多くの動的な Web アプリケーションにおいてページ上に存在する要素の開始位置の頻繁な変更が行われています。</p>
+<h4 id="-6">ユーザーの操作によるレイアウト シフト <a class="w-headline-link" href="#-6">#</a></h4>
+<p>レイアウト シフトは、ユーザーがその発生を予期していない場合にのみ問題となります。その一方で、ユーザーによる操作 (リンクのクリック、ボタンの押下、検索ボックスへの入力など) に応じて発生するレイアウト シフトについては、通常その関係性をユーザーが明確に理解できるようにインタラクションの近くで発生させている限りは問題ありません。</p>
+<p>たとえば、ユーザーの操作によって完了するまでに時間がかかるネットワーク リクエストがトリガーされた場合には、リクエストの完了時に不快なレイアウト シフトが発生してしまうことを避けるためにすぐにスペースを作成し、そこに読み込みインジケーターを表示させるのが最善の方法です。ユーザーが読み込み中であることに気付けなかったり、リソースの準備がいつ完了するのか分からなかったりすると、ユーザーが読み込みの待機中に何か別のものをクリックしようとしてしまうかもしれませんし、その結果としてページから離脱してしまう可能性もあります。</p>
+<p>ユーザーの入力から 500 ミリ秒以内に発生するレイアウト シフトには <a href="https://wicg.github.io/layout-instability/#dom-layoutshift-hadrecentinput" rel="noopener"><code>hadRecentInput</code></a> フラグが設定されるため、それらを計算から除外することができます。</p>
+<div class="w-aside w-aside--caution">
+<p><strong>注意</strong>: <code>hadRecentInput</code> フラグは、個別の入力イベント (タップ、クリック、キー押下など) に対してのみ true になります。連続的なインタラクション (スクロール、ドラッグ、ピンチによるズーム ジェスチャーなど) は &quot;最近の入力&quot; (Recent Input、500 ミリ秒以内に応答が発生する入力) とはみなされません。詳細はについては、「<a href="https://github.com/WICG/layout-instability#recent-input-exclusion" rel="noopener">レイアウトの不安定性の仕様</a>」を参照してください。</div></p>
+<h4 id="-7">アニメーションとトランジション <a class="w-headline-link" href="#-7">#</a></h4>
+<p>アニメーションやトランジションは、上手に使用することでユーザーを驚かせることなくページ上のコンテンツを更新することができる優れた手法です。ページ上でコンテンツが突然何の前触れもなく移動してしまえば、ユーザーはほとんどの場合に悪印象を抱いてしまいます。しかしながら、ある位置から目的の位置へと少しづつ自然に移動するようなコンテンツは、ユーザーにとっては何が起こっているのかを理解しやすいですし、状態が変化している間にユーザーを誘導することもできます。</p>
+<p>CSS の <a href="https://developer.mozilla.org/docs/Web/CSS/transform" rel="noopener"><code>transform</code></a> プロパティを使用すれば、レイアウト シフトを発生させることなく要素をアニメーション化することができます。</p>
+<ul>
+<li><code>height</code> プロパティや <code>width</code> プロパティを変更するのではなく、<code>transform: scale()</code> を使用します。</li>
+<li>要素を移動させる場合には、<code>top</code>、<code>right</code>、<code>bottom</code>、<code>left</code> の各プロパティを変更するのではなく、<code>transform: translate()</code> を使用します。</li>
+</ul>
+<h2 id="cls-3">CLS の測定方法 <a class="w-headline-link" href="#cls-3">#</a></h2>
+<p>CLS は<a href="/user-centric-performance-metrics/#in-the-lab">ラボ環境</a>または<a href="/user-centric-performance-metrics/#in-the-field">実際のユーザー環境</a>で測定が可能で、以下のツールが使用できます。</p>
+<div class="w-aside w-aside--caution">
+<p><strong>注意</strong>: 通常ラボ測定を実施するためのツールは人工的な環境でページの読み込みを行うため、ページの読み込み中に発生するレイアウト シフトしかレポートできません。そのため、ラボ測定を実施するためのツールが指定されたページについてレポートする際の CLS の値は、ユーザーが実際の環境で体験する値よりも小さくなる可能性があります。</div></p>
+<h3 id="-8">フィールド測定を実施するためのツール <a class="w-headline-link" href="#-8">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome User Experience Report</a></li>
+<li><a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">PageSpeed Insights</a></li>
+<li><a href="https://support.google.com/webmasters/answer/9205520" rel="noopener">Search Console (Core Web Vitals Report)</a></li>
+<li><a href="https://github.com/GoogleChrome/web-vitals" rel="noopener"><code>web-vitals</code> JavaScript ライブラリ</a></li>
+</ul>
+<h3 id="-9">ラボ測定を実施するためのツール <a class="w-headline-link" href="#-9">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-devtools/" rel="noopener">Chrome DevTools</a></li>
+<li><a href="https://developers.google.com/web/tools/lighthouse/" rel="noopener">Lighthouse</a></li>
+<li><a href="https://webpagetest.org/" rel="noopener">WebPageTest</a></li>
+</ul>
+<h3 id="javascript-cls">JavaScript を使用して CLS を測定する <a class="w-headline-link" href="#javascript-cls">#</a></h3>
+<p>JavaScript を使用した CLS の測定には、<a href="https://github.com/WICG/layout-instability" rel="noopener">Layout Instability API</a> を使用することができます。以下の例では、予期しない <code>layout-shift</code> エントリをリッスンしてセッションごとに分類し、変更が発生するたびにセッションの最大値をログとして記録する <a href="https://developer.mozilla.org/docs/Web/API/PerformanceObserver" rel="noopener"><code>PerformanceObserver</code></a> の作成方法を示しています。</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">let</span> clsValue <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> clsEntries <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br><span class="token keyword">let</span> sessionValue <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> sessionEntries <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br><span class="token keyword">new</span> <span class="token class-name">PerformanceObserver</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">entryList</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">const</span> entry <span class="token keyword">of</span> entryList<span class="token punctuation">.</span><span class="token function">getEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token comment">// 直近のユーザーの入力がないレイアウト シフトのみをカウントします。</span><br>    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>entry<span class="token punctuation">.</span>hadRecentInput<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>      <span class="token keyword">const</span> firstSessionEntry <span class="token operator">=</span> sessionEntries<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br>      <span class="token keyword">const</span> lastSessionEntry <span class="token operator">=</span> sessionEntries<span class="token punctuation">[</span>sessionEntries<span class="token punctuation">.</span>length <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br>      <span class="token comment">// エントリが前のエントリの発生から 1 秒以内に発生していて、</span><br>      <span class="token comment">// かつ同一セッション内の最初のエントリの発生から 5 秒以内に発生している場合には、</span><br>      <span class="token comment">// そのエントリを現在のセッションに含めます。そうでない場合には、新しいセッションを開始します。</span><br>      <span class="token keyword">if</span> <span class="token punctuation">(</span>sessionValue <span class="token operator">&amp;&amp;</span><br>          entry<span class="token punctuation">.</span>startTime <span class="token operator">-</span> lastSessionEntry<span class="token punctuation">.</span>startTime <span class="token operator">&lt;</span> <span class="token number">1000</span> <span class="token operator">&amp;&amp;</span><br>          entry<span class="token punctuation">.</span>startTime <span class="token operator">-</span> firstSessionEntry<span class="token punctuation">.</span>startTime <span class="token operator">&lt;</span> <span class="token number">5000</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>        sessionValue <span class="token operator">+=</span> entry<span class="token punctuation">.</span>value<span class="token punctuation">;</span><br>        sessionEntries<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>entry<span class="token punctuation">)</span><span class="token punctuation">;</span><br>      <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span><br>        sessionValue <span class="token operator">=</span> entry<span class="token punctuation">.</span>value<span class="token punctuation">;</span><br>        sessionEntries <span class="token operator">=</span> <span class="token punctuation">[</span>entry<span class="token punctuation">]</span><span class="token punctuation">;</span><br>      <span class="token punctuation">}</span><br><br>      <span class="token comment">// 現在のセッションの値が現在の CLS の値よりも大きい場合には、</span><br>      <span class="token comment">// CLS とそれに寄与しているエントリを更新します。</span><br>      <span class="token keyword">if</span> <span class="token punctuation">(</span>sessionValue <span class="token operator">></span> clsValue<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>        clsValue <span class="token operator">=</span> sessionValue<span class="token punctuation">;</span><br>        clsEntries <span class="token operator">=</span> sessionEntries<span class="token punctuation">;</span><br><br>        <span class="token comment">// 更新された値 (およびそのエントリ) をコンソールにログとして記録します。</span><br>        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'CLS:'</span><span class="token punctuation">,</span> clsValue<span class="token punctuation">,</span> clsEntries<span class="token punctuation">)</span><br>      <span class="token punctuation">}</span><br>    <span class="token punctuation">}</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span><span class="token punctuation">{</span>type<span class="token operator">:</span> <span class="token string">'layout-shift'</span><span class="token punctuation">,</span> buffered<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><div class="w-aside w-aside--warning">
+<p><strong>警告</strong>:</p>
+<p>このコードは CLS を計算してログとして記録するための基本的な方法を示していますが、<a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome User Experience Report</a> (CrUX) での測定結果と一致するように CLS を正確に測定する方法はより複雑です。詳細については、以下を参照してください。</p>
+</div>
+<p>ほとんどの場合、ページがアンロードされている時点での CLS 値がそのページの最終的な CLS 値となるのですが、重要な例外もいくつか存在します。</p>
+<p>次のセクションでは、API がレポートする内容と、指標の計算方法の違いについて説明します。</p>
+<h4 id="api">指標と API の違い <a class="w-headline-link" href="#api">#</a></h4>
+<ul>
+<li>ページがバックグラウンドで読み込まれた場合や、ブラウザーがコンテンツのいずれかを描画する前にバックグラウンドに移行した場合には、CLS 値をレポートしてはいけません。</li>
+<li>ページが <a href="/bfcache/#impact-on-core-web-vitals">Back/Forward Cache</a> から復元された場合、これはユーザーにとって異なるページ訪問となるため、その CLS 値はゼロへとリセットされる必要があります。</li>
+<li>API では iframe 内で発生したシフトについての <code>layout-shift</code> エントリはレポートされませんが、CLS を正確に測定するためにはこれらのエントリも考慮に入れる必要があります。サブフレームが<a href="https://github.com/WICG/layout-instability#cumulative-scores" rel="noopener">集約</a>のために API を使用してその親フレームに <code>layout-shift</code> エントリをレポートすることができます。</li>
+</ul>
+<p>これらの例外に加えて、CLS はページの表示期間全体を測定するため、より複雑さが増しています。</p>
+<ul>
+<li>ユーザーは、1 つのタブを (数日間、数週間、数か月など) <em>かなりの</em>長期間に渡って開き続ける場合があります。実際に、タブをまったく閉じないユーザーが存在する可能性もあります。</li>
+<li>モバイル OS では、通常ブラウザーはバックグラウンド タブについてはページ アンロード コールバックを実行しないため、&quot;最終的な&quot; 値のレポートが困難になっています。</li>
+</ul>
+<p>こういったケースに対処するためには、ページがアンロードされるタイミングに加えて、バックグラウンドに移行するタイミングでも CLS をレポートする必要があります (<a href="https://developers.google.com/web/updates/2018/07/page-lifecycle-api#event-visibilitychange" rel="noopener"><code>visibilitychange</code> イベント</a>は、これらのシナリオの両方をカバーしています)。このデータを受け取ったアナリティクス システムは、最終的な CLS 値をバックエンドで計算する必要があります。</p>
+<p>開発者がこれらのケースをすべて記憶して対処する必要はありません。<a href="https://github.com/GoogleChrome/web-vitals" rel="noopener"><code>web-vitals</code> JavaScript ライブラリ</a>を使用すれば、上記すべてが考慮された状態で CLS の測定を行うことができます。</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span>getCLS<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'web-vitals'</span><span class="token punctuation">;</span><br><br><span class="token comment">// CLS のレポートが必要なすべての状況で</span><br><span class="token comment">// CLS を測定し、ログとして記録します。</span><br><span class="token function">getCLS</span><span class="token punctuation">(</span>console<span class="token punctuation">.</span>log<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>JavaScript を使用して CLS を測定する方法に関する詳細な例については、<a href="https://github.com/GoogleChrome/web-vitals/blob/master/src/getCLS.ts" rel="noopener"><code>getCLS()</code> のソース コード</a>を参照してください。</p>
+<div class="w-aside w-aside--note">
+<p>場合によっては (クロスオリジン iframe など)、JavaScript を使用して CLS を測定することはできません。詳細については、<code>web-vitals</code> ライブラリの「<a href="https://github.com/GoogleChrome/web-vitals#limitations" rel="noopener">制限事項</a>」セクションを参照してください。</div></p>
+<h2 id="cls-4">CLS の改善方法 <a class="w-headline-link" href="#cls-4">#</a></h2>
+<p>以下に挙げるいくつかの原則に従うことにより、ほとんどの Web サイトで予期しないレイアウト シフトの発生を回避することができます。</p>
+<ul>
+<li>**画像要素や動画要素に必ず size 属性を付ける手法や、<a href="https://css-tricks.com/aspect-ratio-boxes/" rel="noopener">CSS を駆使したアスペクト比対応ボックス</a>などの手法を用いて必要なスペースを確保する。**こういったアプローチを取ることによって、ブラウザーが画像の読み込み中に適切なサイズのスペースをドキュメント内に確保することができます。なお、機能ポリシーをサポートしているブラウザーであれば、<a href="https://github.com/w3c/webappsec-feature-policy/blob/master/policies/unsized-media.md" rel="noopener">unsized-media 機能ポリシー</a>を使用してこの動作を強制することも可能です。</li>
+<li>**ユーザーの操作に応じる場合を除き、既存のコンテンツの上側にコンテンツを挿入しない。**こうしておくことで、レイアウト シフトが発生したとしても、その影響を想定内に留めておくことができるようになります。</li>
+<li>**レイアウト変更のトリガーとなるプロパティを利用したアニメーションよりも、transform アニメーションを優先する。**ある状態から別の状態へのコンテキストや連続性を提供する方法でトランジションをアニメーション化しましょう。</li>
+</ul>
+<p>CLS の改善方法の詳細については、「<a href="/optimize-cls/">CLS を最適化する</a>」および「<a href="/debug-layout-shifts">レイアウト シフトのデバッグ</a>」を参照してください。</p>
+<h2 id="-10">その他のリソース <a class="w-headline-link" href="#-10">#</a></h2>
+<ul>
+<li><a href="https://developers.google.com/doubleclick-gpt/guides/minimize-layout-shift" rel="noopener">レイアウト シフトを最小限に抑える方法</a>に関する Google パブリッシャー タグのガイダンス</li>
+<li><a href="https://anniesullie.com/" rel="noopener">Annie Sullivan</a> と <a href="https://kobes.ca/" rel="noopener">Steve Kobes</a> による「<a href="https://youtu.be/zIJuY-JCjqw" rel="noopener">Cumulative Layout Shift を理解する</a>」<a href="https://perfmattersconf.com/" rel="noopener">#PerfMatters</a> より (2020)</li>
+</ul>
+<h2 id="changelog">CHANGELOG <a class="w-headline-link" href="#changelog">#</a></h2>
+<p>Occasionally, bugs are discovered in the APIs used to measure metrics, and
+sometimes in the definitions of the metrics themselves. As a result, changes
+must sometimes be made, and these changes can show up as improvements or
+regressions in your internal reports and dashboards.</p>
+<p>To help you manage this, all changes to either the implementation or definition
+of these metrics will be surfaced in this
+<a href="http://bit.ly/chrome-speed-metrics-changelog" rel="noopener">CHANGELOG</a>.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">パフォーマンス</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/metrics/">指標</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/web-vitals/">Web Vitals</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        最終更新: <time>Jun 1, 2021</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/ja/metrics/cls/index.md"
+      >
+        記事を改善する
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/learn-web-vitals"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              バグを報告する
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              ソースを表示する
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">関連性のあるコンテンツ</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome のアップデート
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              ケーススタディ
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              ポッドキャスト
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              ショー
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">接続する</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            すべての製品
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="ja"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            利用規約とプライバシーポリシー
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            コミュニティガイドライン
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

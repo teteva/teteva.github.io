@@ -1,0 +1,864 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=d27b87cece41d">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=d6500039247cb">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>引荐来源 (Referer) 和引荐来源政策 (Referrer-Policy) 最佳实践</title>
+<meta name="description" content="可以考虑设置 strict-origin-when-cross-origin 的引荐来源政策。该政策保留了引荐来源的大部分用途，同时降低了跨域泄露数据的风险。" />
+
+<link rel="canonical" href="https://web.dev/i18n/zh/referrer-best-practices/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/referrer-best-practices/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/referrer-best-practices/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/referrer-best-practices/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/referrer-best-practices/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/referrer-best-practices/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/referrer-best-practices/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/referrer-best-practices/" />
+<meta itemprop="name" content="引荐来源 (Referer) 和引荐来源政策 (Referrer-Policy) 最佳实践" />
+<meta itemprop="description" content="可以考虑设置 strict-origin-when-cross-origin 的引荐来源政策。该政策保留了引荐来源的大部分用途，同时降低了跨域泄露数据的风险。" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="zh_CN" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/zh/referrer-best-practices/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="引荐来源 (Referer) 和引荐来源政策 (Referrer-Policy) 最佳实践" />
+<meta property="og:description" content="可以考虑设置 strict-origin-when-cross-origin 的引荐来源政策。该政策保留了引荐来源的大部分用途，同时降低了跨域泄露数据的风险。" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="security" />
+<meta property="tag" content="privacy" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="引荐来源 (Referer) 和引荐来源政策 (Referrer-Policy) 最佳实践" />
+<meta name="twitter:description" content="可以考虑设置 strict-origin-when-cross-origin 的引荐来源政策。该政策保留了引荐来源的大部分用途，同时降低了跨域泄露数据的风险。" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=43366e8e3bd6b', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=6c06f9f2c1bbc', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          学习
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        衡量
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        博客
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        关于
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">关闭</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt=""     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="本页内容">
+    <div class="course-toc__heading font-google-sans weight-medium">本页内容</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#101">引荐来源和引荐来源政策 101</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-2">有哪些可用的政策，它们之间有何不同？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">浏览器中的默认引荐来源政策</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">设置您的引荐来源政策：最佳实践</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">如何查看引荐来源政策？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-6">您应该为您的网站设置哪种政策？</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#&quot;&quot;">为什么要&quot;显式&quot;？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#strict-origin-when-cross-origin">为什么要用strict-origin-when-cross-origin（或更严格的政策）？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#strict-origin-when-cross-origin-2">如果strict-origin-when-cross-origin（或更严格的政策）不适用于您所有的用例怎么办？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#yuan">示例：元素级政策</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-7">示例：请求级政策</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-8">您还应该考虑什么？</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-9">使用传入请求中的引荐来源：最佳实践</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#url">如果您的网站功能使用传入请求的引荐来源 URL 怎么办？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#(csrf)">跨站请求伪造 (CSRF) 保护</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-11">日志记录</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-12">付款</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-14">结论</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-15">资源</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="(referer)-(referrer-policy)">引荐来源 (Referer) 和引荐来源政策 (Referrer-Policy) 最佳实践</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            设置引荐来源政策并在传入请求中使用引荐来源的最佳实践。
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Jul 30, 2020</time>
+             — 更新日期 <time>Sep 23, 2020</time> 
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/referrer-best-practices/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/referrer-best-practices/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/referrer-best-practices/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/referrer-best-practices/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/referrer-best-practices/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/referrer-best-practices/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/secure"
+          >安全且可靠</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/maudn/"> <img     alt="Maud Nalpas"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/maudn/">Maud Nalpas</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/maudnals">Twitter</a>
+               <a href="https://github.com/maudnals">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="本页内容">
+      <summary>
+        本页内容
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#101">引荐来源和引荐来源政策 101</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-2">有哪些可用的政策，它们之间有何不同？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">浏览器中的默认引荐来源政策</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">设置您的引荐来源政策：最佳实践</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">如何查看引荐来源政策？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-6">您应该为您的网站设置哪种政策？</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#&quot;&quot;">为什么要&quot;显式&quot;？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#strict-origin-when-cross-origin">为什么要用strict-origin-when-cross-origin（或更严格的政策）？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#strict-origin-when-cross-origin-2">如果strict-origin-when-cross-origin（或更严格的政策）不适用于您所有的用例怎么办？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#yuan">示例：元素级政策</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-7">示例：请求级政策</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-8">您还应该考虑什么？</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-9">使用传入请求中的引荐来源：最佳实践</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#url">如果您的网站功能使用传入请求的引荐来源 URL 怎么办？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#(csrf)">跨站请求伪造 (CSRF) 保护</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-11">日志记录</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-12">付款</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-14">结论</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-15">资源</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <h2 id="">概述 <a class="w-headline-link" href="#">#</a></h2>
+<ul>
+<li>意外的跨域信息泄露是网络用户隐私的绊脚石。一个保护性引荐来源政策可以提供帮助。</li>
+<li>可以考虑设置 <code>strict-origin-when-cross-origin</code> 的引荐来源政策。该政策保留了引荐来源的大部分用途，同时降低了跨域泄露数据的风险。</li>
+<li>不要使用引荐来源来防范跨站请求伪造 (CSRF)，而是用 <a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#token-based-mitigation" rel="noopener">CSRF 令牌</a>和其他标头作为额外的一层安全保障。</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>在我们开始之前：</p>
+<ul>
+<li>如果您不确定&quot;网站&quot;和&quot;域&quot;之间的区别，请查看<a href="/same-site-same-origin/">了解&quot;同站&quot;和&quot;同域&quot;</a>。</li>
+<li>由于规范中的原始拼写错误，<code>Referer</code>标头缺少一个 R。JavaScript 和 DOM 中的<code>Referrer-Policy</code>标头和<code>referrer</code>的拼写是正确的。</li>
+</ul>
+</div></aside>
+<h2 id="101">引荐来源和引荐来源政策 101 <a class="w-headline-link" href="#101">#</a></h2>
+<p>HTTP 请求可能包含可选的<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referer" rel="noopener"><code>Referer</code>标头</a>，该标头指示发出请求的域或网页 URL。<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referrer-Policy" rel="noopener"><code>Referrer-Policy</code>标头</a>定义了在<code>Referer</code>标头中可用的数据。</p>
+<p>在下方的示例中，<code>Referer</code>标头包含发出请求的<code>site-one</code>上页面的完整 URL。</p>
+<figure><img     alt="包括一个引荐来源标头的 HTTP 请求。"          decoding="async"     height="573"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p><code>Referer</code>标头可能出现在不同类型的请求中：</p>
+<ul>
+<li>导航请求（当用户点击链接时）</li>
+<li>子资源请求（当浏览器请求页面需要的图像、iframe、脚本和其他资源时）</li>
+</ul>
+<p>对于导航和 iframe，也可以通过 JavaScript 使用<code>document.referrer</code>访问这些数据。</p>
+<p><code>Referer</code>值可以提供非常有见解的信息。例如，分析服务可以使用该值来确定<code>site-two.example</code>上 50% 的访问者来自<code>social-network.example</code>。</p>
+<p>但是当包含路径和查询字符串的完整 URL 在<code>Referer</code>中被<strong>跨域</strong>发送时，就可能会<strong>有碍隐私</strong>并带来<strong>安全风险</strong>。请看下列这些网址：</p>
+<figure><img     alt="带有路径的 URL 映射到不同的隐私和安全风险。"          decoding="async"     height="370"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>URL #1 到 #5 包含私人信息，有时甚至是识别信息或敏感信息。在不知不觉中跨域泄露这些信息可能会危及网络用户的隐私安全。</p>
+<p>URL #6 是一个<a href="https://www.w3.org/TR/capability-urls/" rel="noopener">功能性 URL</a>。不要让它落入目标用户之外的任何人手中。如果发生这种情况，恶意行为者可能会劫持该用户的帐号。</p>
+<p><strong>为了限制来自您网站的请求可以获取的引荐来源数据，您可以设置一个引荐来源政策。</strong></p>
+<h2 id="-2">有哪些可用的政策，它们之间有何不同？ <a class="w-headline-link" href="#-2">#</a></h2>
+<p>您可以从八种政策中选择一种。根据政策的选择， <code>Referer</code>标头（和<code>document.referrer</code>）中可用的数据可以是：</p>
+<ul>
+<li>无数据（不存在<code>Referer</code>标头）</li>
+<li>只有<a href="/same-site-same-origin/#origin">域</a></li>
+<li>完整 URL：域、路径和查询字符串</li>
+</ul>
+<figure><img     alt="引荐来源标头和 document.referrer 中可以包含的数据。"          decoding="async"     height="255"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>一些政策被设计为根据<strong>上下文</strong>的不同而采取不同行为：跨域或同域请求、安全性（无论请求目的地的安全性是否和域一样），或两者兼备。这对于限制跨域共享或限制向不太安全的域共享的信息量非常有用，同时也能够保持您自己的网站中引荐来源的丰富性。</p>
+<p>以下概览显示了引荐来源政策对于引荐来源标头和<code>document.referrer</code>中可用 URL 数据的限制方式：</p>
+<figure><img     alt="不同安全性和跨域上下文情况下的不同引荐来源政策及其行为。"          decoding="async"     height="537"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>MDN 提供了<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referrer-Policy#Directives" rel="noopener">完整的政策和行为示例列表</a>。</p>
+<p>注意事项：</p>
+<ul>
+<li>所有将方案（HTTPS 与 HTTP）考虑在内的政策（<code>strict-origin</code>、<code>no-referrer-when-downgrade</code>和<code>strict-origin-when-cross-origin</code>）都会以相同的方式处理从一个 HTTP 域到另一个 HTTP 域的请求以及从一个 HTTPS 域到另一个 HTTPS 域的请求（即使 HTTP 的安全性更低）。这是因为对于这些政策来说，重要的是是否发生了安全<strong>降级</strong>，即请求是否可以将数据从一个加密域暴露给一个未加密域。 HTTP → HTTP 请求一直都是未加密的，因此不会出现降级。 相反，HTTPS → HTTP 请求会呈现降级。</li>
+<li>如果请求是<strong>同域的</strong> ，这意味着方案（HTTPS 或 HTTP）相同，因此也就没有安全降级。</li>
+</ul>
+<h2 id="-3">浏览器中的默认引荐来源政策 <a class="w-headline-link" href="#-3">#</a></h2>
+<p><em>截至 2020 年 7 月</em></p>
+<p><strong>在未设置引荐来源政策的情况下将使用浏览器的默认政策。</strong></p>
+<div>
+  <table>
+    <thead>
+      <tr>
+        <th>浏览器</th>
+        <th>默认<code>Referrer-Policy</code>/行为</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Chrome</td>
+        <td>计划在<a href="https://developers.google.com/web/updates/2020/07/referrer-policy-new-chrome-default">版本 85</a> 中切换为<code>strict-origin-when-cross-origin</code>（以往是<code>no-referrer-when-downgrade</code>）</td>
+      </tr>
+      <tr>
+        <td>Firefox</td>
+        <td>
+          <ul>
+            <li>
+<code>strict-origin-when-cross-origin</code> （<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1589074">请参阅已关闭的错误</a>）</li>
+            <li>私密浏览和跟踪器中使用<code>strict-origin-when-cross-origin</code>
+</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Edge</td>
+        <td>
+          <ul>
+            <li><code>no-referrer-when-downgrade</code></li>
+            <li>正在对<code>strict-origin-when-cross-origin</code>进行<a href="https://github.com/privacycg/proposals/issues/13">试验</a>
+</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Safari</td>
+        <td>与<code>strict-origin-when-cross-origin</code>类似。请参阅<a href="https://webkit.org/blog/9661/preventing-tracking-prevention-tracking/">阻止反跟踪进行跟踪</a>了解详情。</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<h2 id="-4">设置您的引荐来源政策：最佳实践 <a class="w-headline-link" href="#-4">#</a></h2>
+<aside class="aside flow bg-state-good-bg color-state-good-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg></span>
+<strong>目标</strong></p>
+<div class=" flow">
+<p>显式设置隐私增强政策，例如<code>strict-origin-when-cross-origin</code>（或更严格的政策）。</p>
+</div></aside>
+<p>有多种方法可以为您的网站设置引荐来源政策：</p>
+<ul>
+<li>作为 HTTP 标头</li>
+<li>在您的 <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referrer-Policy#Integration_with_HTML" rel="noopener">HTML</a> 中</li>
+<li><a href="https://javascript.info/fetch-api#referrer-referrerpolicy" rel="noopener">基于每个请求</a>，来源于 JavaScript</li>
+</ul>
+<p>您可以为不同的页面、请求或元素设置不同的政策。</p>
+<p>HTTP 标头和元元素都是页面级的。确定一个元素的有效政策时的优先顺序是：</p>
+<ol>
+<li>元素级政策</li>
+<li>页面级政策</li>
+<li>浏览器默认</li>
+</ol>
+<p><strong>示例：</strong></p>
+<p><code>index.html</code> ：</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>referrer<span class="token punctuation">"</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>strict-origin-when-cross-origin<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>...<span class="token punctuation">"</span></span> <span class="token attr-name">referrerpolicy</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>no-referrer-when-downgrade<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>图像请求将使用<code>no-referrer-when-downgrade</code>政策，而来自该页面的所有其他子资源请求将遵循<code>strict-origin-when-cross-origin</code>政策。</p>
+<h2 id="-5">如何查看引荐来源政策？ <a class="w-headline-link" href="#-5">#</a></h2>
+<p>通过 <a href="https://securityheaders.com/" rel="noopener">securityheaders.com</a> 可以方便地确定某个特定站点或页面正在使用的政策。</p>
+<p>您还可以使用 Chrome、Edge 或 Firefox 的开发者工具查看用于特定请求的引荐来源政策。在撰写本文时，Safari 未显示<code>Referrer-Policy</code>标头，但会显示已发送的<code>Referer</code>。</p>
+<figure><img     alt="Chrome 开发者工具的网络面板截图，显示了引荐来源和引荐来源政策。"          decoding="async"     height="416"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=1600 1600w"          width="800"   /><figcaption> Chrome 开发者工具，<b>网络面板</b>中已选中一条请求。</figcaption></figure>
+<h2 id="-6">您应该为您的网站设置哪种政策？ <a class="w-headline-link" href="#-6">#</a></h2>
+<p>概述：显式设置隐私增强政策，例如<code>strict-origin-when-cross-origin</code>（或更严格的政策）。</p>
+<h3 id="&quot;&quot;">为什么要&quot;显式&quot;？ <a class="w-headline-link" href="#&quot;&quot;">#</a></h3>
+<p>在未设置引荐来源政策的情况下将使用浏览器的默认政策。事实上，网站通常会遵循浏览器的默认政策，但这并不理想，因为：</p>
+<ul>
+<li>取决于浏览器和模式（私密/无痕），其默认政策通常是<code>no-referrer-when-downgrade</code>、<code>strict-origin-when-cross-origin</code>，或是更严格的政策。因此，您的网站在不同浏览器中的行为将无法预测。</li>
+<li>浏览器正在逐步采用更严格的默认政策，例如<code>strict-origin-when-cross-origin</code>，以及针对跨域请求的机制，例如<a href="https://github.com/privacycg/proposals/issues/13" rel="noopener">引荐来源修剪</a>。在浏览器的默认政策更改之前显式选择加入隐私增强政策可以让您掌握控制权，并帮助您按照您认为合适的方式运行测试。</li>
+</ul>
+<h3 id="strict-origin-when-cross-origin">为什么要用<code>strict-origin-when-cross-origin</code>（或更严格的政策）？ <a class="w-headline-link" href="#strict-origin-when-cross-origin">#</a></h3>
+<p>您需要一个安全的、增强隐私且有用的政策，其中，&quot;有用&quot;的含义取决于您对引荐来源的需求：</p>
+<ul>
+<li><strong>安全</strong>：如果您的网站使用 HTTPS（<a href="/why-https-matters/">如果还未使用，请优先考虑迁移</a>），则要杜绝网站的 URL 在非 HTTPS 请求中泄露。由于网络上的任何人都可以看到这些，这就会使您的用户面临中间人攻击。<code>no-referrer-when-downgrade</code>、<code>strict-origin-when-cross-origin</code>、<code>no-referrer</code>和<code>strict-origin</code>政策解决了这个问题。</li>
+<li><strong>隐私增强</strong>：对于跨域请求，<code>no-referrer-when-downgrade</code>会共享完整的 URL，因此并不能增强隐私。<code>strict-origin-when-cross-origin</code>和<code>strict-origin</code>只共享域，而<code>no-referrer</code>完全不共享任何信息。您因此可以将<code>strict-origin-when-cross-origin</code>、<code>strict-origin</code>和<code>no-referrer</code>作为隐私增强的选项。</li>
+<li><strong>有用</strong>：<code>no-referrer</code>和<code>strict-origin</code>永远不会共享完整的 URL，即使对于同域请求也不例外，所以如果您对此有需求， 那么<code>strict-origin-when-cross-origin</code>是更好的选择。</li>
+</ul>
+<p>所有这些都表明**<code>strict-origin-when-cross-origin</code>**通常是一个明智的选择。</p>
+<p><strong>示例：设置一个<code>strict-origin-when-cross-origin</code>政策：</strong></p>
+<p><code>index.html</code> ：</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>referrer<span class="token punctuation">"</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>strict-origin-when-cross-origin<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>或服务端，例如在 Express 中：</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> helmet <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'helmet'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>app<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>helmet<span class="token punctuation">.</span><span class="token function">referrerPolicy</span><span class="token punctuation">(</span><span class="token punctuation">{</span>policy<span class="token operator">:</span> <span class="token string">'strict-origin-when-cross-origin'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><h3 id="strict-origin-when-cross-origin-2">如果<code>strict-origin-when-cross-origin</code>（或更严格的政策）不适用于您所有的用例怎么办？ <a class="w-headline-link" href="#strict-origin-when-cross-origin-2">#</a></h3>
+<p>在这种情况下，采取<strong>渐进式方法</strong>：为您的网站设置一个保护性政策，例如<code>strict-origin-when-cross-origin</code>，如果有进一步需要，为特定请求或 HTML 元素设置一个更宽松的政策。</p>
+<h3 id="yuan">示例：元素级政策 <a class="w-headline-link" href="#yuan">#</a></h3>
+<p><code>index.html</code> ：</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="highlight-line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">  <span class="token comment">&lt;!-- document-level policy: strict-origin-when-cross-origin --></span></span><br><span class="highlight-line">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>referrer<span class="token punctuation">"</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>strict-origin-when-cross-origin<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></span><br><span class="highlight-line">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">      <span class="token comment">&lt;!-- policy on this &lt;a> element: no-referrer-when-downgrade --></span></span><br><mark class="highlight-line highlight-line-active">      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>…<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>…<span class="token punctuation">"</span></span> <span class="token attr-name">referrerpolicy</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>no-referrer-when-downgrade<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span></mark><br><span class="highlight-line">      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span></span><br><span class="highlight-line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span></span></code></pre>
+</web-copy-code><p>请注意，Safari/WebKit 可能会限制<a href="/same-site-same-origin/#same-site-cross-site">跨站</a>请求的<code>document.referrer</code>或<code>Referer</code>标头。查看<a href="https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/" rel="noopener">详情</a>。</p>
+<h3 id="-7">示例：请求级政策 <a class="w-headline-link" href="#-7">#</a></h3>
+<p><code>script.js</code> ：</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token function">fetch</span><span class="token punctuation">(</span>url<span class="token punctuation">,</span> <span class="token punctuation">{</span>referrerPolicy<span class="token operator">:</span> <span class="token string">'no-referrer-when-downgrade'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><h3 id="-8">您还应该考虑什么？ <a class="w-headline-link" href="#-8">#</a></h3>
+<p>您的政策应该取决于您的网站和用例，而这又取决于您、您的团队和您的公司。如果某些 URL 包含识别或敏感数据，请设置一个保护性政策。</p>
+<aside class="aside flow bg-state-warn-bg color-core-text">
+<p class="cluster ">
+<span class="aside__icon box-block color-state-warn-text"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Warning sign" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M23 21L12 2 1 21h22zm-12-3v-2h2v2h-2zm0-4h2v-4h-2v4z" />
+</svg></span>
+<strong>警告</strong></p>
+<div class=" flow">
+<p>对您来说或许不敏感的数据可能对您的用户来说是敏感数据，或者是他们根本不想或未预计到会不知不觉地跨域泄漏的数据。</p>
+</div></aside>
+<h2 id="-9">使用传入请求中的引荐来源：最佳实践 <a class="w-headline-link" href="#-9">#</a></h2>
+<h3 id="url">如果您的网站功能使用传入请求的引荐来源 URL 怎么办？ <a class="w-headline-link" href="#url">#</a></h3>
+<h4 id="-10">保护用户数据 <a class="w-headline-link" href="#-10">#</a></h4>
+<p><code>Referer</code>可能包含私密数据、个人数据或识别数据，因此请确保您对此类数据采用相应的对待方式。</p>
+<h4 id="referer">请记住，您收到的<code>Referer</code>可能会发生改变 <a class="w-headline-link" href="#referer">#</a></h4>
+<p>使用传入跨域请求中的引荐来源有一些限制：</p>
+<ul>
+<li>如果您无法控制请求发射器的执行情况，就不能对您收到的<code>Referer</code>标头（和<code>document.referrer</code>）做出假设。请求发射器可以随时决定切换到<code>no-referrer</code>政策，或者在更普遍的情况下切换到比之前更严格的政策，也就意味着您通过<code>Referer</code>获得的数据将比以前更少。</li>
+<li>默认情况下，浏览器会越来越多地使用<code>strict-origin-when-cross-origin</code>引荐来源政策。这意味着，如果发送这些请求的网站没有设置政策，您现在可能只会在传入跨域请求中收到域（而不是完整的引荐来源 URL）。</li>
+<li>浏览器可能会改变<code>Referer</code>的管理方式。例如，浏览器在将来可能会决定在跨域子资源请求中始终将引荐来源修剪到域，从而保护用户隐私。</li>
+<li><code>Referer</code>标头（和<code>document.referrer</code>）可能包含超出您需要的数据，例如当您只想知道请求是否为跨域时，却收到了完整的 URL。</li>
+</ul>
+<h4 id="referer-2"><code>Referer</code>的替代方案 <a class="w-headline-link" href="#referer-2">#</a></h4>
+<p>如果出现以下情况，您可能需要考虑替代方案：</p>
+<ul>
+<li>您网站的一项基本功能使用传入跨域请求中的引荐来源 URL；</li>
+<li>和/或如果您的网站不再接收其在跨域请求中所需的引荐来源 URL 部分。当请求发射器更改了政策或没有设置政策，并且浏览器的默认政策发生了变化（比如在 <a href="https://developers.google.com/web/updates/2020/07/referrer-policy-new-chrome-default" rel="noopener">Chrome 85</a> 中）时，就会发生这种情况。</li>
+</ul>
+<p>要定义替代方案，请先分析您正在使用引荐来源的哪一部分。</p>
+<p><strong>如果您只需要域（<code>https://site-one.example</code>）：</strong></p>
+<ul>
+<li>如果您在对页面有顶级访问权限的脚本中使用引荐来源，那么<code>window.location.origin</code>是一种替代方案。</li>
+<li>在可用的情况下，如<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Origin" rel="noopener"><code>Origin</code></a>和<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Sec-Fetch-Site" rel="noopener"><code>Sec-Fetch-Site</code></a>这样的标头可以为您提供<code>Origin</code>或描述请求是否为跨域，这可能正是您所需要的。</li>
+</ul>
+<p><strong>如果您需要 URL 的其他元素（路径、查询参数……）：</strong></p>
+<ul>
+<li>请求参数或许适用于您的用例，而且可以为您省去解析引荐来源带来的工作。</li>
+<li>如果您在对页面有顶级访问权限的脚本中使用引荐来源，那么<code>window.location.pathname</code>是一种替代方案。仅提取 URL 的路径部分并将其作为参数传递，这样就不会传递 URL 参数中的任何潜在敏感信息。</li>
+</ul>
+<p><strong>如果您不能使用上述替代方案：</strong></p>
+<ul>
+<li>检查您的系统是否可以更改为期望请求发射器（<code>site-one.example</code>）在某种配置下显式设置您需要的信息。优点：更明确、对<code>site-one.example</code>用户来说更保护隐私、更利于将来。缺点：可能会为您或您的系统用户带来更多的工作。</li>
+<li>检查发出请求的网站是否同意为每个元素或每个请求设置<code>no-referrer-when-downgrade</code>引荐来源政策。缺点：对<code>site-one.example</code>用户的隐私保护可能较弱、可能并非所有浏览器都支持。</li>
+</ul>
+<h3 id="(csrf)">跨站请求伪造 (CSRF) 保护 <a class="w-headline-link" href="#(csrf)">#</a></h3>
+<p>请注意，请求发射器始终可以通过设置一个<code>no-referrer</code>政策来决定不发送引荐来源（恶意行为者甚至可以伪造引荐来源）。</p>
+<p>将 <a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#token-based-mitigation" rel="noopener">CSRF 令牌</a>作为您的主要保护措施。要想获得额外保护，请使用<a href="/samesite-cookie-recipes/#%22unsafe%22-requests-across-sites">SameSite</a>，同时使用诸如<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Origin" rel="noopener"><code>Origin</code></a>（可用于 POST 和 CORS 请求）和<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Sec-Fetch-Site" rel="noopener"><code>Sec-Fetch-Site</code></a>（如果可用）这样的标头，而不是<code>Referer</code>。</p>
+<h3 id="-11">日志记录 <a class="w-headline-link" href="#-11">#</a></h3>
+<p>请确保可能在<code>Refer</code>中的用户的个人数据或敏感数据得到保护。</p>
+<p>如果您只使用域，请检查<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Origin" rel="noopener"><code>Origin</code></a>标头是否可以作为替代方案。在调试方面，这可能会以更简单的方式为您提供所需信息，而无需解析引荐来源。</p>
+<h3 id="-12">付款 <a class="w-headline-link" href="#-12">#</a></h3>
+<p>付款服务提供商可能会依赖传入请求中的<code>Referer</code>标头来进行安全检查。</p>
+<p>例如：</p>
+<ul>
+<li>用户单击<code>online-shop.example/cart/checkout</code>上的<strong>购买</strong>按钮。</li>
+<li><code>online-shop.example</code>重定向到<code>payment-provider.example</code>来管理交易。</li>
+<li><code>payment-provider.example</code>对照商家设置的<code>Referer</code>准许值列表检查该请求的<code>Referer</code>。如果在列表中未找到任何匹配条目，则<code>payment-provider.example</code>拒绝该请求。如果有匹配条目，则用户可以继续进行交易。</li>
+</ul>
+<h4 id="-13">支付流程安全检查的最佳实践 <a class="w-headline-link" href="#-13">#</a></h4>
+<p><strong>概述：作为付款提供商，您可以将<code>Referer</code>作为针对朴素攻击的基本检查，但您一定需要有另一种更可靠的验证方法。</strong></p>
+<p>单独的<code>Referer</code>标头并不是一个可靠的检查依据：请求网站无论是否是合法商家，都可以设置一个<code>no-referrer</code>政策，这将使付款提供商无法获取<code>Referer</code>信息。但是，作为付款提供商，查看<code>Referer</code>可能会帮助您发现未设置<code>no-referrer</code>政策的朴素攻击者。因此，您可以使用<code>Referer</code>作为第一层基本检查。如果您这样做：</p>
+<ul>
+<li><strong>不要期望<code>Referer</code>总是存在。如果<code>Referer</code>存在，那么只检查其至少会包括的那部分数据：域</strong>。在设置<code>Refer</code>准许值列表时，要确保不包括任何路径，只包括域。例如：<code>online-shop.example</code>的<code>Refer</code>准许值应该是<code>online-shop.example</code>，而不是<code>online-shop.example/cart/checkout</code>。为什么？因为通过对根本没有<code>Refer</code>或者一个是请求网站的域的<code>Refer</code>值作出期望，您可以防止意外错误，因为您既<strong>没有对</strong>商家设置的**<code>Referrer-Policy</code>做出假设**，也没有对商家未设置政策情况下的浏览器行为做出假设。网站和浏览器都可以将传入请求中的<code>Referer</code>剥离出来，只保留域，或者根本不发送<code>Referer</code>。</li>
+<li>如果<code>Referer</code>不存在，或者其存在并且您的基本<code>Referer</code>域检查成功：您可以继续使用其他更可靠的验证方法（见下文）。</li>
+</ul>
+<p><strong>有哪些更可靠的验证方法？</strong></p>
+<p>一种可靠的验证方法是让请求者<strong>将请求参数</strong>与唯一密钥一起<strong>散列</strong>。作为付款提供商，您接下来可以<strong>自己对相同的散列进行计算</strong>，并且仅在请求与您的计算匹配时才接受。</p>
+<p><strong>当一个没有引荐来源政策的 HTTP 商家网站重定向到一个 HTTPS 付款服务提供商时，<code>Referer</code>会发生什么？</strong></p>
+<p>在向 HTTPS 付款提供商发出的请求中不会看到<code>Referer</code>，因为当网站没有设置政策时，<a href="#default-referrer-policies-in-browsers">大多数浏览器</a>默认使用<code>strict-origin-when-cross-origin</code>或<code>no-referrer-when-downgrade</code>。另请注意，<a href="https://developers.google.com/web/updates/2020/07/referrer-policy-new-chrome-default" rel="noopener">Chrome 对新默认政策的更改</a>不会改变此行为。</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>如果您的网站使用 HTTP，请<a href="/why-https-matters/">迁移到 HTTPS</a>。</p>
+</div></aside>
+<h2 id="-14">结论 <a class="w-headline-link" href="#-14">#</a></h2>
+<p>一个保护性的引荐来源政策是为您的用户提供更多隐私保护的好方法。</p>
+<p>如需了解不同用户保护技术的更多相关信息，请查看 web.dev 的<a href="/secure/">安全和保障</a>系列！</p>
+<p><em>非常感谢所有审稿人的贡献和反馈：特别是 Kaustubha Govind、David Van Cleve、Mike West、Sam Dutton、Rowan Merewood、Jxck 和 Kayce Basques。</em></p>
+<h2 id="-15">资源 <a class="w-headline-link" href="#-15">#</a></h2>
+<ul>
+<li><a href="/same-site-same-origin/">理解&quot;同站&quot;和&quot;同域&quot;</a></li>
+<li><a href="https://scotthelme.co.uk/a-new-security-header-referrer-policy/" rel="noopener">新的安全标头：引荐来源政策 (2017)</a></li>
+<li><a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referrer-Policy" rel="noopener">MDN 上的引荐来源政策</a></li>
+<li><a href="https://developer.mozilla.org/docs/Web/Security/Referer_header:_privacy_and_security_concerns" rel="noopener">引荐来源标头：MDN 上的隐私和安全问题</a></li>
+<li><a href="https://groups.google.com/a/chromium.org/d/msg/blink-dev/aBtuQUga1Tk/n4BLwof4DgAJ" rel="noopener">Chrome 更改：Blink 引擎有意向实现</a></li>
+<li><a href="https://groups.google.com/a/chromium.org/forum/#!topic/blink-dev/lqFuqwZDDR8" rel="noopener">Chrome 更改：Blink 引擎有意向运送</a></li>
+<li><a href="https://www.chromestatus.com/feature/6251880185331712" rel="noopener">Chrome 更改：状态条目</a></li>
+<li><a href="https://blog.chromium.org/2020/07/chrome-85-upload-streaming-human.html" rel="noopener">Chrome 更改：85 测试版博文</a></li>
+<li><a href="https://github.com/privacycg/proposals/issues/13" rel="noopener">引荐来源修剪 GitHub 线程：不同浏览器的做法</a></li>
+<li><a href="https://w3c.github.io/webappsec-referrer-policy/#referrer-policy-delivery" rel="noopener">引荐来源政策规范</a></li>
+</ul>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/security/">安全</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/privacy/">隐私</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Sep 23, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/zh/blog/referrer-best-practices/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@maudnals"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">分享</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            提交错误
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            查看源代码
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">相关内容</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome 动态
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            网站开发基础
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            案例研究
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            播客
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            节目
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">连接</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          所有产品
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="zh"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          条款和隐私权
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          社区准则
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

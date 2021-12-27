@@ -1,0 +1,845 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=b55bbc1d2a948">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Cumulative Layout Shift 累积布局偏移 (CLS)</title>
+<meta name="description" content="本篇文章介绍了累积布局偏移 (CLS) 指标并说明了该指标的测量方式。" />
+
+<link rel="canonical" href="https://web.dev/i18n/zh/cls/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/cls/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/cls/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/cls/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/cls/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/cls/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/cls/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/cls/" />
+<meta itemprop="name" content="Cumulative Layout Shift 累积布局偏移 (CLS)" />
+<meta itemprop="description" content="本篇文章介绍了累积布局偏移 (CLS) 指标并说明了该指标的测量方式。" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="zh_CN" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/zh/cls/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Cumulative Layout Shift 累积布局偏移 (CLS)" />
+<meta property="og:description" content="本篇文章介绍了累积布局偏移 (CLS) 指标并说明了该指标的测量方式。" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="metrics" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Cumulative Layout Shift 累积布局偏移 (CLS)" />
+<meta name="twitter:description" content="本篇文章介绍了累积布局偏移 (CLS) 指标并说明了该指标的测量方式。" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=bce3b7211a5fc', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=ae10af4f5141', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="打开菜单">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">打开菜单</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        学习
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        衡量
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        博客
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        关于
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="关闭"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">关闭</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        学习
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        衡量
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        博客
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        关于
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#cumulative-layout-shift-(cls)" class="w-toc__header--link">
+        Cumulative Layout Shift 累积布局偏移 (CLS)
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#cls">什么是 CLS？</a><ol><li><a href="#cls-2">怎样算是良好的 CLS 分数？</a></li></ol></li><ol><li><a href="#-2">布局偏移分数</a></li><li><a href="#-3">影响分数</a></li><li><a href="#-4">距离分数</a></li><li><a href="#vs.">预期布局偏移 vs. 意外布局偏移</a></li></ol><li><a href="#cls-3">如何测量 CLS</a><ol><li><a href="#-7">实测工具</a></li><li><a href="#-8">实验室工具</a></li><li><a href="#javascript-cls">在 JavaScript 中测量 CLS</a></li></ol></li><li><a href="#cls-4">如何改进 CLS</a></li><li><a href="#-9">其他资源</a></li><li><a href="#changelog">CHANGELOG</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@philwalton | @bibydigital"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>分享</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="cumulative-layout-shift-(cls)" class="w-article-header__headline">Cumulative Layout Shift 累积布局偏移 (CLS)</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Jun 11, 2019</time>
+           <span class="w-author__separator">•</span> 更新日期 <time>Jun 1, 2021</time> 
+        </div>
+      
+
+      
+      
+      <div class="w-layout-container--narrow w-post-signpost">
+        <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/cls/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/cls/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/cls/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/cls/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/cls/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/cls/">
+      English</a></span>
+      </div>
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        ><span class="w-post-signpost__divider">|</span><a
+          class="w-post-signpost__link"
+          href="/metrics"
+          >指标</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/philipwalton/"><img     alt="Philip Walton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/philipwalton/">Philip Walton</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/philwalton"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/philipwalton">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://philipwalton.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+            <div class="w-author">
+  <a href="/authors/mihajlija/"><img     alt="Milica Mihajlija"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/mihajlija/">Milica Mihajlija</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/bibydigital"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/mihajlija">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://mihajlija.github.io/">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <div role="banner" class="w-banner w-banner--caution w-banner--body">
+   <strong>2021 年 6 月 1 日</strong>：CLS 的实现方式已发生变更。进一步了解变更原因，请查看<a href="/evolving-cls">不断发展 CLS 指标</a>。 
+</div>
+<div class="w-aside w-aside--key-term">
+<p><strong>重要词汇</strong>:  累积布局偏移 (CLS) 是测量<a href="/user-centric-performance-metrics/#types-of-metrics">视觉稳定性</a>的一个以用户为中心的重要指标，因为该项指标有助于量化用户经历意外布局偏移的频率，较低的 CLS 有助于确保一个页面是<a href="/user-centric-performance-metrics/#questions">令人愉悦的</a>。 </div></p>
+<p>您是否曾经历过在网上阅读一篇文章，结果页面上的某些内容突然发生改变？文本在毫无预警的情况下移位，导致您找不到先前阅读的位置。或者更糟糕的情况：您正要点击一个链接或一个按钮，但在您手指落下的瞬间，诶？链接移位了，结果您点到了别的东西！</p>
+<p>大多数情况下，这些体验只是令人恼火，但在某些情况下，却可能带来真正的破坏。</p>
+<figure class="w-figure">
+  <video autoplay controls loop muted
+    class="w-screenshot"
+    poster="https://storage.googleapis.com/web-dev-assets/layout-instability-api/layout-instability-poster.png"
+    width="658" height="510">
+    <source
+      src="https://storage.googleapis.com/web-dev-assets/layout-instability-api/layout-instability2.webm"
+      type="video/webm; codecs=vp8">
+    <source
+      src="https://storage.googleapis.com/web-dev-assets/layout-instability-api/layout-instability2.mp4"
+      type="video/mp4; codecs=h264">
+  </video>
+  <figcaption class="w-figcaption w-figcaption--fullbleed">
+    截屏视频说明了布局不稳定性会对用户产生怎样的负面影响。
+  </figcaption>
+</figure>
+<p>页面内容的意外移动通常是由于异步加载资源，或者动态添加 DOM 元素到页面现有内容的上方。罪魁祸首可能是未知尺寸的图像或视频、实际渲染后比后备字体更大或更小的字体，或者是动态调整自身大小的第三方广告或小组件。</p>
+<p>让这个问题变得更加棘手的是，网站在开发环境中的运作方式通常与用户在网站上的实际体验大不相同。个性化或第三方内容在开发环境中的表现通常与其在实际情况中的表现不同，测试图像通常已经在开发者的浏览器缓存中了，并且本地调用 API 的速度一般非常快，几乎察觉不到延迟。</p>
+<p>累积布局偏移 (CLS) 指标通过测量真实用户体验中发生偏移的频率来帮助您解决这一问题。</p>
+<h2 id="cls">什么是 CLS？ <a class="w-headline-link" href="#cls">#</a></h2>
+<p>CLS 测量整个页面生命周期内发生的所有<a href="/cls/#expected-vs.-unexpected-layout-shifts">意外</a>布局偏移中最大一连串的<em>布局偏移分数</em>。</p>
+<p>每当一个可见元素的位置从一个已渲染帧变更到下一个已渲染帧时，就发生了<em>布局偏移</em> 。（有关单次<a href="#layout-shift-score">布局偏移分数</a>计算方式的详细信息，请参阅下文。）</p>
+<p>一连串的布局偏移，也叫<a href="evolving-cls/#why-a-session-window"><em>会话窗口</em></a>，是指一个或多个快速连续发生的单次布局偏移，每次偏移相隔的时间少于 1 秒，且整个窗口的最大持续时长为 5 秒。</p>
+<p>最大的一连串是指窗口内所有布局偏移累计分数最大的会话窗口。</p>
+<figure class="w-figure">
+  <video controls autoplay loop muted class="w-screenshot" width="658" height="452">
+    <source src="https://storage.googleapis.com/web-dev-assets/better-layout-shift-metric/session-window.webm" type="video/webm">
+    <source src="https://storage.googleapis.com/web-dev-assets/better-layout-shift-metric/session-window.mp4" type="video/mp4">
+  </video>
+  <figcaption class="w-figcaption">会话窗口示例。蓝色竖条代表每个单次布局偏移的分数。</figcaption></figure>
+<div class="w-aside w-aside--caution">
+<p><strong>小心</strong>:  此前，CLS 测量的是整个页面生命周期内发生的<em>所有单次布局偏移分数</em>的总和。如需了解哪些工具仍然按照原方式提供测量功能，请查看<a href="/cls-web-tooling">网络工具集中不断发展的累积布局偏移</a> 。 </div></p>
+<h3 id="cls-2">怎样算是良好的 CLS 分数？ <a class="w-headline-link" href="#cls-2">#</a></h3>
+<p>为了提供良好的用户体验，网站应该努力将 CLS 分数控制在<strong>0.1</strong> 或以下。为了确保您能够在大部分用户的访问期间达成建议目标值，一个良好的测量阈值为页面加载的<strong>第 75 个百分位数</strong>，且该阈值同时适用于移动和桌面设备。</p>
+<picture>
+  <source srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/9mWVASbWDLzdBUpVcjE1.svg" media="(min-width: 640px)" width="400", height="100">
+  <img     alt="良好的 CLS 值低于 0.1，较差的值大于 0.25 并且介于两者之间的任何东西都需要改进"     class="w-screenshot w-screenshot--filled width-full"     decoding="async"     height="300"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/uqclEgIlTHhwIgNTXN3Y.svg"               width="400"   />
+</picture>
+<div class="w-aside w-aside--note">
+<p>如需详细了解这些建议值背后的研究和方法论，请参阅：<a href="/defining-core-web-vitals-thresholds/">定义核心 Web 指标的指标阈值</a> </div></p>
+<h2 id="">布局偏移详情 <a class="w-headline-link" href="#">#</a></h2>
+<p>布局偏移由<a href="https://github.com/WICG/layout-instability" rel="noopener">布局不稳定性 API</a>定义，只要可视区域中可见元素的起始位置（例如，元素在默认<a href="https://developer.mozilla.org/docs/Web/CSS/writing-mode" rel="noopener">书写模式</a>下的顶部和左侧位置）在两帧之间发生了变更，该 API 就会报告<code>layout-shift</code>条目。这样的元素被视为<em>不稳定元素</em>。</p>
+<p>请注意，只有当现有元素的起始位置发生变更时才算作布局偏移。如果将新元素添加到 DOM 或是现有元素更改大小，则不算作布局偏移，前提是元素的变更不会导致其他可见元素的起始位置发生改变。</p>
+<h3 id="-2">布局偏移分数 <a class="w-headline-link" href="#-2">#</a></h3>
+<p>浏览器在计算<em>布局偏移分数</em>时，会查看可视区域大小和两个已渲染帧之间的可视区域中<em>不稳定元素</em>的位移。布局偏移分数是该位移的两个度量的乘积：<em>影响分数</em>和<em>距离分数</em>（两者定义如下）。</p>
+<web-copy-code><pre class="language-text"><code class="language-text">布局偏移分数 = 影响分数 * 距离分数</code></pre>
+</web-copy-code><h3 id="-3">影响分数 <a class="w-headline-link" href="#-3">#</a></h3>
+<p><a href="https://github.com/WICG/layout-instability#Impact-Fraction" rel="noopener">影响分数</a>测量<em>不稳定元素</em>对两帧之间的可视区域产生的影响。</p>
+<p>前一帧<em>和</em>当前帧的所有<em>不稳定元素</em>的可见区域集合（占总可视区域的部分）就是当前帧的<em>影响分数</em>。</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format"><img      alt="包含一个*不稳定元素*的影响分数示例"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/BbpE9rFQbF8aU6iXN1U6.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>在上图中，有一个元素在一帧中占据了一半的可视区域。接着，在下一帧中，元素下移了可视区域高度的 25%。红色虚线矩形框表示两帧中元素的可见区域集合，在本示例中，该集合占总可视区域的 75%，因此其<em>影响分数</em>为<code>0.75</code> 。</p>
+<h3 id="-4">距离分数 <a class="w-headline-link" href="#-4">#</a></h3>
+<p>布局偏移分数计算公式的另一部分测量不稳定元素相对于可视区域位移的距离。<em>距离分数</em>指的是任何<em>不稳定元素</em>在一帧中位移的最大距离（水平或垂直）除以可视区域的最大尺寸维度（宽度或高度，以较大者为准）。</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format"><img      alt="包含一个*不稳定元素*的距离分数示例"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ASnfpVs2n9winu6mmzdk.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>在上方的示例中，最大的可视区域尺寸维度是高度，不稳定元素的位移距离为可视区域高度的 25%，因此<em>距离分数</em>为 0.25。</p>
+<p>所以，在这个示例中，<em>影响分数</em>是<code>0.75</code> ，<em>距离分数</em>是<code>0.25</code> ，所以<em>布局偏移分数</em>是<code>0.75 * 0.25 = 0.1875</code> 。</p>
+<div class="w-aside w-aside--note">
+<p>最初，布局偏移分数只根据<em>影响分数</em>进行计算。引入<em>距离分数</em>是为了避免在大元素发生微小位移的情况下进行过度惩罚的情况。 </div></p>
+<p>下一个示例说明了向现有元素添加内容对布局偏移分数的影响：</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format"><img      alt="包含稳定和*不稳定元素*及可视区域剪裁的布局偏移示例"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xhN81DazXCs8ZawoCj0T.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>&quot;点我！&quot;按钮附加在了包含黑色字体文本的灰色框底部，将带有白色字体文本的绿色框下推（且一部分已在可视区域外）。</p>
+<p>在这个示例中，灰色框的大小改变了，但起始位置没有改变，所以该灰色框不是一个<em>不稳定元素</em>。</p>
+<p>&quot;点我！&quot;按钮一开始并不在 DOM 中，所以它的起始位置也没有改变。</p>
+<p>然而，绿色框的起始位置确实发生了变化，但由于绿色框的一部分已经在可视区域外，因此在计算<em>影响分数</em>时不考虑不可见区域。两帧中绿色框的可见区域集合（由红色虚线矩形框表示）与第一帧中绿色框的区域相同，为可视区域的 50%。<em>影响分数</em>为<code>0.5</code> 。</p>
+<p><em>距离分数</em>由紫色箭头表示。绿色框向下移动的距离大约为可视区域的 14%，因此<em>距离分数</em>为<code>0.14</code> 。</p>
+<p>布局偏移分数是<code>0.5 x 0.14 = 0.07</code> 。</p>
+<p>最后一个示例说明了多个<em>不稳定元素</em>的情况：</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format"><img      alt="包含多个稳定和*不稳定元素*的布局偏移示例"            decoding="async"      height="600"            loading="lazy"      sizes="(min-width: 800px) 800px, calc(100vw - 48px)"      src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format"      srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=200 200w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=228 228w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=260 260w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=296 296w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=338 338w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=385 385w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=439 439w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=500 500w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=571 571w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=650 650w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=741 741w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=845 845w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=964 964w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1098 1098w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1252 1252w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1428 1428w,      https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FdCETo2dLwGmzw0V5lNT.png?auto=format&w=1600 1600w"            width="800"    /></a></p>
+<p>在上面的第一帧中，有四个 API 请求的动物名称结果，按首字母顺序进行了排序。在第二帧中，更多的结果被添加到排序列表中。</p>
+<p>列表中第一项（&quot;Cat&quot;）的起始位置没有在两帧之间发生改变，因此是稳定的。同样，添加到列表中的新项目之前不在 DOM 中，因此这些项目的起始位置也没有改变。但&quot;Dog&quot;、&quot;Horse&quot;和&quot;Zebra&quot;这几项的起始位置都发生了改变，因此都是<em>不稳定元素</em>。</p>
+<p>同理，红色虚线矩形框代表这三个<em>不稳定元素</em>前后两帧的区域集合，在本示例中，大约占可视区域面积的 38%（<em>影响分数</em>为<code>0.38</code> ）。</p>
+<p>箭头表示<em>不稳定元素</em>相对于起始位置的位移距离。由蓝色箭头表示的&quot;Zebra&quot;元素位移的距离最大，约为可视区域高度的 30%。因此本示例中的<em>距离分数</em>为<code>0.3</code> 。</p>
+<p>布局偏移分数是<code>0.38 x 0.3 = 0.1172</code> 。</p>
+<h3 id="vs.">预期布局偏移 vs. 意外布局偏移 <a class="w-headline-link" href="#vs.">#</a></h3>
+<p>布局偏移并不总是坏事。事实上，许多动态网络应用程序经常更改页面元素的起始位置。</p>
+<h4 id="-5">由用户发起的布局偏移 <a class="w-headline-link" href="#-5">#</a></h4>
+<p>布局偏移只有在用户并不期望其发生时才算是坏事。换言之，对用户交互（单击链接、点选按钮、在搜索框中键入信息等）进行响应的布局偏移通常没有问题，前提是偏移发生的时机与交互时机足够接近，使用户对前后关系一目了然。</p>
+<p>例如，如果某次用户交互触发了一个网络请求，而该请求可能需要一段时间才能完成，那么最好立即留出一些空间并显示加载指示器，避免在请求完成时出现令用户不快的布局偏移。如果用户没有意识到当前正在加载某些内容，或者不知道资源什么时候能够准备就绪，他们就可能会在等待期间尝试点击其他内容（来打破僵局）。</p>
+<p>在用户输入 500 毫秒内发生的布局偏移会带有<a href="https://wicg.github.io/layout-instability/#dom-layoutshift-hadrecentinput" rel="noopener"><code>hadRecentInput</code></a>标志，便于在计算中排除这些偏移。</p>
+<div class="w-aside w-aside--caution">
+<p><strong>小心</strong>: <code>hadRecentInput</code>标志仅适用于不连续输入事件，如轻触、点击或按键操作。滚动、拖动或捏拉缩放手势等连续性交互操作不算作&quot;最近输入&quot;。更多详情请参阅<a href="https://github.com/WICG/layout-instability#recent-input-exclusion" rel="noopener">布局不稳定性规范</a>。</div></p>
+<h4 id="-6">动画和过渡 <a class="w-headline-link" href="#-6">#</a></h4>
+<p>动画和过渡如果做得好，确实是一个在更新页面内容时不让用户感到突兀的好方法。页面内容突然发生意外偏移几乎无一例外会造成糟糕的用户体验。但如果内容从一个位置逐步又自然地移动到下一个位置，这通常有助于用户更好地明白当前状况，并引导他们适应状态之间的变化。</p>
+<p>CSS <a href="https://developer.mozilla.org/docs/Web/CSS/transform" rel="noopener"><code>transform</code></a>属性使您能够在不触发布局偏移的情况下为元素设置动画：</p>
+<ul>
+<li>用<code>transform: scale()</code>来替代和调整<code>height</code>和<code>width</code>属性。</li>
+<li>如需使元素能够四处移动，可以用<code>transform: translate()</code>来替代和调整<code>top</code>、<code>right</code>、<code>bottom</code>或<code>left</code>属性。</li>
+</ul>
+<h2 id="cls-3">如何测量 CLS <a class="w-headline-link" href="#cls-3">#</a></h2>
+<p>CLS 可以进行<a href="/user-centric-performance-metrics/#in-the-lab">实验室</a>测量或<a href="/user-centric-performance-metrics/#in-the-field">实际</a>测量，并且可以在以下工具中使用：</p>
+<div class="w-aside w-aside--caution">
+<p><strong>小心</strong>:
+实验室工具通常在一个合成环境中加载页面，因此只能测量页面加载期间发生的布局偏移。因此，实验室工具为某一特定页面报告的 CLS 值可能低于真实用户的实际体验值。</p>
+</div>
+<h3 id="-7">实测工具 <a class="w-headline-link" href="#-7">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome 用户体验报告</a></li>
+<li><a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">PageSpeed Insights 网页速度测量工具</a></li>
+<li><a href="https://support.google.com/webmasters/answer/9205520" rel="noopener">搜索控制台（核心 Web 指标报告）</a></li>
+<li><a href="https://github.com/GoogleChrome/web-vitals" rel="noopener"><code>web-vitals</code> JavaScript 库</a></li>
+</ul>
+<h3 id="-8">实验室工具 <a class="w-headline-link" href="#-8">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-devtools/" rel="noopener">Chrome 开发者工具</a></li>
+<li><a href="https://developers.google.com/web/tools/lighthouse/" rel="noopener">灯塔</a></li>
+<li><a href="https://webpagetest.org/" rel="noopener">WebPageTest 网页性能测试工具</a></li>
+</ul>
+<h3 id="javascript-cls">在 JavaScript 中测量 CLS <a class="w-headline-link" href="#javascript-cls">#</a></h3>
+<p>要在 JavaScript 中测量 CLS，您可以使用<a href="https://github.com/WICG/layout-instability" rel="noopener">布局不稳定性 API</a>。以下示例说明了如何创建一个<a href="https://developer.mozilla.org/docs/Web/API/PerformanceObserver" rel="noopener"><code>PerformanceObserver</code></a>来侦听意外<code>layout-shift</code>条目、将条目按会话分组、记录最大会话值，并在最大会话值发生改变时更新记录。</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">let</span> clsValue <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> clsEntries <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br><span class="token keyword">let</span> sessionValue <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> sessionEntries <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br><span class="token keyword">new</span> <span class="token class-name">PerformanceObserver</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">entryList</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">const</span> entry <span class="token keyword">of</span> entryList<span class="token punctuation">.</span><span class="token function">getEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token comment">// 只将不带有最近用户输入标志的布局偏移计算在内。</span><br>    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>entry<span class="token punctuation">.</span>hadRecentInput<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>      <span class="token keyword">const</span> firstSessionEntry <span class="token operator">=</span> sessionEntries<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br>      <span class="token keyword">const</span> lastSessionEntry <span class="token operator">=</span> sessionEntries<span class="token punctuation">[</span>sessionEntries<span class="token punctuation">.</span>length <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br>      <span class="token comment">// 如果条目与上一条目的相隔时间小于 1 秒且</span><br>      <span class="token comment">// 与会话中第一个条目的相隔时间小于 5 秒，那么将条目</span><br>      <span class="token comment">// 包含在当前会话中。否则，开始一个新会话。</span><br>      <span class="token keyword">if</span> <span class="token punctuation">(</span>sessionValue <span class="token operator">&amp;&amp;</span><br>          entry<span class="token punctuation">.</span>startTime <span class="token operator">-</span> lastSessionEntry<span class="token punctuation">.</span>startTime <span class="token operator">&lt;</span> <span class="token number">1000</span> <span class="token operator">&amp;&amp;</span><br>          entry<span class="token punctuation">.</span>startTime <span class="token operator">-</span> firstSessionEntry<span class="token punctuation">.</span>startTime <span class="token operator">&lt;</span> <span class="token number">5000</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>        sessionValue <span class="token operator">+=</span> entry<span class="token punctuation">.</span>value<span class="token punctuation">;</span><br>        sessionEntries<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>entry<span class="token punctuation">)</span><span class="token punctuation">;</span><br>      <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span><br>        sessionValue <span class="token operator">=</span> entry<span class="token punctuation">.</span>value<span class="token punctuation">;</span><br>        sessionEntries <span class="token operator">=</span> <span class="token punctuation">[</span>entry<span class="token punctuation">]</span><span class="token punctuation">;</span><br>      <span class="token punctuation">}</span><br><br>      <span class="token comment">// 如果当前会话值大于当前 CLS 值，</span><br>      <span class="token comment">// 那么更新 CLS 及其相关条目。</span><br>      <span class="token keyword">if</span> <span class="token punctuation">(</span>sessionValue <span class="token operator">></span> clsValue<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>        clsValue <span class="token operator">=</span> sessionValue<span class="token punctuation">;</span><br>        clsEntries <span class="token operator">=</span> sessionEntries<span class="token punctuation">;</span><br><br>        <span class="token comment">// 将更新值（及其条目）记录在控制台中。</span><br>        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'CLS:'</span><span class="token punctuation">,</span> clsValue<span class="token punctuation">,</span> clsEntries<span class="token punctuation">)</span><br>      <span class="token punctuation">}</span><br>    <span class="token punctuation">}</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span><span class="token punctuation">{</span>type<span class="token operator">:</span> <span class="token string">'layout-shift'</span><span class="token punctuation">,</span> buffered<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><div class="w-aside w-aside--warning">
+<p><strong>警告</strong>:</p>
+<p>上述代码说明了计算和记录 CLS 的基本方法。但是，要想准确测量 CLS，使之与<a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome 用户体验报告</a> (CrUX) 中的测量值相匹配，那么测量方式要更为复杂。详情请见下文：</p>
+</div>
+<p>在大多数情况下，页面卸载时的当前 CLS 值就是该页面的最终 CLS 值，但有一些重要的例外：</p>
+<p>以下部分列出了 API 报告的内容与指标计算方式之间的差异。</p>
+<h4 id="api">指标和 API 之间的差异 <a class="w-headline-link" href="#api">#</a></h4>
+<ul>
+<li>如果页面是在后台加载的，或者页面在浏览器绘制任何内容之前被转移到后台，那么该页面不应该报告任何 CLS 值。</li>
+<li>如果页面通过<a href="/bfcache/#impact-on-core-web-vitals">往返缓存</a>恢复，则该页面的 CLS 值应重置为零，因为这对用户来说是多次不同的页面访问体验。</li>
+<li>API 不会基于 iframe 中的偏移来报告<code>layout-shift</code>条目，但要想正确测量 CLS，您应该考虑这些偏移。子框架可以使用 API 将这些偏移的<code>layout-shift</code>条目报告给父框架来进行<a href="https://github.com/WICG/layout-instability#cumulative-scores" rel="noopener">聚合</a>。</li>
+</ul>
+<p>由于 CLS 的测量对象是整个页面生命周期，所以除了上述这些例外，该指标还有一些额外的复杂性：</p>
+<ul>
+<li>用户可能会在<em>很</em>长一段时间内（几天、几周、几个月）让一个选项卡保持打开状态。事实上，用户可能永远不会关闭该选项卡。</li>
+<li>在移动操作系统上，浏览器通常不会为后台选项卡运行页面卸载回调，因为这样很难报告&quot;最终&quot;值。</li>
+</ul>
+<p>为了应对这些情况，只要当页面处于后台时就应该报告 CLS，页面卸载时也是如此（<a href="https://developers.google.com/web/updates/2018/07/page-lifecycle-api#event-visibilitychange" rel="noopener"><code>visibilitychange</code>事件</a>涵盖这两种情况）。而接收该数据的分析系统则需要在后端计算最终的 CLS 值。</p>
+<p>开发者不必记住所有这些情况并独自应付，而是可以使用<a href="https://github.com/GoogleChrome/web-vitals" rel="noopener"><code>web-vitals</code> JavaScript 库</a>来测量 CLS，库会自行处理上述所有情况：</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span>getCLS<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'web-vitals'</span><span class="token punctuation">;</span><br><br><span class="token comment">// 在所有需要汇报 CLS 的情况下</span><br><span class="token comment">// 对其进行测量和记录。</span><br><span class="token function">getCLS</span><span class="token punctuation">(</span>console<span class="token punctuation">.</span>log<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>您可以参考<a href="https://github.com/GoogleChrome/web-vitals/blob/master/src/getCLS.ts" rel="noopener"><code>getCLS)</code>的源代码</a>，了解如何在 JavaScript 中测量 CLS 的完整示例。</p>
+<div class="w-aside w-aside--note">
+<p>在某些情况下（例如跨域 iframe），CLS 无法在 JavaScript 中进行测量。详情请参阅<code>web-vitals</code>库的<a href="https://github.com/GoogleChrome/web-vitals#limitations" rel="noopener">局限性</a>部分。 </div></p>
+<h2 id="cls-4">如何改进 CLS <a class="w-headline-link" href="#cls-4">#</a></h2>
+<p>对于大多数网站来说，您可以通过遵循一些指导原则来避免所有的意外布局偏移：</p>
+<ul>
+<li>**始终在您的图像和视频元素上包含尺寸属性，或者通过使用<a href="https://css-tricks.com/aspect-ratio-boxes/" rel="noopener">CSS 长宽比容器</a>之类的方式预留所需的空间。**这种方法可以确保浏览器能够在加载图像期间在文档中分配正确的空间大小。请注意，您还可以使用<a href="https://github.com/w3c/webappsec-feature-policy/blob/master/policies/unsized-media.md" rel="noopener">unsized-media 功能策略</a>在支持功能策略的浏览器中强制执行此行为。</li>
+<li>**除非是对用户交互做出响应，否则切勿在现有内容的上方插入内容。**这样能够确保发生的任何布局偏移都在预期之内。</li>
+<li>**首选转换动画，而不是触发布局偏移的属性动画。**动画过渡的目标是提供状态与状态之间的上下文连续性。</li>
+</ul>
+<p>如需深入了解如何改进 CLS，请参阅<a href="/optimize-cls/">优化 CLS</a>和<a href="/debug-layout-shifts">调试布局偏移</a>。</p>
+<h2 id="-9">其他资源 <a class="w-headline-link" href="#-9">#</a></h2>
+<ul>
+<li>Google 发布商代码关于<a href="https://developers.google.com/doubleclick-gpt/guides/minimize-layout-shift" rel="noopener">最小化布局偏移</a>的指南</li>
+<li><a href="https://anniesullie.com/" rel="noopener">安妮·沙利文 (Annie Sullivan)</a>与<a href="https://kobes.ca/" rel="noopener">史蒂夫·科比斯 (Steve Kobes)</a>在<a href="https://perfmattersconf.com/" rel="noopener">#PerfMatters</a>上发表的演讲：<a href="https://youtu.be/zIJuY-JCjqw" rel="noopener">《了解累积布局偏移》</a>(2020)</li>
+</ul>
+<h2 id="changelog">CHANGELOG <a class="w-headline-link" href="#changelog">#</a></h2>
+<p>Occasionally, bugs are discovered in the APIs used to measure metrics, and
+sometimes in the definitions of the metrics themselves. As a result, changes
+must sometimes be made, and these changes can show up as improvements or
+regressions in your internal reports and dashboards.</p>
+<p>To help you manage this, all changes to either the implementation or definition
+of these metrics will be surfaced in this
+<a href="http://bit.ly/chrome-speed-metrics-changelog" rel="noopener">CHANGELOG</a>.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">性能</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/metrics/">指标</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/web-vitals/">网页指标</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Jun 1, 2021</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/zh/metrics/cls/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/learn-web-vitals"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              提交错误
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              查看源代码
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">相关内容</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome 动态
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              网站开发基础
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              案例研究
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              播客
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              节目
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">连接</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            所有产品
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="zh"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            条款和隐私权
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            社区准则
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

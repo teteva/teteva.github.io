@@ -1,0 +1,675 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=a7b9cf061a402">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=9479bf133cae8">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+<meta name="robots" content="noindex" />
+
+
+<title>How to write blog posts for web.dev and developer.chrome.com</title>
+<meta name="description" content="Practical information and writing tips to get you started. " />
+
+<link rel="canonical" href="https://web.dev/handbook/writing-blog-posts/" />
+
+<meta itemprop="name" content="How to write blog posts for web.dev and developer.chrome.com" />
+<meta itemprop="description" content="Practical information and writing tips to get you started. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/handbook/writing-blog-posts/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="How to write blog posts for web.dev and developer.chrome.com" />
+<meta property="og:description" content="Practical information and writing tips to get you started. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="How to write blog posts for web.dev and developer.chrome.com" />
+<meta name="twitter:description" content="Practical information and writing tips to get you started. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=81641d6548e96', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=48c7bebbb42cc', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#getting-started">Getting started</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#which-site">Does this post live on web.dev or developer.chrome.com?</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#writing-style-guide">Writing style guide</a></li><li class="toc__listitem"><a class="toc__anchor" href="#how-to-format-your-draft">How to format your draft</a></li><li class="toc__listitem"><a class="toc__anchor" href="#the-general-procedure">The general procedure</a></li><li class="toc__listitem"><a class="toc__anchor" href="#key-writing-tips">Key writing tips</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#article-length">Article length</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#working-with-an-editor">Working with an editor</a></li><li class="toc__listitem"><a class="toc__anchor" href="#tips-for-writing-technical-articles">Tips for writing technical articles</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#define-the-target-reader">Define the target reader</a></li><li class="toc__listitem"><a class="toc__anchor" href="#write-an-outline">Write an outline</a></li><li class="toc__listitem"><a class="toc__anchor" href="#write-a-concise-introduction">Write a concise introduction</a></li><li class="toc__listitem"><a class="toc__anchor" href="#create-good-code-examples">Create good code examples</a></li><li class="toc__listitem"><a class="toc__anchor" href="#share-knowledge-that's-not-in-the-docs">Share knowledge that's not in the docs</a></li><li class="toc__listitem"><a class="toc__anchor" href="#think-about-different-ways-to-share-information-with-components">Think about different ways to share information with components</a></li><li class="toc__listitem"><a class="toc__anchor" href="#give-credit-and-avoid-plagiarism">Give credit and avoid plagiarism</a></li></ul></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+
+        <h1 id="how-to-write-blog-posts-for-web.dev-and-developer.chrome.com">How to write blog posts for web.dev and developer.chrome.com</h1>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Oct 11, 2021</time>
+            
+          </div>
+        
+
+        
+        
+
+        
+
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#getting-started">Getting started</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#which-site">Does this post live on web.dev or developer.chrome.com?</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#writing-style-guide">Writing style guide</a></li><li class="toc__listitem"><a class="toc__anchor" href="#how-to-format-your-draft">How to format your draft</a></li><li class="toc__listitem"><a class="toc__anchor" href="#the-general-procedure">The general procedure</a></li><li class="toc__listitem"><a class="toc__anchor" href="#key-writing-tips">Key writing tips</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#article-length">Article length</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#working-with-an-editor">Working with an editor</a></li><li class="toc__listitem"><a class="toc__anchor" href="#tips-for-writing-technical-articles">Tips for writing technical articles</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#define-the-target-reader">Define the target reader</a></li><li class="toc__listitem"><a class="toc__anchor" href="#write-an-outline">Write an outline</a></li><li class="toc__listitem"><a class="toc__anchor" href="#write-a-concise-introduction">Write a concise introduction</a></li><li class="toc__listitem"><a class="toc__anchor" href="#create-good-code-examples">Create good code examples</a></li><li class="toc__listitem"><a class="toc__anchor" href="#share-knowledge-that's-not-in-the-docs">Share knowledge that's not in the docs</a></li><li class="toc__listitem"><a class="toc__anchor" href="#think-about-different-ways-to-share-information-with-components">Think about different ways to share information with components</a></li><li class="toc__listitem"><a class="toc__anchor" href="#give-credit-and-avoid-plagiarism">Give credit and avoid plagiarism</a></li></ul></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <p>This guide is written for people who are not primarily tech writers,
+but want to write a post for <a href="https://web.dev">web.dev</a> or <a href="https://developer.chrome.com" rel="noopener">developer.chrome.com</a>.
+It links to some of our key writing information,
+explains our process, and provides tips for writing technical blog posts.</p>
+<h2 id="getting-started">Getting started <a class="w-headline-link" href="#getting-started">#</a></h2>
+<p>The <a href="/handbook/quick-start/">Quick Start Guide</a>
+is an overview of proposing your new content.
+The content form asks you whether the post should be posted to web.dev or developer.chrome.com.</p>
+<h3 id="which-site">Does this post live on web.dev or developer.chrome.com? <a class="w-headline-link" href="#which-site">#</a></h3>
+<p>The two sites serve different audiences.
+If your post is about a web platform feature that is not Chrome specific,
+and is implemented, or in the process of being implemented in other browsers,
+then it can be posted to web.dev.</p>
+<p>If the post is about Chrome-only features that do not yet have broad consensus on implementation,
+or about the browser engine itself, it belongs on developer.chrome.com.
+If unsure, mention this in your content proposal and we can help you work it out.</p>
+<h2 id="writing-style-guide">Writing style guide <a class="w-headline-link" href="#writing-style-guide">#</a></h2>
+<p>The writing style guide hosted on web.dev is your reference for style, voice, and tone across both sites.
+There are some technical differences in terms of components you have access to when formatting your post:</p>
+<ul>
+<li><a href="/handbook/web-dev-components/">web.dev components</a></li>
+<li><a href="https://developer.chrome.com/docs/handbook/components/" rel="noopener">developer.chrome.com components</a></li>
+</ul>
+<h2 id="how-to-format-your-draft">How to format your draft <a class="w-headline-link" href="#how-to-format-your-draft">#</a></h2>
+<p>Use Google docs initially, and write in Markdown.
+Make a copy of this <a href="https://docs.google.com/document/d/1lgaNIEnXZf-RB8_p9RK22QEgpXJqnu77pLWVWVy4nuw/edit?usp=sharing" rel="noopener">template</a> as a starting point.
+Your initial reviews will take place in the document as it is an easier place for structural changes than GitHub.
+You can also share your document with any members of your team who need to sign off on the content before publication.</p>
+<h2 id="the-general-procedure">The general procedure <a class="w-headline-link" href="#the-general-procedure">#</a></h2>
+<p>A good general order of operations looks like this:</p>
+<ol>
+<li>Write your outline.</li>
+<li>Get technical writer feedback on your structure.</li>
+<li>Draft your article.</li>
+<li>Get a content review from technical experts or other interested parties.</li>
+<li>Revise your article as needed.</li>
+<li>Get a copy edit for typos, grammar issues, and other needed corrections from the technical writer.</li>
+</ol>
+<p>This order helps you avoid:</p>
+<ul>
+<li>Multiple content reviews because you changed the structure.</li>
+<li>Multiple copy edits because your content reviewers requested wording changes.</li>
+</ul>
+<p>Expect each review step to take as much as a week. All parties are juggling competing priorities.</p>
+<h2 id="key-writing-tips">Key writing tips <a class="w-headline-link" href="#key-writing-tips">#</a></h2>
+<p>We don't expect you to memorize the style guide.
+Following a few key points will really help, and your assigned tech writer will help with the rest.</p>
+<ul>
+<li>Write posts in a <a href="/handbook/voice/">voice</a> that is knowledgeable, humble, sympathetic, and friendly.</li>
+<li>Use simple language, the present tense, and the second person (you, rather than we).
+The <a href="/handbook/grammar/">grammar</a> page of the handbook has some useful examples.</li>
+<li>Assume readers understand basic web development in HTML, CSS, and JavaScript.</li>
+<li>Use the <a href="/handbook/content-checklist/">content checklists</a> as a reference.
+They give you an idea of what the editor will be looking for.</li>
+</ul>
+<h3 id="article-length">Article length <a class="w-headline-link" href="#article-length">#</a></h3>
+<p>A good length for posts on web.dev is around 1000 to 1500 words.
+If you find that you are writing much more than that,
+it might be that the article can be split into two or more pieces dealing with various parts of the topic.
+Ask your editor for advice on this.
+Also, see the tips below and consider whether you are over-explaining basic concepts.</p>
+<h2 id="working-with-an-editor">Working with an editor <a class="w-headline-link" href="#working-with-an-editor">#</a></h2>
+<p>Every post will have a tech writer assigned.
+They will act as your editor,
+and help to make sure your post fits the audience for the site,
+and that style guide details are followed.</p>
+<p>Working with a tech writer means that you don't need to worry about every detail of the style guide.
+It also means, however, that your carefully crafted post might come back covered in suggestions and comments.
+This can be a bit of a shock the first time it happens.
+A document covered in suggestions doesn't mean that you did a bad job.
+The majority of these changes will be copy-edits to follow the style guide and you can approve those and move on.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>You will generally be assigned a tech writer familiar with your subject matter,
+and they may well spot places where the post could be more clear, however you are the expert.
+Always query any change that you feel is incorrect, or unhelpful.
+These discussions between editor and writer very often lead to changes that improve the clarity of the post.</p>
+</div></aside>
+<h2 id="tips-for-writing-technical-articles">Tips for writing technical articles <a class="w-headline-link" href="#tips-for-writing-technical-articles">#</a></h2>
+<p>The following suggestions may be helpful when working on your post.</p>
+<h3 id="define-the-target-reader">Define the target reader <a class="w-headline-link" href="#define-the-target-reader">#</a></h3>
+<p>Defining who your post is for can help you to avoid two common issues with technical articles:</p>
+<ol>
+<li>The article explains every concept in detail as if the reader has never heard of anything mentioned.</li>
+<li>The article mentions new technical terms or concepts with no explanation at all.</li>
+</ol>
+<p>The correct level of detail is usually somewhere between these places,
+and to know exactly where your line will fall, you need to define who is reading the piece.</p>
+<p>Most web.dev posts can assume that the reader understands basic HTML, CSS, and JavaScript.
+With that as a baseline, ask yourself whether your article requires any other pre-existing knowledge.
+Do you intend to cover this knowledge in the article or consider it a prerequisite?</p>
+<p>As you write, you can bring this ideal reader to mind when deciding whether to fully explain a feature,
+add a link, or assume it is understood.</p>
+<h3 id="write-an-outline">Write an outline <a class="w-headline-link" href="#write-an-outline">#</a></h3>
+<p>Putting together an outline for your post is a good first step.
+It helps you to organize your thoughts on the subject.
+An outline also helps you to see how much material you have to cover.</p>
+<p>Posts on web.dev tend to be short.
+If you have a lot of material to cover, consider how to break it down.
+You could write an overview, then write more detailed pieces on specific parts of the feature later.
+Or, it might be that there is already a good introduction to the subject available on the web;
+therefore, your post could go into more detail on a particular part of the feature and link to the third-party overview.</p>
+<p>An outline doesn't need to be anything fancy.
+A list of the main headings with a brief description of what you will cover in each section is all it takes.</p>
+<p>If you share this outline with the tech writer working with you,
+they can make suggestions and help you to decide what to cover.
+Remember to let them know who you have identified as the target audience for this piece.</p>
+<h3 id="write-a-concise-introduction">Write a concise introduction <a class="w-headline-link" href="#write-a-concise-introduction">#</a></h3>
+<p>The introduction lets your target reader know that this article is for them and what they will learn by reading it.
+It's your chance to grab people as they scroll through the articles looking for something to read.
+Introductions should include:</p>
+<ul>
+<li>Who is this for?</li>
+<li>What do they already need to know?</li>
+<li>What will they learn?</li>
+</ul>
+<p>Make your introduction as concise as possible.
+When there are prerequisites for knowledge (over and above HTML, CSS, and JavaScript), link to a good resource.</p>
+<h3 id="create-good-code-examples">Create good code examples <a class="w-headline-link" href="#create-good-code-examples">#</a></h3>
+<p>When creating a code example, ask the question,
+&quot;How can I demonstrate this feature in the simplest possible way?&quot;
+Good code examples have a lot in common with the reduced test case.
+They rarely resemble production code.</p>
+<p>For inline code examples, check out the <a href="https://web.dev/handbook/write-code-samples/">tips in the handbook</a>.</p>
+<p>In CodePen or Glitch examples, avoid using languages that compile to HTML, CSS, or JavaScript
+(unless the post is about those alternate languages). Remember our ideal reader,
+who we know understands HTML, CSS, and JavaScript?
+Don't add a barrier to understanding your demo.</p>
+<p>Try to avoid large amounts of additional JavaScript or CSS styling.
+Making your demo look pretty isn't the most important thing.</p>
+<p>Ensure that any dependencies have at least the same browser support as the thing you are demonstrating.
+Otherwise the reader may be confused as to why the demo doesn't work.
+If you're writing about a new feature, state which browsers it currently works on in both the article and the demo.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>If you want to include a fully worked demo,
+include that as a link and use it as a chance to show off the feature.</p>
+</div></aside> 
+<p>While reducing things to the minimum needed is always the goal,
+take care that this doesn't leave a copy and pasteable example that misses something important to making the code secure.
+In particular, avoid creating live examples on CodePen or Glitch with security or similar issues.
+You do not know where they might end up.</p>
+<p>If you want to avoid writing validation or other code,
+adding the example as inline code with a comment indicating the position of the required additional code makes the intention clear.</p>
+<h3 id="share-knowledge-that's-not-in-the-docs">Share knowledge that's not in the docs <a class="w-headline-link" href="#share-knowledge-that's-not-in-the-docs">#</a></h3>
+<p>Hopefully, there is already a reference on MDN or elsewhere for your feature.
+The aim of your post should not be to write an exhaustive reference but to give extra information and best practices.
+That might be in the format of sharing cool use cases,
+providing tips from one developer to another,
+or explaining how some features work together.
+Suppose you find yourself detailing each method of an interface or every value of a CSS property.
+In that case, you are writing reference and not an article,
+and there are better venues for docs.</p>
+<p>Instead, write about what these methods or values can do, show examples,
+then link to the docs where the reader can explore how to take those examples further.</p>
+<p>If no reference is available, but you think there should be, contact jmedley@ who can assist you in creating it.</p>
+<h3 id="think-about-different-ways-to-share-information-with-components">Think about different ways to share information with components <a class="w-headline-link" href="#think-about-different-ways-to-share-information-with-components">#</a></h3>
+<p>On web.dev there are several interesting components.
+Using these in your article will avoid presenting readers with a wall of text. For example:</p>
+<ul>
+<li>Add extra information or warn people with the aside component: <a href="/handbook/web-dev-components/#asides">aside on web.dev</a>, <a href="https://developer.chrome.com/docs/handbook/components/#asides" rel="noopener">aside on developer.chrome.com</a>.</li>
+<li>Contrast code examples with the compare component: <a href="https://web.dev/handbook/web-dev-components/#compare">compare on web.dev</a>, <a href="https://developer.chrome.com/docs/handbook/components/#compare" rel="noopener">compare on developer.chrome.com</a>.</li>
+<li>Add <a href="https://web.dev/handbook/web-dev-components/#browsercompat">browser compatibility information on web.dev</a>.</li>
+</ul>
+<h3 id="give-credit-and-avoid-plagiarism">Give credit and avoid plagiarism <a class="w-headline-link" href="#give-credit-and-avoid-plagiarism">#</a></h3>
+<p>If your thinking around a subject is informed by other work, reference it.
+While directly copying is well understood as plagiarism,
+technical articles often indirectly draw on other people's work.
+Perhaps you watched a conference talk or video,
+read some blog posts,
+and even asked questions in a forum where someone gave you help.
+Mentioning these sources strengthens your article.
+Referencing shows that you have done your research,
+gives readers the chance to find out more from other people,
+and ensures that other folks get credit for their work.</p>
+<p>If you directly quote or paraphrase someone, then include a link in the text.
+If there is not a good place to add a link inline,
+add the piece to a resources or credits section at the end of the article.</p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Oct 11, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/handbook/writing-blog-posts/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors=""
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

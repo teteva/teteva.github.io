@@ -1,0 +1,742 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=c47be931c3b82">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=578e4c6108314">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Protect your resources from web attacks with Fetch Metadata</title>
+<meta name="description" content="Fetch Metadata is a new web platform feature designed to allow servers to protect themselves from cross-origin attacks. " />
+
+<link rel="canonical" href="https://web.dev/fetch-metadata/" />
+
+<meta itemprop="name" content="Protect your resources from web attacks with Fetch Metadata" />
+<meta itemprop="description" content="Fetch Metadata is a new web platform feature designed to allow servers to protect themselves from cross-origin attacks. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/fetch-metadata/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Protect your resources from web attacks with Fetch Metadata" />
+<meta property="og:description" content="Fetch Metadata is a new web platform feature designed to allow servers to protect themselves from cross-origin attacks. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="A screenshot of Python code related to Resource Isolation Policy." />
+<meta property="tag" content="security" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Protect your resources from web attacks with Fetch Metadata" />
+<meta name="twitter:description" content="Fetch Metadata is a new web platform feature designed to allow servers to protect themselves from cross-origin attacks. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=a9eece7436459', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=4df9dd673240d', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="A screenshot of Python code related to Resource Isolation Policy."     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/El8ytnIgMDWVzdsglcfv.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#why-should-you-care-about-isolating-your-web-resources">Why should you care about isolating your web resources?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#compatibility">Browser compatibility</a></li><li class="toc__listitem"><a class="toc__anchor" href="#background">Background</a></li><li class="toc__listitem"><a class="toc__anchor" href="#introduction">Introducing Fetch Metadata</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#sec-fetch-site">Sec-Fetch-Site</a></li><li class="toc__listitem"><a class="toc__anchor" href="#sec-fetch-mode">Sec-Fetch-Mode</a></li><li class="toc__listitem"><a class="toc__anchor" href="#sec-fetch-dest">Sec-Fetch-Dest</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#how-to-use-fetch-metadata-to-protect-against-cross-origin-attacks">How to use Fetch Metadata to protect against cross-origin attacks</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#implementing-a-resource-isolation-policy">Implementing a Resource Isolation Policy</a></li><li class="toc__listitem"><a class="toc__anchor" href="#deploying-a-resource-isolation-policy">Deploying a Resource Isolation Policy</a></li><li class="toc__listitem"><a class="toc__anchor" href="#identifying-and-fixing-policy-violations">Identifying and fixing policy violations</a></li><li class="toc__listitem"><a class="toc__anchor" href="#enforcing-a-resource-isolation-policy">Enforcing a Resource Isolation Policy</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#further-reading">Further reading</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="protect-your-resources-from-web-attacks-with-fetch-metadata">Protect your resources from web attacks with Fetch Metadata</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            Prevent CSRF, XSSI, and cross-origin information leaks.
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Jun 4, 2020</time>
+             — Updated <time>Jun 10, 2020</time> 
+          </div>
+        
+
+        
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/secure"
+          >Safe and secure</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/lwe/"> <img     alt="Lukas Weichselbaum"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/SR3DdHwfeqxp5k9ojcr6.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/SR3DdHwfeqxp5k9ojcr6.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/SR3DdHwfeqxp5k9ojcr6.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/SR3DdHwfeqxp5k9ojcr6.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/SR3DdHwfeqxp5k9ojcr6.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/SR3DdHwfeqxp5k9ojcr6.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/lwe/">Lukas Weichselbaum</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/we1x">Twitter</a>
+               <a href="https://github.com/lweichselbaum">GitHub</a>
+               
+               <a href="https://webappsec.dev">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#why-should-you-care-about-isolating-your-web-resources">Why should you care about isolating your web resources?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#compatibility">Browser compatibility</a></li><li class="toc__listitem"><a class="toc__anchor" href="#background">Background</a></li><li class="toc__listitem"><a class="toc__anchor" href="#introduction">Introducing Fetch Metadata</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#sec-fetch-site">Sec-Fetch-Site</a></li><li class="toc__listitem"><a class="toc__anchor" href="#sec-fetch-mode">Sec-Fetch-Mode</a></li><li class="toc__listitem"><a class="toc__anchor" href="#sec-fetch-dest">Sec-Fetch-Dest</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#how-to-use-fetch-metadata-to-protect-against-cross-origin-attacks">How to use Fetch Metadata to protect against cross-origin attacks</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#implementing-a-resource-isolation-policy">Implementing a Resource Isolation Policy</a></li><li class="toc__listitem"><a class="toc__anchor" href="#deploying-a-resource-isolation-policy">Deploying a Resource Isolation Policy</a></li><li class="toc__listitem"><a class="toc__anchor" href="#identifying-and-fixing-policy-violations">Identifying and fixing policy violations</a></li><li class="toc__listitem"><a class="toc__anchor" href="#enforcing-a-resource-isolation-policy">Enforcing a Resource Isolation Policy</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#further-reading">Further reading</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <h2 id="why-should-you-care-about-isolating-your-web-resources">Why should you care about isolating your web resources? <a class="w-headline-link" href="#why-should-you-care-about-isolating-your-web-resources">#</a></h2>
+<p>Many web applications are vulnerable to <a href="/same-site-same-origin/#%22same-origin%22-and-%22cross-origin%22">cross-origin</a> attacks like <a href="https://portswigger.net/web-security/csrf" rel="noopener">cross-site request forgery</a> (CSRF), <a href="https://portswigger.net/research/json-hijacking-for-the-modern-web" rel="noopener">cross-site script inclusion</a> (XSSI), timing attacks, <a href="https://arxiv.org/pdf/1908.02204.pdf" rel="noopener">cross-origin information leaks</a> or speculative execution side-channel (<a href="https://developers.google.com/web/updates/2018/02/meltdown-spectre" rel="noopener">Spectre</a>) attacks.</p>
+<p><a href="https://www.w3.org/TR/fetch-metadata/" rel="noopener">Fetch Metadata</a> request headers allow you to deploy a strong defense-in-depth mechanism—a Resource Isolation Policy—to protect your application against these common cross-origin attacks.</p>
+<p>It is common for resources exposed by a given web application to only be loaded by the application itself, and not by other websites. In such cases, deploying a Resource Isolation Policy based on Fetch Metadata request headers takes little effort, and at the same time protects the application from cross-site attacks.</p>
+<h2 id="compatibility">Browser compatibility <a class="w-headline-link" href="#compatibility">#</a></h2>
+<p>Fetch Metadata request headers are supported as of Chrome 76 and in other Chromium-based browsers, and are under development in Firefox.
+See <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Sec-Fetch-Site#Browser_compatibility" rel="noopener">Browser compatibility</a> for up-to-date browser support information.</p>
+<h2 id="background">Background <a class="w-headline-link" href="#background">#</a></h2>
+<p>Many cross-site attacks are possible because the web is open by default and your application server cannot easily protect itself from communication originating from external applications.
+A typical cross-origin attack is cross-site request forgery (CSRF) where an attacker lures a user onto a site they control and then submits a form to the server the user is logged in to. Since the server cannot tell if the request originated from another domain (cross-site) and the browser automatically attaches cookies to cross-site requests, the server will execute the action requested by the attacker on behalf of the user.</p>
+<p>Other cross-site attacks like cross-site script inclusion (XSSI) or cross-origin information leaks are similar in nature to CSRF and rely on loading resources from a victim application in an attacker-controlled document and leaking information about the victim applications. Since applications cannot easily distinguish trusted requests from untrusted ones, they cannot discard malicious cross-site traffic.</p>
+<aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>Gotchas</strong></p>
+<div class=" flow">
+<p>Apart from attacks on resources as described above, <em>window references</em> can also lead to cross-origin information leaks and Spectre attacks. You can prevent them by setting the <code>Cross-Origin-Opener-Policy</code> response header to <code>same-origin</code>.</p>
+</div></aside>
+<h2 id="introduction">Introducing Fetch Metadata <a class="w-headline-link" href="#introduction">#</a></h2>
+<p>Fetch Metadata request headers are a new web platform security feature designed to help servers defend themselves against cross-origin attacks. By providing information about the context of an HTTP request in a set of <code>Sec-Fetch-*</code> headers, they allow the responding server to apply security policies before processing the request. This lets developers decide whether to accept or reject a request based on the way it was made and the context in which it will be used, making it possible to respond to only legitimate requests made by their own application.</p>
+<figure class="compare flow" data-type="better"><p class="compare__label">Same-Origin</p>
+<figcaption class="compare__caption">
+<p>Requests originating from sites served by your own server (same-origin) will continue to work.</p>
+</figcaption>
+<!--lint disable no-literal-urls-->
+<img     alt="A fetch request from https://site.example for the resource https://site.example/foo.json in JavaScript causes the browser to send the HTTP request header &#x27;Sec Fetch-Site: same-origin&#x27;."          decoding="async"     height="176"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/aRsy2xULTR4TM2sMMsbQ.png?auto=format&w=1600 1600w"          width="800"   />
+<!--lint enable no-literal-urls-->
+</figure>
+<figure class="compare flow" data-type="worse"><p class="compare__label">Cross-site</p>
+<figcaption class="compare__caption">
+<p>Malicious cross-site requests can be rejected by the server because of the additional context in the HTTP request provided by <code>Sec-Fetch-*</code> headers.</p>
+</figcaption>
+<!--lint disable no-literal-urls-->
+<img     alt="An image on https://evil.example that has set the src attribute of an img element to &#x27;https://site.example/foo.json&#x27; causes the browser to send the HTTP request header &#x27;Sec-Fetch-Site: cross-site&#x27;."          decoding="async"     height="171"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/xY4yB36JqsVw62wNMIWt.png?auto=format&w=1600 1600w"          width="800"   />
+<!--lint enable no-literal-urls-->
+</figure>
+<h3 id="sec-fetch-site"><code>Sec-Fetch-Site</code> <a class="w-headline-link" href="#sec-fetch-site">#</a></h3>
+<p><code>Sec-Fetch-Site</code> tells the server which <a href="/same-site-same-origin">site</a> sent the request. The browser sets this value to one of the following:</p>
+<ul>
+<li><code>same-origin</code>, if the request was made by your own application (e.g. <code>site.example</code>)</li>
+<li><code>same-site</code>, if the request was made by a subdomain of your site (e.g. <code>bar.site.example</code>)</li>
+<li><code>none</code>, if the request was explicitly caused by a user's interaction with the user agent (e.g. clicking on a bookmark)</li>
+<li><code>cross-site</code>, if the request was sent by another website (e.g. <code>evil.example</code>)</li>
+</ul>
+<h3 id="sec-fetch-mode"><code>Sec-Fetch-Mode</code> <a class="w-headline-link" href="#sec-fetch-mode">#</a></h3>
+<p><code>Sec-Fetch-Mode</code> indicates the <a href="https://developer.mozilla.org/docs/Web/API/Request/mode" rel="noopener">mode</a> of the request. This roughly corresponds to the type of the request and allows you to distinguish resource loads from navigation requests. For example, a destination of <code>navigate</code> indicates a top-level navigation request while <code>no-cors</code> indicates resource requests like loading an image.</p>
+<h3 id="sec-fetch-dest"><code>Sec-Fetch-Dest</code> <a class="w-headline-link" href="#sec-fetch-dest">#</a></h3>
+<p><code>Sec-Fetch-Dest</code> exposes a request's <a href="https://developer.mozilla.org/docs/Web/API/Request/destination" rel="noopener">destination</a> (e.g. if a <code>script</code> or an <code>img</code> tag caused a resource to be requested by the browser).</p>
+<h2 id="how-to-use-fetch-metadata-to-protect-against-cross-origin-attacks">How to use Fetch Metadata to protect against cross-origin attacks <a class="w-headline-link" href="#how-to-use-fetch-metadata-to-protect-against-cross-origin-attacks">#</a></h2>
+<p>The extra information these request headers provide is quite simple, but the additional context allows you to build powerful security logic on the server-side, also referred to as a Resource Isolation Policy, with just a few lines of code.</p>
+<h3 id="implementing-a-resource-isolation-policy">Implementing a Resource Isolation Policy <a class="w-headline-link" href="#implementing-a-resource-isolation-policy">#</a></h3>
+<p>A Resource Isolation Policy prevents your resources from being requested by external websites. Blocking such traffic mitigates common cross-site web vulnerabilities such as CSRF, XSSI, timing attacks, and cross-origin information leaks. This policy can be enabled for all endpoints of your application and will allow all resource requests coming from your own application as well as direct navigations (via an HTTP <code>GET</code> request). Endpoints that are supposed to be loaded in a cross-site context (e.g. endpoints loaded using CORS) can be opted out of this logic.</p>
+<h4 id="step-1:-allow-requests-from-browsers-which-don't-send-fetch-metadata">Step 1: Allow requests from browsers which don't send Fetch Metadata <a class="w-headline-link" href="#step-1:-allow-requests-from-browsers-which-don't-send-fetch-metadata">#</a></h4>
+<p>Since not all browsers support Fetch Metadata, you need to allow requests that don't set <code>Sec-Fetch-*</code> headers by checking for the presence of <code>sec-fetch-site</code>.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>All of the following examples are Python code.</p>
+</div></aside>
+<web-copy-code><pre class="language-python"><code class="language-python"><span class="token keyword">if</span> <span class="token keyword">not</span> req<span class="token punctuation">[</span><span class="token string">'sec-fetch-site'</span><span class="token punctuation">]</span><span class="token punctuation">:</span><br>  <span class="token keyword">return</span> <span class="token boolean">True</span>  <span class="token comment"># Allow this request</span></code></pre>
+</web-copy-code><aside class="aside flow bg-state-bad-bg color-state-bad-text">
+<p class="cluster color-state-bad-text">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error sign">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm0-10v6h2V7h-2z" />
+</svg></span>
+<strong>Caution</strong></p>
+<div class=" flow">
+<p>Since Fetch Metadata is only supported in Chromium-based browsers,
+it should be used as a
+<a href="https://static.googleusercontent.com/media/landing.google.com/en//sre/static/pdf/Building_Secure_and_Reliable_Systems.pdf#page=181" rel="noopener">defense-in-depth protection</a>
+and not as your primary line of defense.</p>
+</div></aside>
+<h4 id="step-2:-allow-same-site-and-browser-initiated-requests">Step 2: Allow same-site and browser-initiated requests <a class="w-headline-link" href="#step-2:-allow-same-site-and-browser-initiated-requests">#</a></h4>
+<p>Any requests that do not originate from a cross-origin context (like <code>evil.example</code>) will be allowed. In particular, these are requests that:</p>
+<ul>
+<li>Originate from your own application (e.g. a same-origin request where <code>site.example</code> requests <code>site.example/foo.json</code> will always be allowed).</li>
+<li>Originate from your subdomains.</li>
+<li>Are explicitly caused by a user's interaction with the user agent (e.g. direct navigation or by clicking a bookmark, etc.).</li>
+</ul>
+<web-copy-code><pre class="language-python"><code class="language-python"><span class="token keyword">if</span> req<span class="token punctuation">[</span><span class="token string">'sec-fetch-site'</span><span class="token punctuation">]</span> <span class="token keyword">in</span> <span class="token punctuation">(</span><span class="token string">'same-origin'</span><span class="token punctuation">,</span> <span class="token string">'same-site'</span><span class="token punctuation">,</span> <span class="token string">'none'</span><span class="token punctuation">)</span><span class="token punctuation">:</span><br>  <span class="token keyword">return</span> <span class="token boolean">True</span>  <span class="token comment"># Allow this request</span></code></pre>
+</web-copy-code><aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>Gotchas</strong></p>
+<div class=" flow">
+<p>In case your subdomains are not fully trusted, you can make the policy stricter by blocking requests from subdomains by removing the <code>same-site</code> value.</p>
+</div></aside>
+<h4 id="step-3:-allow-simple-top-level-navigation-and-iframing">Step 3: Allow simple top-level navigation and iframing <a class="w-headline-link" href="#step-3:-allow-simple-top-level-navigation-and-iframing">#</a></h4>
+<p>To ensure that your site can still be linked from other sites, you have to allow simple (<code>HTTP GET</code>) top-level navigation.</p>
+<web-copy-code><pre class="language-python"><code class="language-python"><span class="token keyword">if</span> req<span class="token punctuation">[</span><span class="token string">'sec-fetch-mode'</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'navigate'</span> <span class="token keyword">and</span> req<span class="token punctuation">.</span>method <span class="token operator">==</span> <span class="token string">'GET'</span><br>  <span class="token comment"># &lt;object> and &lt;embed> send navigation requests, which we disallow.</span><br>  <span class="token keyword">and</span> req<span class="token punctuation">[</span><span class="token string">'sec-fetch-dest'</span><span class="token punctuation">]</span> <span class="token keyword">not</span> <span class="token keyword">in</span> <span class="token punctuation">(</span><span class="token string">'object'</span><span class="token punctuation">,</span> <span class="token string">'embed'</span><span class="token punctuation">)</span><span class="token punctuation">:</span><br>    <span class="token keyword">return</span> <span class="token boolean">True</span>  <span class="token comment"># Allow this request</span></code></pre>
+</web-copy-code><aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>Gotchas</strong></p>
+<div class=" flow">
+<p>The logic above protects your application's endpoints from being used as resources by other websites, but will permit top-level navigation and embedding (e.g. loading in an <code>&lt;iframe&gt;</code>). To further improve security, you can use Fetch Metadata headers to restrict cross-site navigations to only an allowed set of pages.</p>
+</div></aside>
+<h4 id="step-4:-opt-out-endpoints-that-are-meant-to-serve-cross-site-traffic-(optional)">Step 4: Opt out endpoints that are meant to serve cross-site traffic (Optional) <a class="w-headline-link" href="#step-4:-opt-out-endpoints-that-are-meant-to-serve-cross-site-traffic-(optional)">#</a></h4>
+<p>In some cases, your application might provide resources which are meant to be loaded cross-site. These resources need to be exempted on a per-path or per-endpoint basis. Examples of such endpoints are:</p>
+<ul>
+<li>Endpoints meant to be accessed cross-origin: If your application is serving endpoints that are <code>CORS</code> enabled, you need to explicitly opt them out from resource isolation to ensure that cross-site requests to these endpoints are still possible.</li>
+<li>Public resources (e.g. images, styles, etc.): Any public and unauthenticated resources that should be loadable cross-origin from other sites can be exempted as well.</li>
+</ul>
+<web-copy-code><pre class="language-python"><code class="language-python"><span class="token keyword">if</span> req<span class="token punctuation">.</span>path <span class="token keyword">in</span> <span class="token punctuation">(</span><span class="token string">'/my_CORS_endpoint'</span><span class="token punctuation">,</span> <span class="token string">'/favicon.png'</span><span class="token punctuation">)</span><span class="token punctuation">:</span><br>  <span class="token keyword">return</span> <span class="token boolean">True</span></code></pre>
+</web-copy-code><aside class="aside flow bg-state-bad-bg color-state-bad-text">
+<p class="cluster color-state-bad-text">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error sign">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm0-10v6h2V7h-2z" />
+</svg></span>
+<strong>Caution</strong></p>
+<div class=" flow">
+<p>Before opting out parts of your application from these security restrictions, make sure they are static and don't contain any sensitive user information.</p>
+</div></aside>
+<h4 id="step-5:-reject-all-other-requests-that-are-cross-site-and-not-navigational">Step 5: Reject all other requests that are cross-site and not navigational <a class="w-headline-link" href="#step-5:-reject-all-other-requests-that-are-cross-site-and-not-navigational">#</a></h4>
+<p>Any other <strong>cross-site</strong> request will be rejected by this Resource Isolation Policy and thus protect your application from common cross-site attacks.</p>
+<aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>Gotchas</strong></p>
+<div class=" flow">
+<p>By default, requests violating your policy should be rejected with an <code>HTTP 403</code> response. But, depending on your use case, you can also consider other actions, such as:</p>
+<ul>
+<li><strong>Only logging violations</strong>. This is especially useful when testing the compatibility of the policy and finding endpoints that might need to be opted out.</li>
+<li><strong>Modifying the request</strong>. In certain scenarios, consider performing other actions like redirecting to your landing page and dropping authentication credentials (e.g. cookies). However, be aware that this could weaken the protections of a Fetch Metadata-based policy.</li>
+</ul>
+</div></aside>
+<p><strong>Example:</strong> The following code demonstrates a complete implementation of a robust Resource Isolation Policy on the server or as a middleware to deny potentially malicious cross-site resource requests, while allowing simple navigational requests:</p>
+<web-copy-code><pre class="language-python"><code class="language-python"><span class="token comment"># Reject cross-origin requests to protect from CSRF, XSSI, and other bugs</span><br><span class="token keyword">def</span> <span class="token function">allow_request</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span><span class="token punctuation">:</span><br>  <span class="token comment"># Allow requests from browsers which don't send Fetch Metadata</span><br>  <span class="token keyword">if</span> <span class="token keyword">not</span> req<span class="token punctuation">[</span><span class="token string">'sec-fetch-site'</span><span class="token punctuation">]</span><span class="token punctuation">:</span><br>    <span class="token keyword">return</span> <span class="token boolean">True</span><br><br>  <span class="token comment"># Allow same-site and browser-initiated requests</span><br>  <span class="token keyword">if</span> req<span class="token punctuation">[</span><span class="token string">'sec-fetch-site'</span><span class="token punctuation">]</span> <span class="token keyword">in</span> <span class="token punctuation">(</span><span class="token string">'same-origin'</span><span class="token punctuation">,</span> <span class="token string">'same-site'</span><span class="token punctuation">,</span> <span class="token string">'none'</span><span class="token punctuation">)</span><span class="token punctuation">:</span><br>    <span class="token keyword">return</span> <span class="token boolean">True</span><br><br>  <span class="token comment"># Allow simple top-level navigations except &lt;object> and &lt;embed></span><br>  <span class="token keyword">if</span> req<span class="token punctuation">[</span><span class="token string">'sec-fetch-mode'</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'navigate'</span> <span class="token keyword">and</span> req<span class="token punctuation">.</span>method <span class="token operator">==</span> <span class="token string">'GET'</span><br>    <span class="token keyword">and</span> req<span class="token punctuation">[</span><span class="token string">'sec-fetch-dest'</span><span class="token punctuation">]</span> <span class="token keyword">not</span> <span class="token keyword">in</span> <span class="token punctuation">(</span><span class="token string">'object'</span><span class="token punctuation">,</span> <span class="token string">'embed'</span><span class="token punctuation">)</span><span class="token punctuation">:</span><br>      <span class="token keyword">return</span> <span class="token boolean">True</span><br><br>  <span class="token comment"># [OPTIONAL] Exempt paths/endpoints meant to be served cross-origin.</span><br>  <span class="token keyword">if</span> req<span class="token punctuation">.</span>path <span class="token keyword">in</span> <span class="token punctuation">(</span><span class="token string">'/my_CORS_endpoint'</span><span class="token punctuation">,</span> <span class="token string">'/favicon.png'</span><span class="token punctuation">)</span><span class="token punctuation">:</span><br>    <span class="token keyword">return</span> <span class="token boolean">True</span><br><br>  <span class="token comment"># Reject all other requests that are cross-site and not navigational</span><br>  <span class="token keyword">return</span> <span class="token boolean">False</span></code></pre>
+</web-copy-code><h3 id="deploying-a-resource-isolation-policy">Deploying a Resource Isolation Policy <a class="w-headline-link" href="#deploying-a-resource-isolation-policy">#</a></h3>
+<ol>
+<li>Install a module like the code snippet from above to log and monitor how your site behaves and make sure the restrictions don't affect any legitimate traffic.</li>
+<li>Fix potential violations by exempting legitimate cross-origin endpoints.</li>
+<li>Enforce the policy by dropping non-compliant requests.</li>
+</ol>
+<h3 id="identifying-and-fixing-policy-violations">Identifying and fixing policy violations <a class="w-headline-link" href="#identifying-and-fixing-policy-violations">#</a></h3>
+<p>It's recommended that you test your policy in a side-effect free way by first enabling it in reporting mode in your server-side code. Alternatively, you can implement this logic in middleware, or in a reverse proxy which logs any violations that your policy might produce when applied to production traffic.</p>
+<p>From our experience of rolling out a Fetch Metadata Resource Isolation Policy at Google, most applications are by default compatible with such a policy and rarely require exempting endpoints to allow cross-site traffic.</p>
+<h3 id="enforcing-a-resource-isolation-policy">Enforcing a Resource Isolation Policy <a class="w-headline-link" href="#enforcing-a-resource-isolation-policy">#</a></h3>
+<p>After you've checked that your policy doesn't impact legitimate production traffic, you're ready to enforce restrictions, guaranteeing that other sites will not be able to request your resources and protecting your users from cross-site attacks.</p>
+<aside class="aside flow bg-state-bad-bg color-state-bad-text">
+<p class="cluster color-state-bad-text">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error sign">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm0-10v6h2V7h-2z" />
+</svg></span>
+<strong>Caution</strong></p>
+<div class=" flow">
+<p>Make sure that you reject invalid requests before running authentication checks or any other processing of the request to prevent revealing sensitive timing information.</p>
+</div></aside>
+<h2 id="further-reading">Further reading <a class="w-headline-link" href="#further-reading">#</a></h2>
+<ul>
+<li><a href="https://www.w3.org/TR/fetch-metadata/" rel="noopener">W3C Fetch Metadata Request Headers specification</a></li>
+<li><a href="https://secmetadata.appspot.com/" rel="noopener">Fetch Metadata Playground</a></li>
+<li><a href="https://webappsec.dev/assets/pub/Google_IO-Securing_Web_Apps_with_Modern_Platform_Features.pdf" rel="noopener">Google I/O talk: Securing Web Apps with Modern Platform Features</a> (Slides)</li>
+</ul>
+<div class="youtube">  <lite-youtube    videoid="DDtM9caQ97I"    videoStartAt="1856"  >  </lite-youtube></div>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/security/">Security</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Jun 10, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/blog/fetch-metadata/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@we1x"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

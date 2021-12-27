@@ -1,0 +1,728 @@
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=99eab0932ac69">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Métricas de rendimiento centradas en el usuario</title>
+<meta name="description" content="Las métricas de rendimiento centradas en el usuario son una herramienta fundamental para comprender y mejorar la experiencia de su sitio web de forma que beneficie a los usuarios reales." />
+
+<link rel="canonical" href="https://web.dev/i18n/es/user-centric-performance-metrics/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/user-centric-performance-metrics/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/user-centric-performance-metrics/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/user-centric-performance-metrics/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/user-centric-performance-metrics/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/user-centric-performance-metrics/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/user-centric-performance-metrics/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/user-centric-performance-metrics/" />
+<meta itemprop="name" content="Métricas de rendimiento centradas en el usuario" />
+<meta itemprop="description" content="Las métricas de rendimiento centradas en el usuario son una herramienta fundamental para comprender y mejorar la experiencia de su sitio web de forma que beneficie a los usuarios reales." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="es_ALL" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/es/user-centric-performance-metrics/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Métricas de rendimiento centradas en el usuario" />
+<meta property="og:description" content="Las métricas de rendimiento centradas en el usuario son una herramienta fundamental para comprender y mejorar la experiencia de su sitio web de forma que beneficie a los usuarios reales." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="metrics" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Métricas de rendimiento centradas en el usuario" />
+<meta name="twitter:description" content="Las métricas de rendimiento centradas en el usuario son una herramienta fundamental para comprender y mejorar la experiencia de su sitio web de forma que beneficie a los usuarios reales." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=c36f55eb8b17e', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=0caa88ac5e814', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Abrir menú">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Abrir menú</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Aprender
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Medir
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Cerrar"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Cerrar</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Aprender
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Medir
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#metricas-de-rendimiento-centradas-en-el-usuario" class="w-toc__header--link">
+        Métricas de rendimiento centradas en el usuario
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#definicion-de-las-metricas">Definición de las métricas</a></li><li><a href="#como-se-miden-las-metricas">Cómo se miden las métricas</a><ol><li><a href="#en-el-laboratorio">En el laboratorio</a></li><li><a href="#en-el-campo">En el campo</a></li></ol></li><li><a href="#tipos-de-metricas">Tipos de métricas</a></li><li><a href="#metricas-importantes-que-se-deben-medir">Métricas importantes que se deben medir</a></li><li><a href="#metricas-personalizadas">Métricas personalizadas</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@philwalton"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Compartir</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="metricas-de-rendimiento-centradas-en-el-usuario" class="w-article-header__headline">Métricas de rendimiento centradas en el usuario</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Nov 8, 2019</time>
+          
+        </div>
+      
+
+      
+      
+      <div class="w-layout-container--narrow w-post-signpost">
+        <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/user-centric-performance-metrics/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/user-centric-performance-metrics/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/user-centric-performance-metrics/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/user-centric-performance-metrics/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/user-centric-performance-metrics/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/user-centric-performance-metrics/">
+      English</a></span>
+      </div>
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/metrics"
+          >Métricas</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/philipwalton/"><img     alt="Philip Walton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/philipwalton/">Philip Walton</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/philwalton"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/philipwalton">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://philipwalton.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <p>Todos hemos oído hablar de la importancia del rendimiento. Pero cuando hablamos de rendimiento, y de hacer que los sitios web sean &quot;rápidos&quot;, ¿a qué nos referimos específicamente?</p>
+<p>La verdad es que el rendimiento es relativo:</p>
+<ul>
+<li>Un sitio puede ser rápido para un usuario (en una red rápida con un dispositivo potente) pero lento para otro (en una red lenta con un dispositivo de gama baja).</li>
+<li>Dos sitios pueden terminar de cargarse al mismo tiempo, pero uno puede <em>parecer</em> más rápido (si carga el contenido de forma progresiva en vez de esperar hasta el final para mostrar algo).</li>
+<li>Puede <em>parecer</em> que un sitio se carga rápidamente, pero luego responde lentamente (o no responde en absoluto) a la interacción del usuario.</li>
+</ul>
+<p>Por eso, cuando se habla de rendimiento, es importante ser preciso y referirse al rendimiento en términos de criterios objetivos que pueden medirse cuantitativamente. Estos criterios se conocen como <em>métricas</em>.</p>
+<p>Pero el hecho de que una métrica se base en criterios objetivos y pueda medirse cuantitativamente no significa necesariamente que esas medidas sean útiles.</p>
+<h2 id="definicion-de-las-metricas">Definición de las métricas <a class="w-headline-link" href="#definicion-de-las-metricas">#</a></h2>
+<p>Históricamente, el rendimiento web se ha medido con el evento <code><a href="https://developer.mozilla.org/docs/Web/API/Window/load_event" rel="noopener">load</a></code>. Sin embargo, aunque <code>load</code> es un momento bien definido en el ciclo de vida de una página, ese momento no corresponde necesariamente con algo que le interese al usuario.</p>
+<p>Por ejemplo, un servidor podría responder con una página mínima que se &quot;cargue&quot; inmediatamente, pero que luego retrase la búsqueda de contenido y la visualización de cualquier cosa en la página hasta varios segundos después de que se active el evento <code>load</code>. Si bien esta página podría tener técnicamente un tiempo de carga rápido, ese tiempo no correspondería con la forma en que el usuario experimenta realmente la carga de la página.</p>
+<p>En los últimos años, los miembros del equipo de Chrome, en colaboración con el <a href="https://www.w3.org/webperf/" rel="noopener">Grupo de trabajo de rendimiento web del W3C</a>, han estado trabajando para estandarizar un conjunto de nuevas API y métricas que miden con mayor precisión cómo los usuarios experimentan el rendimiento de una página web.</p>
+<p>Para ayudar a garantizar que las métricas sean relevantes para los usuarios, las enmarcamos en torno a algunas preguntas clave:</p>
+<table id="questions">
+  <tr>
+    <td><strong>¿Está sucediendo?</strong></td>
+    <td>¿La navegación se inició correctamente? ¿Ha respondido el servidor?</td>
+  </tr>
+  <tr>
+    <td><strong>¿Es útil?</strong></td>
+    <td>¿Se ha renderizado suficiente contenido para que los usuarios puedan interactuar con él?</td>
+  </tr>
+  <tr>
+    <td><strong>¿Es utilizable?</strong></td>
+    <td>¿Los usuarios pueden interactuar con la página o está ocupada?</td>
+  </tr>
+  <tr>
+    <td><strong>¿Es delicioso?</strong></td>
+    <td>¿Son las interacciones fluidas y naturales, libres de retrasos y bloqueos?</td>
+  </tr>
+</table>
+<h2 id="como-se-miden-las-metricas">Cómo se miden las métricas <a class="w-headline-link" href="#como-se-miden-las-metricas">#</a></h2>
+<p>Las métricas de rendimiento generalmente se miden de dos maneras:</p>
+<ul>
+<li><strong>En el laboratorio:</strong> uso de herramientas para simular la carga de una página en un entorno controlado y uniforme</li>
+<li><strong>En el campo</strong>: en usuarios reales que realmente cargan e interactúan con la página</li>
+</ul>
+<p>Ninguna de estas opciones es necesariamente mejor o peor que la otra; de hecho, por lo general, conviene utilizar ambas para garantizar un buen rendimiento.</p>
+<h3 id="en-el-laboratorio">En el laboratorio <a class="w-headline-link" href="#en-el-laboratorio">#</a></h3>
+<p>Probar el rendimiento en el laboratorio es esencial cuando se desarrollan nuevas funciones. Antes de que las funciones se emitan en el proceso de producción, es imposible medir sus características de rendimiento en usuarios reales, por lo que probarlas en el laboratorio antes de que se lancen es la mejor manera de evitar regresiones en el rendimiento.</p>
+<h3 id="en-el-campo">En el campo <a class="w-headline-link" href="#en-el-campo">#</a></h3>
+<p>Por otro lado, si bien las pruebas en el laboratorio son una aproximación razonable del rendimiento, no necesariamente reflejan lo que experimentan todos los usuarios de su sitio en la realidad.</p>
+<p>El rendimiento de un sitio puede variar drásticamente según las capacidades del dispositivo del usuario y las condiciones de su red. También puede variar en función de si el usuario interactúa con la página (o cómo lo hace).</p>
+<p>Además, la carga de las páginas puede que no sea determinista. Por ejemplo, los sitios que cargan contenido o anuncios personalizados pueden experimentar características de rendimiento muy diferentes de un usuario a otro. Una prueba de laboratorio no captará esas diferencias.</p>
+<p>La única forma de saber realmente cómo es el rendimiento de su sitio para sus usuarios es medir realmente su rendimiento conforme esos usuarios lo cargan e interactúan con él. Este tipo de medidas se conoce comúnmente como <a href="https://en.wikipedia.org/wiki/Real_user_monitoring" rel="noopener">Monitoreo de usuarios reales</a>, o RUM para abreviar.</p>
+<h2 id="tipos-de-metricas">Tipos de métricas <a class="w-headline-link" href="#tipos-de-metricas">#</a></h2>
+<p>Hay otros tipos de métricas que son relevantes para cómo los usuarios perciben el rendimiento.</p>
+<ul>
+<li><strong>Perceived load speed: Velocidad de carga percibida.</strong> Mide la rapidez con la que una página puede cargar y renderizar todos sus elementos visuales en la pantalla.</li>
+<li><strong>Load responsiveness: Capacidad de respuesta de la carga.</strong> Mide la rapidez con la que una página puede cargar y ejecutar cualquier código de JavaScript necesario para que los componentes respondan rápidamente a las interacciones con el usuario.</li>
+<li><strong>Runtime responsiveness: Capacidad de respuesta para el tiempo de ejecución.</strong> Después de que carga la página, ¿qué tan rápido puede responder la página a la interacción del usuario?</li>
+<li><strong>Visual stability: Estabilidad visual.</strong> ¿Los elementos de la página cambian de una forma inesperada para los usuarios y pueden interferir en sus interacciones?</li>
+<li><strong>Smoothness: Fluidez.</strong> ¿Las transiciones y animaciones se renderizan con una frecuencia de cuadros por segundo constante y tienen fluidez de un estado a otro?</li>
+</ul>
+<p>Al tener en cuenta todos los tipos de métricas de rendimiento anteriores, se espera que quede claro que ninguna métrica por sí sola es suficiente para captar todas las características de rendimiento de una página.</p>
+<h2 id="metricas-importantes-que-se-deben-medir">Métricas importantes que se deben medir <a class="w-headline-link" href="#metricas-importantes-que-se-deben-medir">#</a></h2>
+<ul>
+<li><strong><a href="/fcp/">First Contentful Paint: Despliegue del primer contenido (FCP)</a>:</strong> Mide el tiempo que transcurre desde que la página comienza a cargarse hasta que cualquier parte del contenido de la página se renderiza en la pantalla. <em>(<a href="#in-the-lab">laboratorio</a>, <a href="#in-the-field">campo</a>)</em></li>
+<li><strong><a href="/lcp/">Largest Contentful Paint: Despliegue del contenido más extenso (LCP)</a>:</strong> Mide el tiempo que transcurre desde que la página comienza a cargarse hasta que el bloque de texto o elemento de imagen más extenso se representa en la pantalla. <em>(<a href="#in-the-lab">laboratorio</a>, <a href="#in-the-field">campo</a>)</em></li>
+<li><strong><a href="/fid/">First Input Delay: Demora de la primera entrada</a>:</strong> Mide el tiempo que transcurre desde que un usuario interactúa por primera vez con su sitio web (es decir, cuando hace clic en un enlace, pulsa un botón o utiliza un control personalizado basado en JavaScript) hasta el momento en que el navegador es capaz de responder a esa interacción. <em>(<a href="#in-the-field">campo</a>)</em></li>
+<li><strong><a href="/tti/">Time to Interactive: Tiempo para interactuar  (TTI)</a>:</strong> Mide el tiempo que transcurre desde que la página comienza a cargarse hasta que se renderiza visualmente, sus scripts iniciales (si los hay) se cargan y son capaces de responder de forma confiable y rápida a las entradas del usuario. <em>(<a href="#in-the-lab">laboratorio</a>)</em></li>
+<li><strong><a href="/tbt/">Total Blocking Time: Tiempo de bloqueo total (TBT)</a>:</strong> Mide la cantidad total de tiempo entre FCP y TTI donde el subproceso principal estuvo bloqueado el tiempo suficiente para impedir la respuesta de la entrada. <em>(<a href="#in-the-lab">laboratorio</a>)</em></li>
+<li><strong><a href="/cls/">Cumulative Layout Shift: Cambio Acumulativo del diseño (CLS)</a>:</strong> Mide la puntuación acumulada de todos los cambios de diseño inesperados que se producen entre el momento en que la página comienza a cargarse y cuando su <a href="https://developers.google.com/web/updates/2018/07/page-lifecycle-api" rel="noopener">estado de ciclo de vida</a> cambia a oculto. <em>(<a href="#in-the-lab">laboratorio</a>, <a href="#in-the-field">campo</a>)</em></li>
+</ul>
+<p>Aunque esta lista incluye métricas que miden muchos de los diversos aspectos del rendimiento relevantes para los usuarios, no incluye todo (por ejemplo, la capacidad de respuesta y la fluidez en el tiempo de ejecución no están cubiertas actualmente).</p>
+<p>En algunos casos, se introducirán nuevas métricas para cubrir las áreas que faltan, pero en otros casos, las mejores métricas son las que se adaptan específicamente a su sitio.</p>
+<h2 id="metricas-personalizadas">Métricas personalizadas <a class="w-headline-link" href="#metricas-personalizadas">#</a></h2>
+<p>Las métricas de rendimiento enumeradas anteriormente son buenas para obtener una comprensión general de las características de rendimiento de la mayoría de los sitios en la web. También son buenas para tener un conjunto común de métricas para que los sitios puedan comparar su rendimiento con el de sus competidores.</p>
+<p>Sin embargo, puede haber ocasiones en las que un sitio específico sea único de alguna manera que requiera métricas adicionales para capturar la imagen completa del rendimiento. Por ejemplo, la métrica LCP está pensada para medir cuándo termine de cargarse el contenido principal de una página, pero podría haber casos en los que el elemento más grande no forme parte del contenido principal de la página y, por tanto, LCP puede que no sea relevante.</p>
+<p>Para abordar estos casos, el Grupo de trabajo de rendimiento web también estandarizó la API de nivel inferior que pueden ser útiles para implementar sus propias métricas personalizadas:</p>
+<ul>
+<li><a href="https://w3c.github.io/user-timing/" rel="noopener">API para sincronizar usuarios</a></li>
+<li><a href="https://w3c.github.io/longtasks/" rel="noopener">API de tareas largas</a></li>
+<li><a href="https://wicg.github.io/element-timing/" rel="noopener">API para sincronizar elementos</a></li>
+<li><a href="https://w3c.github.io/navigation-timing/" rel="noopener">API para sincronizar la navegación</a></li>
+<li><a href="https://w3c.github.io/resource-timing/" rel="noopener">API para sincronizar los recursos</a></li>
+<li><a href="https://w3c.github.io/server-timing/" rel="noopener">Sincronizador de servidores</a></li>
+</ul>
+<p>Consulte la guía sobre <a href="/custom-metrics/">métricas personalizadas</a> para saber cómo utilizar estas API para medir las características de rendimiento específicas de su sitio.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">Rendimiento</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/metrics/">Métricas</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Última actualización: <time>Nov 8, 2019</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/es/metrics/user-centric-performance-metrics/index.md"
+      >
+        Mejorar el artículo
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/metrics"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Presentar un error
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Ver fuente
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contenido relevante</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome Actualizaciones
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Conectar</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            Todos los productos
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="es"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Condiciones y privacidad
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Principios de la Comunidad
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

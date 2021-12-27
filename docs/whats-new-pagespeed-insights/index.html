@@ -1,0 +1,813 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=532b67bd81281">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=c17811018135f">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>What's new in PageSpeed Insights</title>
+<meta name="description" content="Learn about the latest in PageSpeed Insights to help you better measure and optimize your page and site quality." />
+
+<link rel="canonical" href="https://web.dev/whats-new-pagespeed-insights/" />
+
+<meta itemprop="name" content="What's new in PageSpeed Insights" />
+<meta itemprop="description" content="Learn about the latest in PageSpeed Insights to help you better measure and optimize your page and site quality." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/whats-new-pagespeed-insights/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="What's new in PageSpeed Insights" />
+<meta property="og:description" content="Learn about the latest in PageSpeed Insights to help you better measure and optimize your page and site quality." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="A photo of a Chevrolet Corvette Speedometer." />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta property="tag" content="lighthouse" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="What's new in PageSpeed Insights" />
+<meta name="twitter:description" content="Learn about the latest in PageSpeed Insights to help you better measure and optimize your page and site quality." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=90b81a05d64b4', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=b0882fc29018', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="A photo of a Chevrolet Corvette Speedometer."     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/6zX4bWZp46B9dGbMHhb4.jpeg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#what's-new">What's new?</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#clear-separation-of-field-and-lab-data">Clear separation of field and lab data</a></li><li class="toc__listitem"><a class="toc__anchor" href="#core-web-vitals-assessment">Core Web Vitals assessment</a></li><li class="toc__listitem"><a class="toc__anchor" href="#labels-for-mobile-and-desktop-performance">Labels for mobile and desktop performance</a></li><li class="toc__listitem"><a class="toc__anchor" href="#origin-summary">Origin Summary</a></li><li class="toc__listitem"><a class="toc__anchor" href="#additional-helpful-information">Additional helpful information</a></li><li class="toc__listitem"><a class="toc__anchor" href="#expand-view">Expand view</a></li><li class="toc__listitem"><a class="toc__anchor" href="#page-image">Page image</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#updates-to-web.devmeasure">Updates to web.dev/measure</a></li><li class="toc__listitem"><a class="toc__anchor" href="#psi-today">PSI today</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#challenges-with-the-current-psi-design">Challenges with the current PSI design</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#learn-more">Learn more</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="what&#39;s-new-in-pagespeed-insights">What's new in PageSpeed Insights</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            Learn about the latest in PageSpeed Insights to help you better measure and optimize your page and site quality.
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Nov 3, 2021</time>
+            
+          </div>
+        
+
+        
+        
+
+        
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/leenasohoni/"> <img     alt="Leena Sohoni"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/VXCjCzLEGWApTkZkNZkR.JPG?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/VXCjCzLEGWApTkZkNZkR.JPG?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/VXCjCzLEGWApTkZkNZkR.JPG?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/VXCjCzLEGWApTkZkNZkR.JPG?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/VXCjCzLEGWApTkZkNZkR.JPG?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/VXCjCzLEGWApTkZkNZkR.JPG?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/leenasohoni/">Leena Sohoni</a>
+    </cite>
+    <div class="author__links cluster">
+               
+               
+               
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/addyosmani/"> <img     alt="Addy Osmani"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/addyosmani/">Addy Osmani</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/addyosmani">Twitter</a>
+               <a href="https://github.com/addyosmani">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/egsweeny/"> <img     alt="Elizabeth Sweeny"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/IyB0bE6NGAvhRJkD6wRz.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/IyB0bE6NGAvhRJkD6wRz.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/IyB0bE6NGAvhRJkD6wRz.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/IyB0bE6NGAvhRJkD6wRz.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/IyB0bE6NGAvhRJkD6wRz.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/IyB0bE6NGAvhRJkD6wRz.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/egsweeny/">Elizabeth Sweeny</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/egsweeny">Twitter</a>
+               <a href="https://github.com/egsweeny">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#what's-new">What's new?</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#clear-separation-of-field-and-lab-data">Clear separation of field and lab data</a></li><li class="toc__listitem"><a class="toc__anchor" href="#core-web-vitals-assessment">Core Web Vitals assessment</a></li><li class="toc__listitem"><a class="toc__anchor" href="#labels-for-mobile-and-desktop-performance">Labels for mobile and desktop performance</a></li><li class="toc__listitem"><a class="toc__anchor" href="#origin-summary">Origin Summary</a></li><li class="toc__listitem"><a class="toc__anchor" href="#additional-helpful-information">Additional helpful information</a></li><li class="toc__listitem"><a class="toc__anchor" href="#expand-view">Expand view</a></li><li class="toc__listitem"><a class="toc__anchor" href="#page-image">Page image</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#updates-to-web.devmeasure">Updates to web.dev/measure</a></li><li class="toc__listitem"><a class="toc__anchor" href="#psi-today">PSI today</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#challenges-with-the-current-psi-design">Challenges with the current PSI design</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#learn-more">Learn more</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <p>Over the years, <a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">PageSpeed
+Insights</a> (PSI) has
+evolved into a one-stop source for both
+<a href="https://developers.google.com/web/fundamentals/performance/speed-tools#field_data" rel="noopener">field</a>
+and
+<a href="https://developers.google.com/web/fundamentals/performance/speed-tools#lab_data" rel="noopener">lab data</a>.
+It integrates information from the
+<a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome UX Report</a>
+(CrUX) and <a href="https://developers.google.com/web/tools/lighthouse" rel="noopener">Lighthouse</a>
+diagnostics to provide insights that help improve the performance of your
+website.</p>
+<p>Today, we are excited to announce an updated version of PSI! While it is a
+critical element in our <a href="/vitals-tools/">speed tooling suite</a>,
+the PSI code base was ten years old, contained a lot of legacy code, and was due
+for a redesign. We used this as an opportunity to address interface-related
+issues in PSI which have sometimes made it difficult for users to navigate the
+report. Our primary goals were to:</p>
+<ul>
+<li>Make the UI more intuitive by clearly differentiating between data
+derived from a synthetic environment and data collected from users in the
+field.</li>
+<li>Clearly communicate how the <a href="/vitals/">Core Web Vitals</a> assessment is calculated in the UI.</li>
+<li>Modernize the look and feel of PSI, leveraging <a href="https://material.io/design" rel="noopener">Material Design</a>.</li>
+</ul>
+<p>This post introduces the new features in PSI which will be released later this
+year.</p>
+<h2 id="what's-new">What's new? <a class="w-headline-link" href="#what's-new">#</a></h2>
+<p>The PSI UI redesign aims to improve the presentation of the report data and add
+clarity and granularity to the data available in the report. The new UI is aimed
+to be more intuitive and helps developers quickly discover lab and field
+performance insights for their pages. The fundamental changes to the UI
+include:</p>
+<h3 id="clear-separation-of-field-and-lab-data">Clear separation of field and lab data <a class="w-headline-link" href="#clear-separation-of-field-and-lab-data">#</a></h3>
+<p>We have changed the UI to distinctly separate field data from lab data. Labels
+for &quot;Field Data&quot; and &quot;Lab data&quot; have been replaced with text that indicates what
+the data means and how it can help. We have also brought the Field data section
+to the top. The traditional lab-based performance score, which is currently
+shown at the top, has been moved down to the Lab data section to avoid ambiguity
+about the origin of the score.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>If you don't know the difference between lab and field data, check
+out the <a href="/how-to-measure-speed/">explainer on web.dev</a>.</p>
+</div></aside>
+<figure class="w-figure">
+<img     alt="discover what your real users are experiencing"     class="w-screenshot"     decoding="async"     height="436"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jM0GYMrQZcPymVXdLOLP.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+    Section for field data
+  </figcaption>
+</figure>
+<figure class="w-figure">
+<img     alt="Diagnose performance issues"     class="w-screenshot"     decoding="async"     height="355"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/wQ9RGcJAcBBc4SUDK7Dz.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+    Section for lab data
+  </figcaption>
+</figure>
+<h3 id="core-web-vitals-assessment">Core Web Vitals assessment <a class="w-headline-link" href="#core-web-vitals-assessment">#</a></h3>
+<p>The Core Web Vitals assessment result, which earlier appeared as a single word
+&quot;passed&quot; or &quot;failed&quot; in Field Data, now stands out as a separate subsection with
+a distinct icon.</p>
+<p>Note that there is no change in the assessment process for Core Web Vitals. The
+Core Web Vitals metrics FID, LCP, and CLS, may be aggregated at either the page
+or origin level. For aggregations with sufficient data in all three metrics, the
+aggregation passes the Core Web Vitals assessment if the 75th percentiles of all
+three metrics are Good. Otherwise, the aggregation does not pass the assessment.
+If the aggregation has insufficient FID data, it will pass the assessment if
+both the 75th percentiles of LCP and CLS are Good. If either LCP or CLS has
+insufficient data, the page or origin-level aggregation cannot be assessed.</p>
+<h3 id="labels-for-mobile-and-desktop-performance">Labels for mobile and desktop performance <a class="w-headline-link" href="#labels-for-mobile-and-desktop-performance">#</a></h3>
+<p>We changed the navigation menu at the top and included links for mobile and
+desktop centrally on the report page. The links are now easily visible and
+distinctly indicate the platform for which the data is being shown. Doing this
+also helped make the navigation bar cleaner.</p>
+<figure class="w-figure">
+  <img     alt="Older (at the time of writing) version of PageSpeed Insights"     class="w-screenshot"     decoding="async"     height="97"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/hEv5XuTeVV98Z3AS59bQ.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+    PSI mobile and desktop labels before
+  </figcaption>
+</figure>
+<figure class="w-figure">
+  <img     alt="Newer version of the navigation bar"     class="w-screenshot"     decoding="async"     height="149"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/vi5j7ouZtmWwqN9BRsUD.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+        PSI mobile and desktop labels after
+  </figcaption>
+</figure>
+<h3 id="origin-summary">Origin Summary <a class="w-headline-link" href="#origin-summary">#</a></h3>
+<p>The Origin Summary, which provides the aggregated CrUX score for all pages from
+the origin, currently appears on click of a checkbox. We have moved this report
+section to a new tab, &quot;Origin&quot;, under the Field Data section.</p>
+<img     alt="Origin summary for the new PageSpeed Insights refresh."     class="w-screenshot"     decoding="async"     height="381"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/5Kn5meWq0sWwCLT69lMb.png?auto=format&w=1600 1600w"          width="800"   />
+<h3 id="additional-helpful-information">Additional helpful information <a class="w-headline-link" href="#additional-helpful-information">#</a></h3>
+<p>The report now includes a new information section at the bottom of each field
+and lab card sharing the following details about the sampled data:</p>
+<ul>
+<li>Data collection period</li>
+<li>Visit durations</li>
+<li>Devices</li>
+<li>Network connections</li>
+<li>Sample size</li>
+<li>Chrome versions</li>
+</ul>
+<p>This information should enhance the distinction between lab and field data and
+help users who have previously been uncertain how the two data sources (lab and
+field) might differ.</p>
+<img     alt="Enhanced section of information sharing data about field and lab sampling and configuration data"     class="w-screenshot"     decoding="async"     height="368"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/jVxqisC0x6I5viUGgjAD.png?auto=format&w=1600 1600w"          width="800"   />
+<h3 id="expand-view">Expand view <a class="w-headline-link" href="#expand-view">#</a></h3>
+<p>We have a new &quot;Expand view&quot; feature that adds a drill-down function to the field
+data section and allows you to view granular details for the Core Web Vitals
+metrics.</p>
+<img     alt="Newly expanded view with a drill-down for field data metrics."          decoding="async"     height="515"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/UFVgoK1gJBYk5DLhFwIn.png?auto=format&w=1600 1600w"          width="800"   />
+<h3 id="page-image">Page image <a class="w-headline-link" href="#page-image">#</a></h3>
+<p>We have removed the image of the loaded page, which appears right next to the
+field data. The image and thumbnails of the page displaying the loading sequence
+will both be available in the lab data section.</p>
+<img     alt="Loaded page image next to the lab data."     class="w-screenshot"     decoding="async"     height="444"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/dnIsJA35tj7vs6qgybRM.png?auto=format&w=1600 1600w"          width="800"   />
+<p>For up to date product documentation, visit
+<a href="https://developers.google.com/speed/docs/insights/v5/about" rel="noopener">https://developers.google.com/speed/docs/insights/.</a></p>
+<h2 id="updates-to-web.devmeasure">Updates to web.dev/measure <a class="w-headline-link" href="#updates-to-web.devmeasure">#</a></h2>
+<p>To reduce inconsistency between the different tools in our performance toolbox,
+we are also updating <a href="/measure">web.dev/measure</a> to be directly powered by the <a href="https://developers.google.com/speed/docs/insights/v5/get-started" rel="noopener">PageSpeed Insights API</a>.</p>
+<p>Previously, developers would run reports via both the PSI tool and /measure
+and see different Lighthouse numbers. One of the main reasons for differences
+was because /measure originated all tests from the U.S. (due to it previously
+having a cloud backend that was US-based).</p>
+<p>With /measure calling the same API directly as the PSI UI, developers will get
+a more consistent experience when using PSI and /measure. We have also made
+a few tweaks to /measure based on how users use the tool. This means that the
+signed-in experience for /measure will be going away, but the most used
+functionality—seeing multiple categories—will still be available for use.</p>
+<figure class="w-figure">
+  <img     alt="The old version of the measure page."     class="w-screenshot"     decoding="async"     height="377"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/KFZmLMU2iSxkPDph7FTV.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+    web.dev/measure before
+  </figcaption>
+</figure>
+<figure class="w-figure">
+  <img     alt="The refreshed version of the measure tool focusing on offering page quality measurement."     class="w-screenshot"     decoding="async"     height="696"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/C04zQEkxtSQqPEQedNN7.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+    web.dev/measure after
+  </figcaption>
+</figure>
+<h2 id="psi-today">PSI today <a class="w-headline-link" href="#psi-today">#</a></h2>
+<p>Taking a step back, let's look at what the current PageSpeed Insights report
+offers. The PSI report includes performance data for both mobile and desktop
+devices in individual tabs and suggests how you may improve a page. The key
+components of the report in each case are similar and consist of the
+following:</p>
+<p><strong>Performance Score:</strong> The performance score appears at the top of the PSI
+report and summarizes the overall page performance. This score is determined by
+running <a href="https://developers.google.com/web/tools/lighthouse" rel="noopener">Lighthouse</a> to
+collect and analyze <a href="https://developers.google.com/speed/docs/insights/v5/about#lab" rel="noopener">lab
+data</a> about the
+page. A score of 90 or above is considered good, 50-90 needs improvement, and
+below 50 is poor.</p>
+<p><strong>Field Data:</strong> Field data, sourced from the
+<a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">CrUX report</a>
+dataset, provides insights into the real-world user experience. The data
+includes metrics such as <a href="/fcp/">First Contentful Paint</a> (FCP),
+and measures Core Web Vitals  (<a href="/fid/">First Input Delay</a> (FID),
+<a href="/lcp/">Largest Contentful Paint</a> (LCP), and <a href="/cls/">Cumulative Layout
+Shift</a> (CLS). Along with the metric values, you can also
+see the distribution of pages where the value of a particular metric was Good,
+Needs Improvement, or Poor, indicated by green, amber, and red bars,
+respectively. The distribution and scores are shown based on page loads for
+users in the CrUX dataset. Scores are calculated for the last 28 days and are
+not available for new pages where sufficient real-user data may not be
+available.</p>
+<img     alt="breakdown of different sections of data in the current PageSpeed Insight report"     class="w-screenshot"     decoding="async"     height="497"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/A7xrSBFuqf9puSgBJH4l.png?auto=format&w=1600 1600w"          width="800"   />
+<p><strong>Origin Summary:</strong> Users can click on the <em>Show Origin Summary</em> checkbox to
+view the aggregated score for the metrics for all pages served from the same
+origin over the last 28 days.</p>
+<p><strong>Lab Data:</strong> Lab performance score, calculated using Lighthouse, helps debug
+performance issues, as it is collected in a controlled environment. The report
+shows the performance using metrics like<a href="/fcp/">First Contentful
+Paint</a>, <a href="/lcp/">Largest Contentful Paint</a>,
+<a href="/speed-index/">Speed Index</a>, <a href="/cls/">Cumulative Layout
+Shift</a>, <a href="/interactive/">Time to
+Interactive</a>, and <a href="/tbt/">Total Blocking
+Time</a>. Each metric is
+<a href="/performance-scoring/">scored</a> and labeled with an icon
+indicating Good, Needs improvement, or Poor. This section provides a good
+indication of performance bottlenecks pre-release and can help to diagnose
+problems, but may not capture real-world issues.</p>
+<p><strong>Audits:</strong> This section lists all the audits run by Lighthouse and lists down
+the passed audits along with opportunities for improvement and additional
+diagnostic information.</p>
+<h3 id="challenges-with-the-current-psi-design">Challenges with the current PSI design <a class="w-headline-link" href="#challenges-with-the-current-psi-design">#</a></h3>
+<p>As seen in the screenshot above, the different data points from lab and field
+data are not isolated clearly, and developers who are new to PSI may not easily
+understand the context of the data and what to do next. This confusion has
+resulted in many &quot;How to&quot; blog posts on deciphering the PSI report.</p>
+<p>With the redesign, we hope to make interpreting the report easier for developers
+so that they move quickly from generating the PSI report to acting upon the
+insights included in it.</p>
+<h2 id="learn-more">Learn more <a class="w-headline-link" href="#learn-more">#</a></h2>
+<p>For more details on performance tooling updates, watch the keynote for <a href="https://developer.chrome.com/devsummit/schedule/keynote/" rel="noopener">Chrome
+Dev Summit 2021</a>.
+We will keep you posted on the release date for PSI and the changes to web.dev/measure.</p>
+<p><em>With thanks to Milica Mihajlija, Philip Walton, Brendan Kenny and
+Ewa Gasperowicz for their feedback on this article</em></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/performance/">Performance</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/web-vitals/">Web Vitals</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/lighthouse/">Lighthouse</a>
+          
+        
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Nov 3, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/blog/whats-new-pagespeed-insights/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="Leena Sohoni | @addyosmani | @egsweeny"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

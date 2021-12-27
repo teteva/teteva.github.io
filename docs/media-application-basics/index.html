@@ -1,0 +1,746 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=f5f06f6f38aad">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Media application basics</title>
+<meta name="description" content="Working with media often requires changing the characteristics of media files. On this page, you'll learn about the tools used and how to install them quickly. " />
+
+<link rel="canonical" href="https://web.dev/media-application-basics/" />
+
+<meta itemprop="name" content="Media application basics" />
+<meta itemprop="description" content="Working with media often requires changing the characteristics of media files. On this page, you'll learn about the tools used and how to install them quickly. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/media-application-basics/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Media application basics" />
+<meta property="og:description" content="Working with media often requires changing the characteristics of media files. On this page, you'll learn about the tools used and how to install them quickly. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="media" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Media application basics" />
+<meta name="twitter:description" content="Working with media often requires changing the characteristics of media files. On this page, you'll learn about the tools used and how to install them quickly. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=1cdbbe0f6818a', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=3ba6b7a51a24a', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#media-application-basics" class="w-toc__header--link">
+        Media application basics
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#shaka-packager">Shaka Packager</a></li><li><a href="#ffmpeg">FFmpeg</a></li><li><a href="#installing-applications-with-docker">Installing applications with Docker</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@medleyjp | @derekherman"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Share</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="media-application-basics" class="w-article-header__headline">Media application basics</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Jun 9, 2017</time>
+           <span class="w-author__separator">•</span> Updated <time>Aug 30, 2021</time> 
+        </div>
+      
+
+      
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/media"
+          >Media</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/joemedley/"><img     alt="Joe Medley"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ynJFmvKEbD9diZZsTdkD.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ynJFmvKEbD9diZZsTdkD.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ynJFmvKEbD9diZZsTdkD.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ynJFmvKEbD9diZZsTdkD.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ynJFmvKEbD9diZZsTdkD.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ynJFmvKEbD9diZZsTdkD.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/joemedley/">Joe Medley</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/medleyjp"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/jpmedley">GitHub</a>
+      </li>
+      
+      
+    </ul>
+  </div>
+</div>
+          
+            <div class="w-author">
+  <a href="/authors/derekherman/"><img     alt="Derek Herman"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/derekherman/">Derek Herman</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/derekherman"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/derekherman">GitHub</a>
+      </li>
+      
+      
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <p>Working with media often requires changing the characteristics of media files,
+such as bitrate or resolution. Finding a straightforward way to get started can
+be pretty intimidating. On this page, you will learn about the tools used and how
+to install them quickly.</p>
+<p>First, we describe the basic usage for two common command-line media utilities:
+<a href="https://github.com/google/shaka-packager" rel="noopener">Shaka Packager</a> and <a href="https://ffmpeg.org/download.html" rel="noopener">FFmpeg</a> and then we help you quickly get the tools installed.
+Why cover two applications? While both are powerful and useful by themselves,
+neither does everything needed to prepare media for the web. We also created the
+<a href="/media-conversion/">Media conversion</a> and <a href="/media-encryption/">Media encryption</a>
+pages which show many more common operations with these two applications.</p>
+<p>These applications aren't the only options available for file manipulation tasks,
+but they are two of the most common and powerful. Other options include the GUI
+applications <a href="http://www.mirovideoconverter.com/" rel="noopener">Miro</a>, <a href="https://handbrake.fr/" rel="noopener">HandBrake</a>, and <a href="https://www.videolan.org/" rel="noopener">VLC</a>. There are also encoding/transcoding
+services such as <a href="https://en.wikipedia.org/wiki/Zencoder" rel="noopener">Zencoder</a>, <a href="https://aws.amazon.com/elastictranscoder" rel="noopener">Amazon Elastic Encoder</a>, and <a href="https://cloud.google.com/transcoder/docs" rel="noopener">Google Transcoder API</a>
+(currently in beta).</p>
+<div class="w-aside w-aside--note">
+<p>You'll notice in what follows that the word 'resolution' doesn't appear. What
+the two applications output are just the dimensions; the numbers themselves.
+That's because resolution is just an informal shorthand for the dimensions of a
+video. In every case that follows, We talk about specific numbers.</p>
+</div>
+<h2 id="shaka-packager">Shaka Packager <a class="w-headline-link" href="#shaka-packager">#</a></h2>
+<p><a href="https://github.com/google/shaka-packager" rel="noopener">Shaka Packager</a> is a free media packaging SDK. If you were using a media player
+on your site, Shaka Packager is what you would use to prepare the files. It
+supports conversion for the two most common video streaming protocols: Dynamic
+Adaptive Streaming over HTTP (<a href="https://developer.mozilla.org/docs/Web/HTML/DASH_Adaptive_Streaming_for_HTML_5_Video" rel="noopener">DASH</a>) or HTTP Live Streaming (<a href="https://developer.apple.com/documentation/http_live_streaming" rel="noopener">HLS</a>). Shaka
+Packager supports key security features: common encryption and Widevine digital
+rights management (DRM). It can also handle live-streaming, and video-on-demand.</p>
+<p>Despite what it says on the package, this utility is for more than C++
+developers. You can use it as both a library for building media software and as
+a command-line utility for preparing media files for web playback. It's the
+latter capacity that's useful for us here. In fact, for web media creators,
+Shaka Packager is the only way to do some tasks without spending money on
+expensive commercial applications.</p>
+<p>Here's the basic pattern for a Shaka Packager command:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash">packager stream_descriptor <span class="token punctuation">[</span>stream_descriptor-2 <span class="token punctuation">[</span>stream_descriptor-n<span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token punctuation">[</span>flags<span class="token punctuation">]</span></code></pre>
+</web-copy-code><p>This isn't quite what you get if you type <code>packager -help</code>. This example is
+easier to reason about, and this reflects the examples in the
+<a href="https://google.github.io/shaka-packager/html/" rel="noopener">Shaka Packager documentation</a>. Note that there are multiple <code>stream_descriptor</code>
+items in the pattern. Though we don't show it, you could manipulate the video
+and audio streams of a file separately in a single command.</p>
+<p>Compare this basic pattern with a simple use that displays file characteristics.
+In the example, We've lined up equivalent parts.</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash">packager stream_descriptor <span class="token punctuation">[</span>stream_descriptor-n<span class="token punctuation">]</span> <span class="token punctuation">[</span>flags<span class="token punctuation">]</span><br><br>packager <span class="token assign-left variable">input</span><span class="token operator">=</span>glocken.mp4                       --dump_stream_info</code></pre>
+</web-copy-code><p>The command outputs this:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash">File <span class="token string">"glocken.mp4"</span><span class="token builtin class-name">:</span><br>Found <span class="token number">2</span> stream<span class="token punctuation">(</span>s<span class="token punctuation">)</span>.<br>Stream <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> type: Video<br> codec_string: avc1.640028<br> time_scale: <span class="token number">30000</span><br> duration: <span class="token number">300300</span> <span class="token punctuation">(</span><span class="token number">10.0</span> seconds<span class="token punctuation">)</span><br> is_encrypted: <span class="token boolean">false</span><br> codec: H264<br> width: <span class="token number">1920</span><br> height: <span class="token number">1080</span><br> pixel_aspect_ratio: <span class="token number">1</span>:1<br> trick_play_factor: <span class="token number">0</span><br> nalu_length_size: <span class="token number">4</span><br><br>Stream <span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> type: Audio<br> codec_string: mp4a.40.2<br> time_scale: <span class="token number">48000</span><br> duration: <span class="token number">481280</span> <span class="token punctuation">(</span><span class="token number">10.0</span> seconds<span class="token punctuation">)</span><br> is_encrypted: <span class="token boolean">false</span><br> codec: AAC<br> sample_bits: <span class="token number">16</span><br> num_channels: <span class="token number">2</span><br> sampling_frequency: <span class="token number">48000</span><br> language: eng<br> seek_preroll_ns: <span class="token number">20833</span></code></pre>
+</web-copy-code><p>Look for the characteristics discussed in <a href="/media-file-basics/">Media file basics</a>
+and notice a few things. The height and width are correct for full HD, and the
+audio and video codecs are among the preferred codecs for their container types,
+AAC for audio and H264 for video. Notice also that streams are identified with
+numbers. These are useful for operations that manipulate the audio and video
+separately.</p>
+<p>Notice that the output above doesn't show the bitrate. Despite what's missing,
+this output is easier to read, so we use it whenever we can. When we need
+information that Shaka Packager can't get, such as the bitrate, we use FFmpeg.</p>
+<h2 id="ffmpeg">FFmpeg <a class="w-headline-link" href="#ffmpeg">#</a></h2>
+<p><a href="https://ffmpeg.org/download.html" rel="noopener">FFmpeg</a> is also a free application for recording, converting, and streaming
+media files. Its capabilities aren't better or worse than Shaka Packager's.
+They're just different.</p>
+<p>The basic pattern for an FFmpeg command looks like this:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash">ffmpeg <span class="token punctuation">[</span>GeneralOptions<span class="token punctuation">]</span> <span class="token punctuation">[</span>InputFileOptions<span class="token punctuation">]</span> -i input <span class="token punctuation">[</span>OutputFileOptions<span class="token punctuation">]</span> output</code></pre>
+</web-copy-code><p>Like Shaka Packager this application can handle multiple streams. Some of its
+options are used in multiple locations and manipulate the file output differently
+depending on where they are in the command. Be aware of this as you
+look at <a href="https://stackoverflow.com/questions/tagged/ffmpeg" rel="noopener">FFmpeg questions on Stack Overflow</a> and similar sites.</p>
+<p>We'll again compare the basic pattern to the example for displaying file
+characteristics.</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash">    ffmpeg <span class="token punctuation">[</span>GeneralOptions<span class="token punctuation">]</span> <span class="token punctuation">[</span>InputFileOptions<span class="token punctuation">]</span> -i input        <span class="token punctuation">[</span>OutputFileOptions<span class="token punctuation">]</span> output<br><br>    ffmpeg                                     -i glocken.mp4</code></pre>
+</web-copy-code><p>In addition to the information we requested, this also prints an error message
+as shown in the example below. That's because this is technically an incorrect
+usage of FFmpeg. We use it because it displays information we care about.</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash">Input <span class="token comment">#0, mov,mp4,m4a,3gp,3g2,mj2, from 'glocken.mp4':</span><br>  Metadata:<br>    major_brand     <span class="token builtin class-name">:</span> isom<br>    minor_version   <span class="token builtin class-name">:</span> <span class="token number">512</span><br>    compatible_brands: isomiso2avc1mp41<br>    encoder         <span class="token builtin class-name">:</span> Lavf58.17.100<br>  Duration: 00:01:47.53, start: <span class="token number">0.000000</span>, bitrate: <span class="token number">10715</span> kb/s<br>    Stream <span class="token comment">#0:0(eng): Video: h264 (High) (avc1 / 0x31637661), yuvj420p(pc), 1920x1080, 10579 kb/s, 29.97 fps, 29.97 tbr, 30k tbn, 59.94 tbc (default)</span><br>    Metadata:<br>      handler_name    <span class="token builtin class-name">:</span> VideoHandler<br>    Stream <span class="token comment">#0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 128 kb/s (default)</span><br>    Metadata:<br>      handler_name    <span class="token builtin class-name">:</span> SoundHandler<br>At least one output <span class="token function">file</span> must be specified</code></pre>
+</web-copy-code><h2 id="installing-applications-with-docker">Installing applications with Docker <a class="w-headline-link" href="#installing-applications-with-docker">#</a></h2>
+<p>If you plan to follow along and try our commands you could either install the
+required tools manually, or take the easy path and use <a href="https://www.docker.com/whatisdocker" rel="noopener">Docker</a>. We suggest using
+Docker, because this is going to save you a lot of time. On top of that we've
+provided the instructions to get you set up quickly.</p>
+<ol>
+<li>
+<p>Start by creating a new directory somewhere on your computer named <code>media-tools</code>;
+you can use whatever name you like, just note that the following instructions
+assume you are using <code>media-tools</code> as the directory name.</p>
+</li>
+<li>
+<p>Create a <code>docker</code> and <code>media</code> directory inside of <code>media-tools</code>.
+This will keep your <code>media</code> directory out of the build context. This is important
+because <code>media</code> is where files are stored that we plan to do operations on, and
+some of them could be quite large. Putting the <code>Dockerfile</code> directly in
+<code>media-tools</code> would slow down building the image if you ever rebuild it down the
+road—perhaps to change the versions installed.</p>
+</li>
+<li>
+<p>Create <code>/media-tools/docker/Dockerfile</code>, and add the following build instructions:</p>
+<web-copy-code><pre class="language-dockerfile"><code class="language-dockerfile"><span class="token instruction"><span class="token keyword">FROM</span> google/shaka-packager:release-v2.4.3 <span class="token keyword">as</span> packager</span><br><span class="token instruction"><span class="token keyword">FROM</span> jrottenberg/ffmpeg:4.3.2-alpine38</span><br><span class="token instruction"><span class="token keyword">COPY</span> <span class="token options"><span class="token property">--from</span><span class="token punctuation">=</span><span class="token string">packager</span></span> /usr/bin /usr/bin</span><br><span class="token instruction"><span class="token keyword">ENTRYPOINT</span>  [<span class="token string">"sh"</span>]</span></code></pre>
+</web-copy-code></li>
+<li>
+<p>Build the image:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash">docker build -t media-tools ./docker</code></pre>
+</web-copy-code></li>
+<li>
+<p>Run the image as an interactive shell. On Linux:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash">docker run -w /media -v <span class="token variable">${<span class="token environment constant">PWD</span>}</span>/media:/media -it --rm media-tools<br>/media <span class="token comment">#</span></code></pre>
+</web-copy-code><p>On Windows:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash">docker run -w /media -v %cd%/media:/media -it --rm media-tools<br>/media <span class="token comment">#</span></code></pre>
+</web-copy-code></li>
+</ol>
+<div class="w-aside w-aside--gotchas"><strong>Gotchas!</strong>
+<p>Make sure you run the previous <code>docker</code> commands from inside the <code>media-tools</code>
+directory.</p>
+</div>
+<p>While running the image you can check versions for both FFmpeg and Shaka Packager
+to validate everything was successful by running <code>ffmpeg -version</code> and
+<code>packager --version</code>. The output should look like this:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash">/media <span class="token comment"># ffmpeg -version</span><br>ffmpeg version <span class="token number">4.3</span>.2 Copyright <span class="token punctuation">(</span>c<span class="token punctuation">)</span> <span class="token number">2000</span>-2021 the FFmpeg developers<br>built with gcc <span class="token number">6.4</span>.0 <span class="token punctuation">(</span>Alpine <span class="token number">6.4</span>.0<span class="token punctuation">)</span><br>configuration: --disable-debug --disable-doc --disable-ffplay --enable-shared --enable-avresample --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-gpl --enable-libass --enable-fontconfig --enable-libfreetype --enable-libvidstab --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libxcb --enable-libx265 --enable-libxvid --enable-libx264 --enable-nonfree --enable-openssl --enable-libfdk_aac --enable-postproc --enable-small --enable-version3 --enable-libbluray --enable-libzmq --extra-libs<span class="token operator">=</span>-ldl --prefix<span class="token operator">=</span>/opt/ffmpeg --enable-libopenjpeg --enable-libkvazaar --enable-libaom --extra-libs<span class="token operator">=</span>-lpthread --enable-libsrt --enable-libaribb24 --extra-cflags<span class="token operator">=</span>-I/opt/ffmpeg/include --extra-ldflags<span class="token operator">=</span>-L/opt/ffmpeg/lib<br>libavutil      <span class="token number">56</span>. <span class="token number">51.100</span> / <span class="token number">56</span>. <span class="token number">51.100</span><br>libavcodec     <span class="token number">58</span>. <span class="token number">91.100</span> / <span class="token number">58</span>. <span class="token number">91.100</span><br>libavformat    <span class="token number">58</span>. <span class="token number">45.100</span> / <span class="token number">58</span>. <span class="token number">45.100</span><br>libavdevice    <span class="token number">58</span>. <span class="token number">10.100</span> / <span class="token number">58</span>. <span class="token number">10.100</span><br>libavfilter     <span class="token number">7</span>. <span class="token number">85.100</span> /  <span class="token number">7</span>. <span class="token number">85.100</span><br>libavresample   <span class="token number">4</span>.  <span class="token number">0</span>.  <span class="token number">0</span> /  <span class="token number">4</span>.  <span class="token number">0</span>.  <span class="token number">0</span><br>libswscale      <span class="token number">5</span>.  <span class="token number">7.100</span> /  <span class="token number">5</span>.  <span class="token number">7.100</span><br>libswresample   <span class="token number">3</span>.  <span class="token number">7.100</span> /  <span class="token number">3</span>.  <span class="token number">7.100</span><br>libpostproc    <span class="token number">55</span>.  <span class="token number">7.100</span> / <span class="token number">55</span>.  <span class="token number">7.100</span></code></pre>
+</web-copy-code><web-copy-code><pre class="language-bash"><code class="language-bash">/media <span class="token comment"># packager --version</span><br>packager version v2.4.3-dd9870075f-release</code></pre>
+</web-copy-code><p>Now that you've tried your hand at using Shaka Packager and FFmpeg, you can continue
+learning the basic concepts, next up <a href="/media-streaming-basics/">Media streaming basics</a>.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/media/">Media</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Aug 30, 2021</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/media/media-application-basics/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/media"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

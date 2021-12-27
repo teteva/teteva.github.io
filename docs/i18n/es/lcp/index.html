@@ -1,0 +1,782 @@
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=33dc3c82a0946">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Largest Contentful Paint (LCP)</title>
+<meta name="description" content="Esta publicación presenta la métrica de Largest Contentful Paint (LCP) y explica como medirla" />
+
+<link rel="canonical" href="https://web.dev/i18n/es/lcp/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/lcp/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/lcp/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/lcp/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/lcp/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/lcp/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/lcp/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/lcp/" />
+<meta itemprop="name" content="Largest Contentful Paint (LCP)" />
+<meta itemprop="description" content="Esta publicación presenta la métrica de Largest Contentful Paint (LCP) y explica como medirla" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="es_ALL" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/es/lcp/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Largest Contentful Paint (LCP)" />
+<meta property="og:description" content="Esta publicación presenta la métrica de Largest Contentful Paint (LCP) y explica como medirla" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="metrics" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Largest Contentful Paint (LCP)" />
+<meta name="twitter:description" content="Esta publicación presenta la métrica de Largest Contentful Paint (LCP) y explica como medirla" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=009af0497bbbe', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=705cc6863427d', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Abrir menú">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Abrir menú</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Aprender
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Medir
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Cerrar"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Cerrar</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Aprender
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Medir
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#largest-contentful-paint-(lcp)" class="w-toc__header--link">
+        Largest Contentful Paint (LCP)
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#que-es-lcp">¿Qué es LCP?</a><ol><li><a href="#que-es-una-buena-puntuacion-lcp">¿Qué es una buena puntuación LCP?</a></li><li><a href="#que-elementos-se-consideran">¿Qué elementos se consideran?</a></li><li><a href="#como-se-determina-el-tamano-de-un-elemento">¿Cómo se determina el tamaño de un elemento?</a></li><li><a href="#cuando-se-reporta-largest-contentful-pain">¿Cuándo se reporta largest contentful pain?</a></li><li><a href="#como-se-manejan-los-cambios-de-tamano-y-diseno-de-los-elementos">¿Cómo se manejan los cambios de tamaño y diseño de los elementos?</a></li><li><a href="#ejemplos">Ejemplos</a></li></ol></li><li><a href="#como-medir-lcp">Cómo medir LCP</a><ol><li><a href="#herramientas-de-campo">Herramientas de campo</a></li><li><a href="#herramientas-de-laboratorio">Herramientas de laboratorio</a></li><li><a href="#como-medir-lcp-en-javascript">Cómo medir LCP en JavaScript</a></li><li><a href="#que-sucede-si-el-elemento-mas-extenso-no-es-el-mas-importante">¿Qué sucede si el elemento más extenso no es el más importante?</a></li></ol></li><li><a href="#como-mejorar-lcp">Cómo mejorar LCP</a></li><li><a href="#recursos-adicionales">Recursos adicionales</a></li><li><a href="#changelog">CHANGELOG</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@philwalton"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Compartir</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="largest-contentful-paint-(lcp)" class="w-article-header__headline">Largest Contentful Paint (LCP)</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Aug 8, 2019</time>
+           <span class="w-author__separator">•</span> Actualizado <time>Jun 17, 2020</time> 
+        </div>
+      
+
+      
+      
+      <div class="w-layout-container--narrow w-post-signpost">
+        <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/lcp/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/lcp/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/lcp/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/lcp/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/lcp/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/lcp/">
+      English</a></span>
+      </div>
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        ><span class="w-post-signpost__divider">|</span><a
+          class="w-post-signpost__link"
+          href="/metrics"
+          >Métricas</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/philipwalton/"><img     alt="Philip Walton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/philipwalton/">Philip Walton</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/philwalton"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/philipwalton">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://philipwalton.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <div class="w-aside w-aside--note">
+<p>La métrica Largest Contentful Paint: Despliegue del contenido más extenso (LCP) es una métrica importante centrada en el usuario para medir <a href="/user-centric-performance-metrics/#types-of-metrics">la velocidad de carga percibida</a> porque marca el punto en la línea de tiempo de carga de la página cuando es probable que el contenido principal de la página se haya cargado. Un LCP rápido ayuda a asegurar al usuario que el la página sea <a href="/user-centric-performance-metrics/#questions">útil</a>. </div></p>
+<p>Históricamente, ha sido un desafío para los desarrolladores web medir qué tan rápido se carga el contenido principal de una página web y es visible para los usuarios.</p>
+<p>Las métricas más antiguas como <a href="https://developer.mozilla.org/docs/Web/Events/load" rel="noopener">load: carga</a> o <a href="https://developer.mozilla.org/docs/Web/Events/DOMContentLoaded" rel="noopener">DOMContentLoaded</a> no son buenas porque no corresponden necesariamente con lo que el usuario ve en su pantalla. Y las métricas de rendimiento más nuevas y centradas en el usuario, como <a href="/fcp/">First Contentful Paint (FCP),</a> solo capturan el comienzo de la experiencia de carga. Si una página muestra una pantalla de bienvenida o muestra un indicador de carga, este momento no es muy relevante para el usuario.</p>
+<p>En el pasado, recomendamos métricas de rendimiento como <a href="/first-meaningful-paint/">First Meaningful Paint: Primer despliegue significativo (FMP)</a> y <a href="/speed-index/">Speed Index: Índice de velocidad (SI)</a> (ambas disponibles en Lighthouse) para ayudar a capturar más de la experiencia de carga después del despliegue inicial, pero estas métricas son complejas y difíciles de explicar, y a menudo incorrectas, lo que significa que todavía no identifican cuándo se carga el contenido principal de la página.</p>
+<p>A veces, lo más simple es mejor. Según las discusiones del <a href="https://www.w3.org/webperf/" rel="noopener">Grupo de trabajo sobre el rendimiento de la web W3C</a> y la investigación realizada en Google, descubrimos que una forma más precisa de medir cuándo se carga el contenido principal de una página es observar cuándo se renderizó el elemento más grande.</p>
+<h2 id="que-es-lcp">¿Qué es LCP? <a class="w-headline-link" href="#que-es-lcp">#</a></h2>
+<p>La métrica Largest Contentful Paint: Despliegue del contenido más extenso (LCP) reporta el tiempo para renderizar una <a href="#what-elements-are-considered">imagen o el bloque de texto</a> más grande visible dentro de la ventana de visualización, en relación con el momento en que la página <a href="https://w3c.github.io/hr-time/#timeorigin-attribute" rel="noopener">comenzó a cargarse</a>.</p>
+  <picture>
+    <source srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/elqsdYqQEefWJbUM2qMO.svg" media="(min-width: 640px)" width="400", height="100">
+    <img     alt="Los buenos valores de LCP son 2,5 segundos, los valores malos son superiores a 4,0 segundos y cualquier cosa intermedia necesita mejora"     class="w-screenshot w-screenshot--filled width-full"     decoding="async"     height="300"          loading="lazy"          src="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/8ZW8LQsagLih1ZZoOmMR.svg"               width="400"   />
+  </picture>
+<h3 id="que-es-una-buena-puntuacion-lcp">¿Qué es una buena puntuación LCP? <a class="w-headline-link" href="#que-es-una-buena-puntuacion-lcp">#</a></h3>
+<p>Para brindar una buena experiencia de usuario, los sitios deben esforzarse por tener Largest Contentful Paint de <strong>2.5 segundos</strong> o menos. Para asegurarse de que está alcanzando este objetivo para la mayoría de sus usuarios, un buen umbral para medir es el <strong>percentil 75</strong> para cargar páginas, que se segmenta entre dispositivos móviles y equipos de escritorio.</p>
+<div class="w-aside w-aside--note">
+<p>Para obtener más información sobre la investigación y la metodología que está detrás de esta recomendación, consulte: <a href="/defining-core-web-vitals-thresholds/">Definición de los umbrales de las métricas de Core Web Vitals</a> </div></p>
+<h3 id="que-elementos-se-consideran">¿Qué elementos se consideran? <a class="w-headline-link" href="#que-elementos-se-consideran">#</a></h3>
+<p>Como se especifica actualmente en la <a href="https://wicg.github.io/largest-contentful-paint/" rel="noopener">API de Largest Contentful Paint</a>, los tipos de elementos considerados para Largest Contentful Paint son:</p>
+<ul>
+<li><code>&lt;img&gt;</code> elementos</li>
+<li><code>&lt;image&gt;</code> elementos dentro de un elemento <code>&lt;svg&gt;</code></li>
+<li><code>&lt;video&gt;</code> elementos (se utiliza la imagen del cartel)</li>
+<li>Un elemento con una imagen de segundo plano que se carga a través de la función <a href="https://developer.mozilla.org/docs/Web/CSS/url()" rel="noopener"><code>url()</code></a> (a diferencia de un <a href="https://developer.mozilla.org/docs/Web/CSS/CSS_Images/Using_CSS_gradients" rel="noopener">gradiente CSS</a>)</li>
+<li>Elementos a <a href="https://developer.mozilla.org/docs/Web/HTML/Block-level_elements" rel="noopener">nivel de bloque</a> que contienen nodos de texto u otros elementos secundarios de texto con estilos integrados en el código.</li>
+</ul>
+<p>Tenga en cuenta que restringir los elementos a este conjunto limitado fue intencional para mantener las cosas sencillas al principio. Es posible que se agreguen elementos adicionales (por ejemplo, <code>&lt;svg&gt;</code> , <code>&lt;video&gt;</code> ) en el futuro, conforme se realicen más investigaciones.</p>
+<h3 id="como-se-determina-el-tamano-de-un-elemento">¿Cómo se determina el tamaño de un elemento? <a class="w-headline-link" href="#como-se-determina-el-tamano-de-un-elemento">#</a></h3>
+<p>El tamaño del elemento reportado por Largest Contentful Paint normalmente es el tamaño que es visible para el usuario dentro de la ventana de visualización. Si el elemento se extiende fuera de la ventana de visualización, o si alguno de los elementos está recortado o tiene un <a href="https://developer.mozilla.org/docs/Web/CSS/overflow" rel="noopener">desbordamiento</a> no visible, esas porciones no se toman en cuenta en el tamaño del elemento.</p>
+<p>Para los elementos de imagen que cambiaron de tamaño de su <a href="https://developer.mozilla.org/docs/Glossary/Intrinsic_Size" rel="noopener">tamaño intrínseco</a>, el tamaño que se informa es el tamaño visible o el tamaño intrínseco, el que sea menor. Por ejemplo, las imágenes que se reducen a un tamaño mucho más pequeño que su tamaño intrínseco solo informarán el tamaño en el que se muestran, mientras que las imágenes que se estiran o expanden a un tamaño mayor solo informarán sus tamaños intrínsecos.</p>
+<p>Para los elementos de texto, solo se considera el tamaño de sus nodos de texto (el rectángulo más pequeño que abarca todos los nodos de texto).</p>
+<p>Para todos los elementos, no se considera ningún margen, relleno o borde aplicado por medio de CSS.</p>
+<div class="w-aside w-aside--note">
+<p>Determinar qué nodos de texto pertenecen a qué elementos a veces puede ser complicado, especialmente para elementos cuyos elementos secundarios incluyen elementos de estilos integrados en el código y nodos de texto sin formato, pero también elementos a nivel de bloque. El punto clave es que cada nodo de texto pertenece (y solo a) su elemento ancestro de nivel de bloque más cercano. En <a href="https://wicg.github.io/element-timing/#set-of-owned-text-nodes" rel="noopener">términos de especificaciones</a> : cada nodo de texto pertenece al elemento que genera su <a href="https://developer.mozilla.org/docs/Web/CSS/Containing_block" rel="noopener">bloque contenedor</a>. </div></p>
+<h3 id="cuando-se-reporta-largest-contentful-pain">¿Cuándo se reporta largest contentful pain? <a class="w-headline-link" href="#cuando-se-reporta-largest-contentful-pain">#</a></h3>
+<p>Las páginas web a menudo se cargan en etapas y, como resultado, es posible que el elemento más grande de la página cambie.</p>
+<p>Para manejar este potencial de cambio, el navegador envía un <a href="https://developer.mozilla.org/docs/Web/API/PerformanceEntry" rel="noopener"><code>PerformanceEntry</code></a> del tipo <code>largest-contentful-paint</code> que identifica el elemento de contenido más extenso tan pronto como el navegador haya desplegado el primer marco. Pero entonces, después de renderizar los marcos subsiguientes, enviará otra <a href="https://developer.mozilla.org/docs/Web/API/PerformanceEntry" rel="noopener"><code>PerformanceEntry</code></a> cada vez que haya cambios en el elemento de contenido más extenso.</p>
+<p>Por ejemplo, en una página con texto y una imagen hero, el navegador inicialmente puede renderizar solo el texto, en este momento enviará una entrada <code>largest-contentful-paint</code> cuya propiedad <code>element</code> probablemente llamará a un <code>&lt;p&gt;</code> o <code>&lt;h1&gt;</code>. Más adelante, una vez que la imagen hero termine de cargarse, se enviaría una segunda entrada <code>largest-contentful-paint</code> y su propiedad <code>element</code> podría llamar a <code>&lt;img&gt;</code>.</p>
+<p>Es importante tener en cuenta que un elemento solo puede considerarse el elemento de contenido más grande una vez que se haya renderizado y sea visible para el usuario. Las imágenes que aún no se han cargado no se consideran &quot;renderizadas&quot;. Tampoco los nodos de texto utilizan fuentes web durante el <a href="https://developer.mozilla.org/docs/Web/CSS/@font-face/font-display#The_font_display_timeline" rel="noopener">periodo de bloqueo de fuentes</a>. En tales casos, un elemento más pequeño se puede reportar como el elemento de contenido más extenso, pero tan pronto como el elemento más extenso termine de renderizarse, se reportará por medio de otro objeto <code>PerformanceEntry</code>.</p>
+<p>Además de las imágenes y fuentes de carga tardía, una página puede agregar nuevos elementos al DOM conforme el nuevo contenido esté disponible. Si alguno de estos nuevos elementos es más grande que el elemento de contenido más extenso anterior, también se reportará un nuevo <code>PerformanceEntry</code>.</p>
+<p>Si un elemento actualmente tiene el contenido más extenso se elimina de la ventana de visualización (o incluso se elimina del DOM), seguirá siendo el elemento de contenido más extenso a menos que un elemento más extenso se haya renderizado.</p>
+<div class="w-aside w-aside--note">
+<p>Antes de que llegara Chrome 88, los elementos eliminados no se consideraban como elementos de contenido más extensos, y la eliminación del candidato actual provocaba el envío de una nueva entrada <code>largest-contentful-paint</code>. Sin embargo, debido a los populares patrones de interfaz de usuario, como los carruseles de imágenes, que con frecuencia eliminan elementos del DOM, la métrica se actualizó para reflejar con mayor precisión lo que experimentan los usuarios. Consulte el <a href="https://chromium.googlesource.com/chromium/src/+/master/docs/speed/metrics_changelog/2020_11_lcp.md" rel="noopener">CHANGELOG</a> para obtener más información. </div></p>
+<p>El navegador dejará de informar de las nuevas entradas en cuanto el usuario interactúe con la página (al pulsar, desplazar o presionar una tecla), ya que en la interacción el usuario normalmente cambia lo que es visible para él (lo cual es especialmente cierto con el desplazamiento).</p>
+<p>Con fines de análisis, solo debe reportar el último <code>PerformanceEntry</code> enviado a su servicio de análisis.</p>
+<div class="w-aside w-aside--caution">
+<p><strong>Precaución</strong>:  Dado que los usuarios pueden abrir páginas en una pestaña en segundo plano, es posible que el despliegue de contenido más extenso no ocurra hasta que el usuario enfoque la pestaña, lo que puede ser mucho más tarde que cuando la cargó por primera vez. </div></p>
+<h4 id="tiempo-de-carga-vs.tiempo-de-renderizado">Tiempo de carga vs.tiempo de renderizado <a class="w-headline-link" href="#tiempo-de-carga-vs.tiempo-de-renderizado">#</a></h4>
+<p>Por motivos de seguridad, la marca de tiempo para renderizar imágenes no se expone para las imágenes de origen cruzado que carecen del encabezado <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Timing-Allow-Origin" rel="noopener"><code>Timing-Allow-Origin</code></a> En cambio, solo se expone su tiempo de carga (ya que esto ya se expone por medio de muchas otras API web).</p>
+<p>El siguiente <a href="#measure-lcp-in-javascript">ejemplo de uso</a> muestra cómo manejar elementos cuyo tiempo de renderizado no está disponible. Pero, cuando sea posible, siempre se recomienda configurar el <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Timing-Allow-Origin" rel="noopener"><code>Timing-Allow-Origin</code></a>, para que sus métricas sean más precisas.</p>
+<h3 id="como-se-manejan-los-cambios-de-tamano-y-diseno-de-los-elementos">¿Cómo se manejan los cambios de tamaño y diseño de los elementos? <a class="w-headline-link" href="#como-se-manejan-los-cambios-de-tamano-y-diseno-de-los-elementos">#</a></h3>
+<p>Para mantener baja la sobrecarga de rendimiento que calcula y envía nuevas entradas de rendimiento, los cambios en el tamaño o la posición de un elemento no generan nuevos candidatos LCP. Solo se consideran el tamaño y la posición iniciales del elemento en la ventana de visualización.</p>
+<p>Esto significa que las imágenes que inicialmente se renderizan fuera y después pasan a la pantalla posiblemente no se reporten. Además, significa que los elementos renderizados inicialmente en la ventana visualización que luego se desplazan hacia abajo, fuera de la vista, seguirán reportando su tamaño inicial en la ventana de visualización.</p>
+<h3 id="ejemplos">Ejemplos <a class="w-headline-link" href="#ejemplos">#</a></h3>
+<p>A continuación, se muestran algunos ejemplos de situaciones en las que se presenta Largest Contentful Paint en algunos sitios web populares:</p>
+<img     alt="Línea del tiempo de Largest Contentful Paint : Despliegue del contenido más extenso de cnn.com"          decoding="async"     height="311"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=1600 1600w"          width="800"   />
+<img     alt="Línea del tiempo de Largest Contentful Paint : Despliegue del contenido más extenso de techcrunch.com"          decoding="async"     height="311"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=1600 1600w"          width="800"   />
+<p>En las dos líneas de tiempo anteriores, el elemento más extenso cambia conforme se carga el contenido. En el primer ejemplo, se agrega nuevo contenido al DOM y eso cambia el elemento más extenso. En el segundo ejemplo, el diseño cambia y el contenido que antes era el más grande se elimina de la ventana de visualización.</p>
+<p>Si bien a menudo ocurre que el contenido de carga tardía es más grande que el contenido que ya está en la página, ese no es necesariamente el caso. En los dos ejemplos siguientes se muestra que Largest Contentful Paint se presenta antes de que la página se cargue por completo.</p>
+<img     alt="Línea del tiempo de Largest Contentful Paint : Despliegue del contenido más extenso de instagram.com"          decoding="async"     height="311"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=1600 1600w"          width="800"   />
+<img     alt="Línea del tiempo de Largest Contentful Paint : Despliegue del contenido más extenso de google.com"          decoding="async"     height="311"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=1600 1600w"          width="800"   />
+<p>En el primer ejemplo, el logotipo de Instagram se carga relativamente pronto y sigue siendo el elemento más extenso, incluso cuando se muestran progresivamente otros contenidos. En el ejemplo de la página de resultados de búsqueda de Google, el elemento más grande es un párrafo de texto que se muestra antes de que terminen de cargarse las imágenes o el logotipo. Como todas las imágenes individuales son más pequeñas que este párrafo, sigue siendo el elemento más extenso durante todo el proceso de carga.</p>
+<div class="w-aside w-aside--note">
+<p>En el primer marco de la línea de tiempo de Instagram, puede notar que el logotipo de la cámara no tiene un recuadro verde a su alrededor. Esto se debe a que es un elemento <code>&lt;svg&gt;</code>, y los elementos <code>&lt;svg&gt;</code> actualmente no se consideran como candidatos LCP. El primer candidato LCP es el texto del segundo marco. </div></p>
+<h2 id="como-medir-lcp">Cómo medir LCP <a class="w-headline-link" href="#como-medir-lcp">#</a></h2>
+<p>LCP se puede medir <a href="/user-centric-performance-metrics/#in-the-lab">en el laboratorio</a> o <a href="/user-centric-performance-metrics/#in-the-field">en el campo</a> y está disponible en las siguientes herramientas:</p>
+<h3 id="herramientas-de-campo">Herramientas de campo <a class="w-headline-link" href="#herramientas-de-campo">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome User Experience Report</a></li>
+<li><a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">PageSpeed Insights</a></li>
+<li><a href="https://support.google.com/webmasters/answer/9205520" rel="noopener">Search Console (Core Web Vitals Report)</a></li>
+<li><a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">Biblioteca JavaScript <code>web-vitals</code></a></li>
+</ul>
+<h3 id="herramientas-de-laboratorio">Herramientas de laboratorio <a class="w-headline-link" href="#herramientas-de-laboratorio">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-devtools/" rel="noopener">Chrome DevTools</a></li>
+<li><a href="https://developers.google.com/web/tools/lighthouse/" rel="noopener">Lighthouse</a></li>
+<li><a href="https://webpagetest.org/" rel="noopener">WebPageTest</a></li>
+</ul>
+<h3 id="como-medir-lcp-en-javascript">Cómo medir LCP en JavaScript <a class="w-headline-link" href="#como-medir-lcp-en-javascript">#</a></h3>
+<p>Para medir LCP en JavaScript, puede utilizar la <a href="https://wicg.github.io/largest-contentful-paint/" rel="noopener">API de Largest Contentful Paint</a>. En el siguiente ejemplo se muestra cómo crear un <a href="https://developer.mozilla.org/docs/Web/API/PerformanceObserver" rel="noopener"><code>PerformanceObserver</code></a> que capte las entradas de <code>largest-contentful-paint</code> y las registre en la consola.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">new</span> <span class="token class-name">PerformanceObserver</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">entryList</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">const</span> entry <span class="token keyword">of</span> entryList<span class="token punctuation">.</span><span class="token function">getEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'LCP candidate:'</span><span class="token punctuation">,</span> entry<span class="token punctuation">.</span>startTime<span class="token punctuation">,</span> entry<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span><span class="token punctuation">{</span>type<span class="token operator">:</span> <span class="token string">'largest-contentful-paint'</span><span class="token punctuation">,</span> buffered<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><div class="w-aside w-aside--warning">
+<p><strong>Advertencia</strong>:</p>
+<p>En este código se muestra cómo registrar las entradas de <code>largest-contentful-paint</code> en la consola, pero medir LCP en JavaScript es más complicado. Vea a continuación los detalles:</p>
+</div>
+<p>En el ejemplo anterior, cada entrada de <code>largest-contentful-paint</code> registrada representa el candidato LCP actual. En general, el <code>startTime</code> de la última entrada emitida es el valor LCP, sin embargo, no siempre es así. No todas las entradas de <code>largest-contentful-paint</code> son válidas para medir LCP.</p>
+<p>En la siguiente sección se enumeran las diferencias entre lo que reporta la API y cómo se calcula la métrica.</p>
+<h4 id="diferencias-entre-la-metrica-y-la-api">Diferencias entre la métrica y la API <a class="w-headline-link" href="#diferencias-entre-la-metrica-y-la-api">#</a></h4>
+<ul>
+<li>La API enviará <code>largest-contentful-paint</code> a las páginas cargadas en una pestaña de segundo plano, pero esas páginas deben ignorarse al calcular LCP.</li>
+<li>La API continuará enviando <code>largest-contentful-paint</code> después de que una página haya sido puesta en segundo plano, pero esas entradas deben ignorarse al calcular LCP (los elementos solo se pueden considerar si la página estuvo en el primer plano todo el tiempo).</li>
+<li>La API no reporta <code>largest-contentful-paint</code> cuando la página se restaura desde la <a href="/bfcache/#impact-on-core-web-vitals">caché de retroceso/avance</a>, pero LCP debe medirse en estos casos, ya que los usuarios las experimentan como visitas de página distintas.</li>
+<li>La API no considera elementos dentro de iframes, pero para medir correctamente LCP debe considerarlos. Los sub-marcos pueden usar la API para reportar sus <code>largest-contentful-paint</code> con mayor contenido al marco principal para su incorporación.</li>
+</ul>
+<p>En vez de memorizar todas estas diferencias sutiles, los desarrolladores pueden usar la <a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">Biblioteca JavaScript de <code>web-vitals</code></a> para medir LCP, que maneja estas diferencias por usted (cuando sea posible):</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span>getLCP<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'web-vitals'</span><span class="token punctuation">;</span><br><br><span class="token comment">// Measure and log LCP as soon as it's available.</span><br><span class="token function">getLCP</span><span class="token punctuation">(</span>console<span class="token punctuation">.</span>log<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>Puede consultar <a href="https://github.com/GoogleChrome/web-vitals/blob/master/src/getLCP.ts" rel="noopener">el código fuente de <code>getLCP()</code></a> para obtener un ejemplo completo de cómo medir LCP en JavaScript.</p>
+<div class="w-aside w-aside--note">
+<p>En algunos casos (como los iframes de origen cruzado) no es posible medir LCP en JavaScript. Consulte la sección de <a href="https://github.com/GoogleChrome/web-vitals#limitations" rel="noopener">limitaciones</a> <code>web-vitals</code> para obtener más información. </div></p>
+<h3 id="que-sucede-si-el-elemento-mas-extenso-no-es-el-mas-importante">¿Qué sucede si el elemento más extenso no es el más importante? <a class="w-headline-link" href="#que-sucede-si-el-elemento-mas-extenso-no-es-el-mas-importante">#</a></h3>
+<p>En algunos casos, el elemento (o elementos) más importantes de la página no es el mismo que el elemento más extenso, y los desarrolladores pueden estar más interesados en medir los tiempos de renderizado de estos otros elementos. Esto es posible utilizando la <a href="https://wicg.github.io/element-timing/" rel="noopener">API Element Timing</a>, como se describe en el artículo sobre las <a href="/custom-metrics/#element-timing-api">métricas personalizadas</a>.</p>
+<h2 id="como-mejorar-lcp">Cómo mejorar LCP <a class="w-headline-link" href="#como-mejorar-lcp">#</a></h2>
+<p>LCP se ve afectado principalmente por cuatro factores:</p>
+<ul>
+<li>Tiempos de respuesta lentos del servidor</li>
+<li>JavaScript y CSS bloquean la renderización</li>
+<li>Tiempos de carga de recursos</li>
+<li>Renderización del lado del cliente</li>
+</ul>
+<p>Para profundizar en cómo mejorar LCP, consulte <a href="/optimize-lcp/">Optimizar LCP</a>. Para obtener orientación adicional sobre las técnicas de rendimiento individual que también pueden mejorar LCP, consulte:</p>
+<ul>
+<li><a href="/apply-instant-loading-with-prpl">Aplicar carga instantánea con el patrón PRPL</a></li>
+<li><a href="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/" rel="noopener">Optimización de la ruta de renderización crítica</a></li>
+<li><a href="/fast#optimize-your-css">Optimizar su CSS</a></li>
+<li><a href="/fast#optimize-your-images">Optimizar sus imágenes</a></li>
+<li><a href="/fast#optimize-web-fonts">Optimizar las fuentes web</a></li>
+<li><a href="/fast#optimize-your-javascript">Optimice su JavaScript</a> (para sitios renderizados por el cliente)</li>
+</ul>
+<h2 id="recursos-adicionales">Recursos adicionales <a class="w-headline-link" href="#recursos-adicionales">#</a></h2>
+<ul>
+<li><a href="https://youtu.be/ctavZT87syI" rel="noopener">Lecciones aprendidas de la supervisión del rendimiento en Chrome</a> por <a href="https://anniesullie.com/" rel="noopener">Annie Sullivan</a> en <a href="https://perfnow.nl/" rel="noopener">performance.now ()</a> (2019)</li>
+</ul>
+<h2 id="changelog">CHANGELOG <a class="w-headline-link" href="#changelog">#</a></h2>
+<p>Occasionally, bugs are discovered in the APIs used to measure metrics, and
+sometimes in the definitions of the metrics themselves. As a result, changes
+must sometimes be made, and these changes can show up as improvements or
+regressions in your internal reports and dashboards.</p>
+<p>To help you manage this, all changes to either the implementation or definition
+of these metrics will be surfaced in this
+<a href="http://bit.ly/chrome-speed-metrics-changelog" rel="noopener">CHANGELOG</a>.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">Rendimiento</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/metrics/">Métricas</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Última actualización: <time>Jun 17, 2020</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/es/metrics/lcp/index.md"
+      >
+        Mejorar el artículo
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/learn-web-vitals"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Presentar un error
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Ver fuente
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contenido relevante</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome Actualizaciones
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Conectar</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            Todos los productos
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="es"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Condiciones y privacidad
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Principios de la Comunidad
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

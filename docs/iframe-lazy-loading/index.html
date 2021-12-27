@@ -1,0 +1,727 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=e32253cc423b7">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=8250f9b8d436d">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>It's time to lazy-load offscreen iframes!</title>
+<meta name="description" content="This post covers the loading attribute and how it can be used to control the loading of iframes. " />
+
+<link rel="canonical" href="https://web.dev/iframe-lazy-loading/" />
+
+<meta itemprop="name" content="It's time to lazy-load offscreen iframes!" />
+<meta itemprop="description" content="This post covers the loading attribute and how it can be used to control the loading of iframes. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/iframe-lazy-loading/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="It's time to lazy-load offscreen iframes!" />
+<meta property="og:description" content="This post covers the loading attribute and how it can be used to control the loading of iframes. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="Phone outline with loading image and assets" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="memory" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="It's time to lazy-load offscreen iframes!" />
+<meta name="twitter:description" content="This post covers the loading attribute and how it can be used to control the loading of iframes. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=4eb3785f83c56', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=c70dd017dc6f2', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="Phone outline with loading image and assets"     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/dMCW2Qqi5Qp2DB3w4DyE.png?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="it&#39;s-time-to-lazy-load-offscreen-iframes!">It's time to lazy-load offscreen iframes!</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            Browser-level built-in lazy-loading for iframes is here
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Jul 24, 2020</time>
+            
+          </div>
+        
+
+        
+        
+
+        
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/addyosmani/"> <img     alt="Addy Osmani"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/addyosmani/">Addy Osmani</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/addyosmani">Twitter</a>
+               <a href="https://github.com/addyosmani">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+
+
+      <p><a href="/browser-level-image-lazy-loading/">Standardized lazy-loading for images</a> landed in Chrome 76 via
+the <code>loading</code> attribute and later came to Firefox. We are happy to share that
+<strong>browser-level lazy-loading for iframes</strong> is now
+<a href="https://github.com/whatwg/html/pull/5579" rel="noopener">standardized</a> and is also
+supported in Chrome and Chromium-based browsers.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com<span class="token punctuation">"</span></span><br><mark class="highlight-line highlight-line-active">        <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span></mark><br><span class="highlight-line">        <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>600<span class="token punctuation">"</span></span></span><br>        <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>400<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>Standardized lazy-loading of iframes defers offscreen iframes from being loaded
+until the user scrolls near them. This saves data, speeds up the loading of
+other parts of the page, and reduces memory usage.</p>
+<p>This <a href="https://lazy-load.netlify.app/iframes/" rel="noopener">demo</a> of <code>&lt;iframe loading=lazy&gt;</code>
+shows lazy-loading video embeds:</p>
+<figure class="w-figure w-figure--fullbleed">
+  <video controls autoplay loop muted class="w-screenshot">
+    <source src="https://storage.googleapis.com/web-dev-assets/iframe-lazy-loading/lazyload-iframes-compressed.webm" type="video/webm">
+    <source src="https://storage.googleapis.com/web-dev-assets/iframe-lazy-loading/lazyload-iframes-compressed.mp4" type="video/mp4">
+  </video>
+</figure>
+<h3 id="why-should-we-lazy-load-iframes">Why should we lazy-load iframes? <a class="w-headline-link" href="#why-should-we-lazy-load-iframes">#</a></h3>
+<p>Third-party embeds cover a wide range of use cases, from video players, to
+social media posts, to ads. Often this content is not immediately visible in
+the user's viewport. Rather, it's only seen once they scroll further down the
+page. Despite this, users pay the cost of downloading data and costly
+JavaScript for each frame, even if they don't scroll to it.</p>
+<figure class="w-figure">
+  <img     alt="Data-savings from using iframe lazy-loading for an iframe. Eager loading pulls in 3MB in this example, while lazy-loading does not pull in this code until the user scrolls closer to the iframe."          decoding="async"     height="460"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xqZMRuULxbz6DVXNP8ea.png?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>Based off Chrome's research into <a href="https://blog.chromium.org/2019/10/automatically-lazy-loading-offscreen.html" rel="noopener">automatically lazy-loading offscreen iframes
+for Data Saver
+users</a>,
+lazy-loading iframes could lead to 2-3% median data savings, 1-2% <a href="/fcp/">First
+Contentful Paint</a> reductions at the median, and 2% <a href="/fid/">First Input
+Delay</a> (FID) improvements at the 95th percentile.</p>
+<h3 id="how-does-built-in-lazy-loading-for-iframes-work">How does built-in lazy-loading for iframes work? <a class="w-headline-link" href="#how-does-built-in-lazy-loading-for-iframes-work">#</a></h3>
+<p>The <code>loading</code> attribute allows a browser to defer loading offscreen iframes and
+images until users scroll near them. <code>loading</code> supports three values:</p>
+<ul>
+<li><code>lazy</code>: is a good candidate for lazy-loading.</li>
+<li><code>eager</code>: is not a good candidate for lazy-loading. Load right away.</li>
+<li><code>auto</code>: browser will determine whether or not to lazily load.</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p><code>auto</code> is currently a non-standard value, but is the default in Chrome today.
+Chrome intends on bringing a proposal for this value to the standards table.</p>
+</div></aside>
+<p>Using the <code>loading</code> attribute on iframes works as follows:</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- Lazy-load the iframe --></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com<span class="token punctuation">"</span></span><br>        <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span><br>        <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>600<span class="token punctuation">"</span></span><br>        <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>400<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span><br><br><span class="token comment">&lt;!-- Eagerly load the iframe --></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com<span class="token punctuation">"</span></span><br>        <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>600<span class="token punctuation">"</span></span><br>        <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>400<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span><br><br><span class="token comment">&lt;!-- or use loading="eager" to opt out of automatic<br>lazy-loading in Lite Mode --></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com<span class="token punctuation">"</span></span><br>        <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>eager<span class="token punctuation">"</span></span><br>        <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>600<span class="token punctuation">"</span></span><br>        <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>400<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>Not specifying the attribute at all will have the same impact as explicitly
+eagerly loading the resource, except for <a href="https://blog.chromium.org/2019/04/data-saver-is-now-lite-mode.html" rel="noopener">Lite
+Mode</a>
+users, where Chrome will use the <code>auto</code> value to decide whether it should be
+lazy-loaded.</p>
+<p>If you need to <em>dynamically</em> create iframes via JavaScript, setting
+<code>iframe.loading = 'lazy'</code> on the element is also
+<a href="https://bugs.chromium.org/p/chromium/issues/detail?id=993273" rel="noopener">supported</a>:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line"><span class="token keyword">var</span> iframe <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'iframe'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line">iframe<span class="token punctuation">.</span>src <span class="token operator">=</span> <span class="token string">'https://example.com'</span><span class="token punctuation">;</span></span><br><mark class="highlight-line highlight-line-active">iframe<span class="token punctuation">.</span>loading <span class="token operator">=</span> <span class="token string">'lazy'</span><span class="token punctuation">;</span></mark><br><span class="highlight-line">document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>iframe<span class="token punctuation">)</span><span class="token punctuation">;</span></span></code></pre>
+</web-copy-code><h4 id="iframe-specific-lazy-loading-behavior">iframe-specific lazy-loading behavior <a class="w-headline-link" href="#iframe-specific-lazy-loading-behavior">#</a></h4>
+<p>The loading attribute affects iframes differently than images, depending on
+whether the iframe is hidden. (Hidden iframes are often used for analytics or
+communication purposes.) Chrome uses the following criteria to determine
+whether an iframe is hidden:</p>
+<ul>
+<li>The iframe's width and height are <code>4px</code> or smaller.</li>
+<li><code>display: none</code> or <code>visibility: hidden</code> is applied.</li>
+<li>The iframe is placed off-screen using negative X or Y positioning.</li>
+<li>This criteria applies to both <code>loading=lazy</code> and <code>loading=auto</code>.</li>
+</ul>
+<p>If an iframe meets any of these conditions, Chrome considers it hidden and
+won't lazy-load it in most cases. iframes that aren't hidden will only load
+when they're within the <a href="/browser-level-image-lazy-loading/#load-in-distance-threshold">load-in distance
+threshold</a>. Chrome shows a
+placeholder for lazy-loaded iframes that are still being fetched.</p>
+<h3 id="what-impact-might-we-see-from-lazy-loading-popular-iframe-embeds">What impact might we see from lazy-loading popular iframe embeds? <a class="w-headline-link" href="#what-impact-might-we-see-from-lazy-loading-popular-iframe-embeds">#</a></h3>
+<p>What if we could change the web at large so that lazy-loading offscreen iframes
+was the default? It would look a little like this:</p>
+<p>Lazy-loading YouTube video embeds (saves ~500KB on initial page load):</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://www.youtube.com/embed/YJGCZCaIZkQ<span class="token punctuation">"</span></span><br><mark class="highlight-line highlight-line-active">        <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span></mark><br><span class="highlight-line">        <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>560<span class="token punctuation">"</span></span></span><br><span class="highlight-line">        <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>315<span class="token punctuation">"</span></span></span><br><span class="highlight-line">        <span class="token attr-name">frameborder</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span></span><br>        <span class="token attr-name">allow</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>accelerometer; autoplay;<br><span class="highlight-line">        encrypted-media; gyroscope;</span><br>        picture-in-picture<span class="token punctuation">"</span></span><br>        <span class="token attr-name">allowfullscreen</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p><strong>Anecdote:</strong> when we switched to lazy-loading YouTube embeds for Chrome.com,
+we saved 10 seconds off of how soon our pages could be interactive on mobile
+devices. I have opened an internal bug with YouTube to discuss adding
+<code>loading=lazy</code> to its embed code.</p>
+<figure class="w-figure">
+  <img     alt="Chrome.com achieved a 10 second reduction in Time To Interactive by lazy-loading offscreen iframes for their YouTube video embed"          decoding="async"     height="460"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/HQkwBgEoyiZsiOaPyz8v.png?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>If you are looking for more efficient ways to load YouTube embeds, you may be
+interested in the <a href="https://github.com/paulirish/lite-youtube-embed" rel="noopener">YouTube lite
+component</a>.</p>
+</div></aside>
+<p><strong>Lazy-loading Instagram embeds (saves &gt;100KB gzipped on initial load):</strong></p>
+<p>Instagram embeds provide a block of markup and a script, which injects an
+iframe into your page. Lazy-loading this iframe avoids having to load all of
+the script necessary for the embed. Given such embeds are often displayed below
+the viewport in most articles, this seems like a reasonable candidate for
+lazy-loading of their iframe.</p>
+<p><strong>Lazy-loading Spotify embeds (saves 514KB on initial load):</strong></p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://open.spotify.com/embed/album/1DFixLWuPkv3KT3TnV35m3<span class="token punctuation">"</span></span><br>        <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span><br>        <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>300<span class="token punctuation">"</span></span><br>        <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>380<span class="token punctuation">"</span></span><br>        <span class="token attr-name">frameborder</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span><br>        <span class="token attr-name">allowtransparency</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span><br>        <span class="token attr-name">allow</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>encrypted-media<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>Although the above embeds illustrate the potential benefits to lazy-loading
+iframes for media content, there's the potential to also see these benefits for
+ads.</p>
+<h3 id="case-study:-lazy-loading-the-facebook's-social-plugins">Case study: Lazy-loading the Facebook's social plugins <a class="w-headline-link" href="#case-study:-lazy-loading-the-facebook's-social-plugins">#</a></h3>
+<p>Facebook's <em>social plugins</em> allow developers to embed Facebook content in their
+web pages. There's a number of these plugins offered, such as embedded posts,
+photos, videos, comments… The most popular is the <a href="https://developers.facebook.com/docs/plugins/like-button/" rel="noopener">Like
+plugin</a> - a button
+that shows a count of who has &quot;liked&quot; the page. By default, embedding the Like
+plugin in a webpage (using the FB JSSDK) pulls in ~215KB of resources, 197KB of
+which is JavaScript. In many cases, the plugin may appear at the end of an
+article or near the end of a page, so loading it eagerly when it's offscreen
+may be suboptimal.</p>
+<figure class="w-figure">
+  <img     alt="Facebook Like Button"     class="w-screenshot"     decoding="async"     height="71"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/fdy8o61jxPN560IkF2Ne.png?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>Thanks to engineer Stoyan Stefanov, <a href="https://developers.facebook.com/docs/plugins/like-button#settings" rel="noopener">all of Facebook's social plugins now
+support standardized iframe
+lazy-loading</a>.
+Developers who opt in to lazy-loading via the plugins' <code>data-lazy</code>
+configuration will now be able to avoid it loading until the user scrolls
+nearby. This enables the embed to still fully function for users that need it,
+while offering data-savings for those who are not scrolling all the way down a
+page. We are hopeful this is the first of many embeds to explore standardized iframe
+lazy-loading in production.</p>
+<h3 id="wait-can't-browsers-just-automatically-lazy-load-offscreen-iframes">Wait, can't browsers just automatically lazy-load offscreen iframes? <a class="w-headline-link" href="#wait-can't-browsers-just-automatically-lazy-load-offscreen-iframes">#</a></h3>
+<p>They certainly can. In Chrome 77, Chrome added support for automatically
+lazy-loading offscreen images and iframes when a user has opted into
+<a href="https://blog.chromium.org/2019/04/data-saver-is-now-lite-mode.html" rel="noopener">Lite Mode</a>
+(Data Saver mode) in Chrome for Android.</p>
+<p>Lite Mode is commonly used in regions of the world where network connection
+quality and data plans are not the greatest. Every byte matters and so
+lazy-loading iframes has the potential to make a meaningful difference for
+these users.</p>
+<p>Origins can detect what percentage of their traffic is coming from Lite Mode
+users by checking the <code>navigator.connection.saveData</code> property,
+which is part of the <a href="https://developer.mozilla.org/docs/Web/API/NetworkInformation" rel="noopener"><code>NetworkInformation</code> API</a>.</p>
+<h3 id="can-i-lazy-load-iframes-cross-browser-yes">Can I lazy-load iframes cross-browser? Yes <a class="w-headline-link" href="#can-i-lazy-load-iframes-cross-browser-yes">#</a></h3>
+<p>iframe lazy-loading can be applied as a progressive enhancement. Browsers which support <code>loading=lazy</code> on iframes will lazy-load the iframe, while the <code>loading</code> attribute will be safely ignored in browsers which do not support it yet.</p>
+<p>It is also possible to lazy-load offscreen iframes using the
+<a href="/use-lazysizes-to-lazyload-images/">lazysizes</a> JavaScript library. This may be desirable if you:</p>
+<ul>
+<li>require more custom lazy-loading thresholds than what standardized lazy-loading
+currently offers</li>
+<li>wish to offer users a consistent iframe lazy-loading experience across browsers</li>
+</ul>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="highlight-line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazysizes.min.js<span class="token punctuation">"</span></span> <span class="token attr-name">async</span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></span><br><span class="highlight-line"></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">frameborder</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span><br><mark class="highlight-line highlight-line-active">	  <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazyload<span class="token punctuation">"</span></span></mark><br><span class="highlight-line">    <span class="token attr-name">allowfullscreen</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span></span><br><span class="highlight-line">    <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>600<span class="token punctuation">"</span></span></span><br><span class="highlight-line">    <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>400<span class="token punctuation">"</span></span></span><br>    <span class="token attr-name">data-src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>//www.youtube.com/embed/ZfV-aYdU4uE<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br><span class="highlight-line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span></span></code></pre>
+</web-copy-code><p>Use the following pattern to feature detect lazy-loading and fetch
+lazysizes when it's not available:</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">frameborder</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span><br><span class="highlight-line">	  <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazyload<span class="token punctuation">"</span></span></span><br><mark class="highlight-line highlight-line-active">    <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span></mark><br><span class="highlight-line">    <span class="token attr-name">allowfullscreen</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span></span><br><span class="highlight-line">    <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>600<span class="token punctuation">"</span></span></span><br><span class="highlight-line">    <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>400<span class="token punctuation">"</span></span></span><br>    <span class="token attr-name">data-src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>//www.youtube.com/embed/ZfV-aYdU4uE<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br><span class="highlight-line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span></span><br><span class="highlight-line"></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript"><br><span class="highlight-line">  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'loading'</span> <span class="token keyword">in</span> <span class="token class-name">HTMLIFrameElement</span><span class="token punctuation">.</span>prototype<span class="token punctuation">)</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">    <span class="token keyword">const</span> iframes <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelectorAll</span><span class="token punctuation">(</span><span class="token string">'iframe[loading="lazy"]'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line"></span><br><span class="highlight-line">    iframes<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token parameter">iframe</span> <span class="token operator">=></span> <span class="token punctuation">{</span></span><br><span class="highlight-line">      iframe<span class="token punctuation">.</span>src <span class="token operator">=</span> iframe<span class="token punctuation">.</span>dataset<span class="token punctuation">.</span>src<span class="token punctuation">;</span></span><br><span class="highlight-line">    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line"></span><br><span class="highlight-line">  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">    <span class="token comment">// Dynamically import the LazySizes library</span></span><br><span class="highlight-line">    <span class="token keyword">const</span> script <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">createElement</span><span class="token punctuation">(</span><span class="token string">'script'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line">    script<span class="token punctuation">.</span>src <span class="token operator">=</span></span><br><span class="highlight-line">      <span class="token string">'https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.2.2/lazysizes.min.js'</span><span class="token punctuation">;</span></span><br><span class="highlight-line">    document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>script<span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line">  <span class="token punctuation">}</span></span><br><span class="highlight-line"></span><br></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><h3 id="wordpress">An option for WordPress users <a class="w-headline-link" href="#wordpress">#</a></h3>
+<p>You might have many iframes scattered across years worth of post content
+in a WordPress site. You can optionally add the following code to your WordPress
+theme's <code>functions.php</code> file to automatically insert <code>loading=&quot;lazy&quot;</code> to your
+existing iframes without having to manually update them each individually.</p>
+<p>Note that <a href="https://core.trac.wordpress.org/ticket/50756" rel="noopener">browser-level support for lazy-loading iframes is also being worked on in WordPress core</a>.
+The following snippet will check for the relevant flags so that, once WordPress has the
+functionality built-in, it will no longer manually add the <code>loading=&quot;lazy&quot;</code> attribute,
+ensuring it is interoperable with those changes and will not result in a duplicate attribute.</p>
+<web-copy-code><pre class="language-php"><code class="language-php"><span class="token comment">// TODO: Remove once https://core.trac.wordpress.org/ticket/50756 lands.</span><br><span class="token keyword">function</span> <span class="token function-definition function">wp_lazy_load_iframes_polyfill</span><span class="token punctuation">(</span> <span class="token variable">$content</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span><br>	<span class="token comment">// If WP core lazy-loads iframes, skip this manual implementation.</span><br>	<span class="token keyword">if</span> <span class="token punctuation">(</span> <span class="token function">function_exists</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'wp_lazy_loading_enabled'</span> <span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token function">wp_lazy_loading_enabled</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'iframe'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'the_content'</span> <span class="token punctuation">)</span> <span class="token punctuation">)</span> <span class="token punctuation">{</span><br>		<span class="token keyword">return</span> <span class="token variable">$content</span><span class="token punctuation">;</span><br>	<span class="token punctuation">}</span><br><br>	<span class="token keyword">return</span> <span class="token function">str_replace</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'&lt;iframe '</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'&lt;iframe loading="lazy" '</span><span class="token punctuation">,</span> <span class="token variable">$content</span> <span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><br><span class="token function">add_filter</span><span class="token punctuation">(</span> <span class="token string single-quoted-string">'the_content'</span><span class="token punctuation">,</span> <span class="token string single-quoted-string">'wp_lazy_load_iframes_polyfill'</span> <span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>If your WordPress site utilizes caching (hint: it should), don't forget to rebuild
+your site's cache afterwards.</p>
+<h3 id="conclusion">Conclusion <a class="w-headline-link" href="#conclusion">#</a></h3>
+<p>Baking in standardized support for lazy-loading iframes makes it significantly
+easier for you to improve the performance of your web pages. If you have any
+feedback, please feel free to submit an issue to
+the <a href="https://bugs.chromium.org/p/chromium/issues/entry?components=Blink%3ELoader%3ELazyLoad" rel="noopener">Chromium Bug
+Tracker</a>.</p>
+<p>And, in case you missed it, check out web.dev's <a href="/fast/#lazy-load-images-and-video">image and video lazy-loading
+collection</a> for more lazy-loading ideas.</p>
+<p><em>With thanks to Dom Farolino, Scott Little, Houssein Djirdeh, Simon Pieters, Kayce Basques, Joe Medley and Stoyan
+Stefanov for their reviews.</em></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/performance/">Performance</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/memory/">Memory</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Jul 24, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/blog/iframe-lazy-loading/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@addyosmani"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

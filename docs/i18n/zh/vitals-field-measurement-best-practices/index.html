@@ -1,0 +1,695 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=715b48290b10e">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=4132ea2423549">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>实测 Web 指标的最佳实践</title>
+<meta name="description" content="如何使用您当前的分析工具测量 Web 指标" />
+
+<link rel="canonical" href="https://web.dev/i18n/zh/vitals-field-measurement-best-practices/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/vitals-field-measurement-best-practices/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/vitals-field-measurement-best-practices/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/vitals-field-measurement-best-practices/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/vitals-field-measurement-best-practices/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/vitals-field-measurement-best-practices/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/vitals-field-measurement-best-practices/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/vitals-field-measurement-best-practices/" />
+<meta itemprop="name" content="实测 Web 指标的最佳实践" />
+<meta itemprop="description" content="如何使用您当前的分析工具测量 Web 指标" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="zh_CN" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/zh/vitals-field-measurement-best-practices/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="实测 Web 指标的最佳实践" />
+<meta property="og:description" content="如何使用您当前的分析工具测量 Web 指标" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="如何使用您当前的分析工具测量 Web 指标" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="实测 Web 指标的最佳实践" />
+<meta name="twitter:description" content="如何使用您当前的分析工具测量 Web 指标" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=ad6d0f3a096a2', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=6bb8ab0fce702', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          学习
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        衡量
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        博客
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        关于
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">关闭</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="如何使用您当前的分析工具测量 Web 指标"     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/WNrgCVjmp8Gyc8EbZ9Jv.png?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="本页内容">
+    <div class="course-toc__heading font-google-sans weight-medium">本页内容</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-2">确保您可以报告分布情况</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">在正确的时间发送您的数据</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">监控性能随时间推移的变化</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-5">对您做的更改进行版本管理</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-6">运行实验</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-7">确保测量不会影响性能</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-8">延迟加载您的分析代码</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-9">不要创建长任务</a></li><li class="toc__listitem"><a class="toc__anchor" href="#api">使用非阻塞 API</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-10">不要跟踪超出您需要的数据</a></li></ul></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="web">实测 Web 指标的最佳实践</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            如何使用您当前的分析工具测量 Web 指标。
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>May 27, 2020</time>
+             — 更新日期 <time>Jul 21, 2020</time> 
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/vitals-field-measurement-best-practices/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/vitals-field-measurement-best-practices/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/vitals-field-measurement-best-practices/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/vitals-field-measurement-best-practices/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/vitals-field-measurement-best-practices/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/vitals-field-measurement-best-practices/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/philipwalton/"> <img     alt="Philip Walton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/philipwalton/">Philip Walton</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/philwalton">Twitter</a>
+               <a href="https://github.com/philipwalton">GitHub</a>
+               
+               <a href="https://philipwalton.com">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="本页内容">
+      <summary>
+        本页内容
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-2">确保您可以报告分布情况</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">在正确的时间发送您的数据</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">监控性能随时间推移的变化</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-5">对您做的更改进行版本管理</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-6">运行实验</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-7">确保测量不会影响性能</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-8">延迟加载您的分析代码</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-9">不要创建长任务</a></li><li class="toc__listitem"><a class="toc__anchor" href="#api">使用非阻塞 API</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-10">不要跟踪超出您需要的数据</a></li></ul></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <p>能够测量和报告页面的真实世界性能对于诊断和不断改进性能至关重要。如果没有<a href="/user-centric-performance-metrics/#in-the-field">实际数据</a>，就无法确定您对网站所做的更改是否确实达到了预期的结果。</p>
+<p>许多热门<a href="https://en.wikipedia.org/wiki/Real_user_monitoring" rel="noopener">真实用户监控 (RUM)</a> 分析供应商已经在他们的工具中支持<a href="/vitals/#other-web-vitals">核心 Web 指标</a>（以及许多<a href="/vitals/#core-web-vitals">其他 Web 指标</a>）。如果您目前正在使用其中一种 RUM 分析工具，那么您就可以很好地评估您的网站页面针对<a href="/vitals/#core-web-vitals">核心 Web 指标建议阈值</a>的实现情况，并防止将来出现回归。</p>
+<p>虽然我们建议您使用支持核心 Web 指标的分析工具，但如果您当前使用的分析工具不提供该支持，您也不一定需要更换工具。几乎所有分析工具都提供了一种定义和测量<a href="https://support.google.com/analytics/answer/2709828" rel="noopener">自定义指标</a>或<a href="https://support.google.com/analytics/answer/1033068" rel="noopener">事件</a>的方法，也就是说，您或许可以使用当前的分析供应商来测量核心 Web 标并将这些指标添加到您现有的分析报告和仪表板中。</p>
+<p>本篇指南探讨了使用第三方或内部分析工具测量核心 Web 指标（或任何自定义指标）的最佳实践。对于希望在自己的服务中添加核心 Web 指标支持的分析供应商来说，这篇文章也可以作为一篇指南。</p>
+<h2 id="">使用自定义指标或事件 <a class="w-headline-link" href="#">#</a></h2>
+<p>如上所述，大多数分析工具可以让您测量自定义数据。如果您的分析工具支持这一功能，那么您应该能够使用下方的机制测量各项核心 Web 指标。</p>
+<p>在分析工具中测量自定义指标或事件通常分为三个步骤：</p>
+<ol>
+<li>在您的工具管理中<a href="https://support.google.com/analytics/answer/2709829?hl=en&amp;ref_topic=2709827" rel="noopener">定义或注册</a>自定义指标（如有需要）。<em>（注意：并非所有分析供应商都要求提前定义自定义指标。）</em></li>
+<li>在您的前端 JavaScript 代码中计算指标值。</li>
+<li>将指标值发送到您的分析后端，确保名称或 ID 与步骤 1 中定义的内容*（如有需要）*相匹配。</li>
+</ol>
+<p>对于步骤 1 和步骤 3，您可以参考您分析工具的文档说明。对于步骤 2，您可以使用 <a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">web-vitals</a> JavaScript 库来计算每项核心 Web 指标的值。</p>
+<p>以下代码示例展示了在代码中跟踪这些指标并将其发送到分析服务十分轻松简单。</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span>getCLS<span class="token punctuation">,</span> getFID<span class="token punctuation">,</span> getLCP<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'web-vitals'</span><span class="token punctuation">;</span><br><br><span class="token keyword">function</span> <span class="token function">sendToAnalytics</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">{</span>name<span class="token punctuation">,</span> value<span class="token punctuation">,</span> id<span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token keyword">const</span> body <span class="token operator">=</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span><span class="token punctuation">{</span>name<span class="token punctuation">,</span> value<span class="token punctuation">,</span> id<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token comment">// 可以的话，使用 `navigator.sendBeacon()`, 回退到 `fetch()`.</span><br>  <span class="token punctuation">(</span>navigator<span class="token punctuation">.</span>sendBeacon <span class="token operator">&amp;&amp;</span> navigator<span class="token punctuation">.</span><span class="token function">sendBeacon</span><span class="token punctuation">(</span><span class="token string">'/analytics'</span><span class="token punctuation">,</span> body<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">||</span><br>      <span class="token function">fetch</span><span class="token punctuation">(</span><span class="token string">'/analytics'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>body<span class="token punctuation">,</span> method<span class="token operator">:</span> <span class="token string">'POST'</span><span class="token punctuation">,</span> keepalive<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><br><br><span class="token function">getCLS</span><span class="token punctuation">(</span>sendToAnalytics<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token function">getFID</span><span class="token punctuation">(</span>sendToAnalytics<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token function">getLCP</span><span class="token punctuation">(</span>sendToAnalytics<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><h2 id="-2">确保您可以报告分布情况 <a class="w-headline-link" href="#-2">#</a></h2>
+<p>您在计算了每项核心 Web 指标的值并使用自定义指标或事件将这些指标值发送到您的分析服务后，下一步就是构建一个报告或仪表板，用以显示已收集的值。</p>
+<p>为确保您满足<a href="/vitals/#core-web-vitals">核心 Web 指标建议阈值</a>，您会需要报告显示每项指标在第 75 个百分位数的值。</p>
+<p>如果您的分析工具不提供内置的分位数报告功能，您应该仍然可以通过生成一份将各项指标按升序排列的报告来手动获取此数据。报告生成后，所有数值构成的完整排序列表中处于 75% 位置的结果将是该指标的第 75 个百分位数，而且这适用于您的任何数据细分方式（按设备类型、连接类型、国家/地区等）。</p>
+<p>如果您的分析工具默认不为您提供指标级别的报告粒度，那么在您的分析工具支持<a href="https://support.google.com/analytics/answer/2709828" rel="noopener">自定义维度</a>的情况下，您还是能够获得相同的结果。通过为您跟踪的每项单独指标实例设置唯一的自定义维度值，您就应该能够在报告配置中包含了自定义维度的前提下，生成按单个指标实例进行细分的报告。由于每个实例将具有唯一的维度值，因此不会发生分组。</p>
+<p><a href="https://github.com/GoogleChromeLabs/web-vitals-report" rel="noopener">Web 指标报告</a>是通过 Google 分析使用上述技巧的一个示例。该报告的代码是<a href="https://github.com/GoogleChromeLabs/web-vitals-report" rel="noopener">开源的</a>，因此开发者可以将其作为本节所介绍技巧的参考示例。</p>
+<p><img src="https://user-images.githubusercontent.com/326742/101584324-3f9a0900-3992-11eb-8f2d-182f302fb67b.png" alt="Web 指标报告的屏幕截图"></p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>提示： <a href="https://github.com/GoogleChrome/web-vitals" rel="noopener"><code>web-vitals</code></a> JavaScript 库为所报告的每个指标实例提供一个 ID，从而可以在大多数分析工具中建立分布。请参阅<a href="https://github.com/GoogleChrome/web-vitals#metric" rel="noopener"><code>Metric</code></a>接口文档了解更多详情。</p>
+</div></aside>
+<h2 id="-3">在正确的时间发送您的数据 <a class="w-headline-link" href="#-3">#</a></h2>
+<p>一些性能指标可以在页面完成加载后进行计算，而其他指标（如 CLS）则会将页面的整个生命周期纳入考量范围，且只有在页面开始卸载后才会完成计算。</p>
+<p>然而，这可能会导致一些问题，因为<code>beforeunload</code>和<code>unload</code>事件都不可靠（特别是在移动设备上），因此我们<a href="https://developers.google.com/web/updates/2018/07/page-lifecycle-api#legacy-lifecycle-apis-to-avoid" rel="noopener">不建议</a>您使用这些事件（因为这些事件会导致页面不符合<a href="https://developers.google.com/web/updates/2018/07/page-lifecycle-api#page-navigation-cache" rel="noopener">往返缓存</a>的条件）。</p>
+<p>对于跟踪整个页面生命周期的指标，最好一旦在页面的可见性状态更改为<code>hidden</code>时，就在<code>visibilitychange</code>事件的过程中发送指标的当前值。这是因为一旦页面的可见性状态更改为<code>hidden</code>，就无法保证该页面上的任何脚本都能够再次运行。这一点在移动操作系统上尤其如此，在这些操作系统中，浏览器应用程序本身就可以在无需触发任何页面回调的情况下被关闭。</p>
+<p>请注意，移动操作系统通常会在切换选项卡、切换应用程序或关闭浏览器应用程序本身时触发<code>visibilitychange</code>事件。这些操作系统还会在关闭选项卡或导航到新页面时触发<code>visibilitychange</code>事件。这使得<code>visibilitychange</code>事件比<code>unload</code>或<code>beforeunload</code>事件更为可靠。</p>
+<aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>问题</strong></p>
+<div class=" flow">
+<p>由于<a href="https://github.com/w3c/page-visibility/issues/59#issue-554880545" rel="noopener">一些浏览器错误</a>，<code>visibilitychange</code>事件在少数情况下不会触发。如果您正在构建自己的分析库，那么知道这些错误的存在就非常重要。请注意，<a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">web-vitals</a> JavaScript 库已经考虑到了所有这些错误。</p>
+</div></aside>
+<h2 id="-4">监控性能随时间推移的变化 <a class="w-headline-link" href="#-4">#</a></h2>
+<p>在您更新了您的分析实施措施来对核心 Web 指标进行跟踪和报告后，下一步就是跟踪您对网站做出的更改如何随着时间的推移影响性能表现。</p>
+<h3 id="-5">对您做的更改进行版本管理 <a class="w-headline-link" href="#-5">#</a></h3>
+<p>一种天真（且最终并不可靠）的对更改进行跟踪的方法是将更改部署到生产环境中，然后假定部署日期之后收到的所有指标都对应于新版本的网站，而部署日期之前收到的所有指标都对应于旧版本的网站。然而，任何因素（包括在 HTTP、Service Worker 或 CDN 层中的缓存）都可以导致差错。</p>
+<p>更好的方法是为每个已部署的更改创建一个独特的版本，然后在您的分析工具中跟踪该版本。大多数分析工具都支持版本设置。如果您的工具中不行，则可以创建一个自定义维度并将该维度设置为您部署的版本。</p>
+<h3 id="-6">运行实验 <a class="w-headline-link" href="#-6">#</a></h3>
+<p>您可以同时跟踪多个版本（或实验）来实现进一步的版本管理。</p>
+<p>如果您的分析工具允许您定义实验组，请使用该功能。否则，您可以使用自定义维度来确保您的每个指标值都可以关联到报告中的一个特定实验组。</p>
+<p>您还可以在分析中进行实验，向部分用户推出实验性更改，并将该更改的性能与对照组中的用户性能进行比较。当您确信某个更改确实可以提高性能后，就可以将其推广给所有用户。</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>您始终应该将实验组设置在服务器上。请避免在客户端上使用任何实验或 A/B 测试工具。在确定用户的实验组之前，这些工具通常会阻塞渲染，因而可能会影响您的 LCP 时间。</p>
+</div></aside>
+<h2 id="-7">确保测量不会影响性能 <a class="w-headline-link" href="#-7">#</a></h2>
+<p>在测量真实用户性能时，至关重要的一点是您正在运行的任何性能测量代码都不会对您的页面性能产生负面影响。如果产生了负面影响，那么您在性能如何对业务产生影响方面试图得出的任何结论都是不可靠的，因为您永远无法知道分析代码本身的存在是否会产生最大的负面影响。</p>
+<p>在您的生产环境网站上部署 RUM 分析代码时，请始终遵循以下原则：</p>
+<h3 id="-8">延迟加载您的分析代码 <a class="w-headline-link" href="#-8">#</a></h3>
+<p>分析代码应该始终以异步、非阻塞的方式加载，并且通常应该最后加载。如果您以阻塞方式加载分析代码，则会对 LCP 产生负面影响。</p>
+<p>用于测量核心 Web 指标的所有 API 都是特别为支持异步和延迟脚本加载（通过<a href="https://www.chromestatus.com/feature/5118272741572608" rel="noopener"><code>buffered</code></a>标志）而设计的，因此无需急于提前加载脚本。</p>
+<p>如果您测量的指标无法在页面加载时间轴的后期进行计算，您应该<em>只</em>将需要提前运行的代码内联到<code>&lt;head&gt;</code>中（这样就不是一个<a href="/render-blocking-resources/">阻塞渲染请求</a>）并延迟加载其余的代码。不要仅仅因为单项指标的需要而提前加载所有分析代码。</p>
+<h3 id="-9">不要创建长任务 <a class="w-headline-link" href="#-9">#</a></h3>
+<p>分析代码通常为响应用户输入而运行，但如果您的分析代码正在执行大量 DOM 测量或使用其他处理器密集型 API，那么分析代码本身可能会导致较差的输入响应度。此外，如果包含您分析代码的 JavaScript 文件很大，则执行该文件可能会阻塞主线程并对 FID 产生负面影响。</p>
+<h3 id="api">使用非阻塞 API <a class="w-headline-link" href="#api">#</a></h3>
+<p>诸如<code><a href="https://developer.mozilla.org/docs/Web/API/Navigator/sendBeacon" rel="noopener">sendBeacon()</a></code>和<code><a href="https://developer.mozilla.org/docs/Web/API/Window/requestIdleCallback" rel="noopener">requestIdleCallback()</a></code>这样的 API 是专门为运行不会阻塞用户关键任务的非关键任务而设计的。</p>
+<p>这些 API 是适于在 RUM 分析库中使用的绝佳工具。</p>
+<p>一般来说，所有分析信标都应该使用<code>sendBeacon()</code> API（如果可用）来发送，而所有被动分析测量代码都应该在空闲期运行。</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>有关如何最大限度地利用空闲期，同时仍能确保可以在需要时（例如当用户卸载页面时）紧急运行代码的指导，请参阅<a href="https://philipwalton.com/articles/idle-until-urgent/" rel="noopener">空闲直到紧急</a>模式。</p>
+</div></aside>
+<h3 id="-10">不要跟踪超出您需要的数据 <a class="w-headline-link" href="#-10">#</a></h3>
+<p>浏览器会公开大量性能数据，但数据可用并不一定意味着您应该进行记录并将其发送到您的分析服务器。</p>
+<p>例如，<a href="https://w3c.github.io/resource-timing/" rel="noopener">资源计时 API</a> 为页面上加载的每个资源提供详细的计时数据。但并非所有这些数据对于改善资源加载性能都是必要或有用的。</p>
+<p>简而言之，不要仅仅因为数据存在就进行跟踪，先确保会使用数据，再消耗资源跟踪该数据。</p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/performance/">性能</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/web-vitals/">网页指标</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Jul 21, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/zh/blog/vitals-field-measurement-best-practices/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@philwalton"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">分享</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            提交错误
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            查看源代码
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">相关内容</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome 动态
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            网站开发基础
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            案例研究
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            播客
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            节目
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">连接</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          所有产品
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="zh"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          条款和隐私权
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          社区准则
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

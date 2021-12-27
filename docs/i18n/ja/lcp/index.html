@@ -1,0 +1,782 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=96d4472a7e09c">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Largest Contentful Paint (LCP)</title>
+<meta name="description" content="この投稿では、Largest Contentful Paint (LCP) という指標について紹介し、その測定方法に関する説明を行います。" />
+
+<link rel="canonical" href="https://web.dev/i18n/ja/lcp/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/lcp/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/lcp/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/lcp/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/lcp/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/lcp/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/lcp/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/lcp/" />
+<meta itemprop="name" content="Largest Contentful Paint (LCP)" />
+<meta itemprop="description" content="この投稿では、Largest Contentful Paint (LCP) という指標について紹介し、その測定方法に関する説明を行います。" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="ja_JP" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/ja/lcp/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Largest Contentful Paint (LCP)" />
+<meta property="og:description" content="この投稿では、Largest Contentful Paint (LCP) という指標について紹介し、その測定方法に関する説明を行います。" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="metrics" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Largest Contentful Paint (LCP)" />
+<meta name="twitter:description" content="この投稿では、Largest Contentful Paint (LCP) という指標について紹介し、その測定方法に関する説明を行います。" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=7e7e0bacb4d3c', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=3da027aa143ec', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="メニューを開く">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">メニューを開く</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        学習する
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        測定する
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        ブログ
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        概要
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="閉じる"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">閉じる</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        学習する
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        測定する
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        ブログ
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        概要
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#largest-contentful-paint-(lcp)" class="w-toc__header--link">
+        Largest Contentful Paint (LCP)
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#lcp">LCP とは？</a><ol><li><a href="#lcp-2">LCP における良いスコアとは？</a></li><li><a href="#-2">要素のサイズはどのようにして決定されますか？</a></li><li><a href="#-3">最大視覚コンテンツはどのタイミングでレポートされますか？</a></li><li><a href="#-5">要素のレイアウトやサイズの変更は、どのように処理されますか？</a></li><li><a href="#-6">例</a></li></ol></li><li><a href="#lcp-3">LCP の測定方法</a><ol><li><a href="#-7">フィールド測定を実施するためのツール</a></li><li><a href="#-8">ラボ測定を実施するためのツール</a></li><li><a href="#javascript-lcp">JavaScript を使用して LCP を測定する</a></li><li><a href="#-9">最も重要な要素が最もサイズの大きい要素ではない場合</a></li></ol></li><li><a href="#lcp-4">LCP の改善方法</a></li><li><a href="#-10">その他のリソース</a></li><li><a href="#changelog">CHANGELOG</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@philwalton"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>共有する</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="largest-contentful-paint-(lcp)" class="w-article-header__headline">Largest Contentful Paint (LCP)</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Aug 8, 2019</time>
+           <span class="w-author__separator">•</span> 更新済み <time>Jun 17, 2020</time> 
+        </div>
+      
+
+      
+      
+      <div class="w-layout-container--narrow w-post-signpost">
+        <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/lcp/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/lcp/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/lcp/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/lcp/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/lcp/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/lcp/">
+      English</a></span>
+      </div>
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        ><span class="w-post-signpost__divider">|</span><a
+          class="w-post-signpost__link"
+          href="/metrics"
+          >指標</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/philipwalton/"><img     alt="Philip Walton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/philipwalton/">Philip Walton</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/philwalton"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/philipwalton">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://philipwalton.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <div class="w-aside w-aside--note">
+<p>Largest Contentful Paint (最大視覚コンテンツの表示時間、LCP) は、<a href="/user-centric-performance-metrics/#types-of-metrics">知覚される読み込み速度</a>を測定するための重要なユーザーを中心とした指標です。これは、LCP がページの読み込みタイムラインにおいてページのメイン コンテンツが読み込まれたと思われる時点を示すためです。LCP を高速にすることで、そのページが<a href="/user-centric-performance-metrics/#questions">便利</a>であることをユーザーに強く印象付けることができるようになります。</div></p>
+<p>歴史的に見ても、Web ページのメイン コンテンツがどの程度早く読み込まれ、ユーザーに対して表示されるかを測定することは Web 開発者にとっての大きな課題でした。</p>
+<p><a href="https://developer.mozilla.org/docs/Web/Events/load" rel="noopener">load</a> や <a href="https://developer.mozilla.org/docs/Web/Events/DOMContentLoaded" rel="noopener">DOMContentLoaded</a> のような古い指標は、ユーザーが画面上で見ているものとは必ずしも一致しないため、 適切ではありません。また、<a href="/fcp/">First Contentful Paint (視覚コンテンツの初期表示時間、FCP)</a> のようなユーザーを中心とした新しいパフォーマンス指標は、読み込みエクスペリエンスのごく初期の部分しかキャプチャできません。特にページにスプラッシュ スクリーンや読み込みインジケーターなどが表示されている場合には、この瞬間的な出来事はユーザーにとってあまり意味がありません。</p>
+<p>過去には、初期表示後の読み込みエクスペリエンスを把握するために <a href="/first-meaningful-paint/">First Meaningful Paint (意味のある視覚コンテンツの初期表示時間、FMP)</a> や <a href="/speed-index/">Speed Index (スピード インデックス、SI)</a> といったパフォーマンス指標を推奨してきました。しかしながら、これらの指標は複雑で説明が難しく、間違っている場合も多かったため、これらを使用してページのメイン コンテンツがいつ読み込まれたかを特定することはできませんでした。</p>
+<p>物事には、シンプルな方が好ましい場合があります。<a href="https://www.w3.org/webperf/" rel="noopener">W3C Web Performance ワーキング グループ</a>での議論や Google が実施した調査によると、ページのメイン コンテンツの読み込みタイミングをより正確に測定するためには、最も大きい要素がレンダリングされるタイミングの測定が重要であることが分かりました。</p>
+<h2 id="lcp">LCP とは？ <a class="w-headline-link" href="#lcp">#</a></h2>
+<p>Largest Contentful Paint (LCP) 指標は、ビューポート内に表示される最も大きい<a href="https://w3c.github.io/hr-time/#timeorigin-attribute" rel="noopener">画像またはテキスト ブロック</a>のレンダリング時間を、ページの<a href="#what-elements-are-considered">初期読み込み開始</a>タイミングと比較してレポートします。</p>
+<picture>
+  <source srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/elqsdYqQEefWJbUM2qMO.svg" media="(min-width: 640px)" width="400", height="100">
+  <img     alt="良好なLCP値は2.5秒、不十分な値は4.0秒を超え、その間の値は改善が必要"     class="w-screenshot w-screenshot--filled width-full"     decoding="async"     height="300"          loading="lazy"          src="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/8ZW8LQsagLih1ZZoOmMR.svg"               width="400"   />
+</picture>
+<h3 id="lcp-2">LCP における良いスコアとは？ <a class="w-headline-link" href="#lcp-2">#</a></h3>
+<p>良好なユーザー体験を提供するために、サイトは Largest Contentful Paint が <strong>2.5 秒</strong>以下になるように努力する必要があります。ほぼすべてのユーザーに対してこの目標値を確実に達成するためには、モバイル デバイスとデスクトップ デバイスに分けた上で、総ページロード数の 75 パーセンタイルをしきい値として設定します。</p>
+<div class="w-aside w-aside--note">
+<p>この推奨事項の根拠となる調査および方法論に関する詳細については、「<a href="/defining-core-web-vitals-thresholds/">Core Web Vitals の指標のしきい値の定義</a>」を参照してください。</div></p>
+<h3 id="">どのような要素が考慮されますか？ <a class="w-headline-link" href="#">#</a></h3>
+<p><a href="https://wicg.github.io/largest-contentful-paint/" rel="noopener">Largest Contentful Paint API</a> で現在規定されているように、Largest Contentful Paint については以下の要素が考慮されます。</p>
+<ul>
+<li><code>&lt;img&gt;</code> 要素</li>
+<li><code>&lt;svg&gt;</code> 要素内の <code>&lt;image&gt;</code> 要素</li>
+<li><code>&lt;video&gt;</code> 要素 (ポスター画像が使用されます)</li>
+<li>(<a href="https://developer.mozilla.org/docs/Web/CSS/CSS_Images/Using_CSS_gradients" rel="noopener">CSS グラデーション</a>とは対照的に、) <a href="https://developer.mozilla.org/docs/Web/CSS/CSS_Images/Using_CSS_gradients" rel="noopener"><code>url()</code></a> 関数を介して読み込まれた背景画像が含まれている要素</li>
+<li>テキスト ノードやその他のインラインレベルのテキスト要素の子要素を含む<a href="https://developer.mozilla.org/docs/Web/HTML/Block-level_elements" rel="noopener">ブロックレベル</a>要素。</li>
+</ul>
+<p>なお、要素をこのように限定したのは、最初に考え方をシンプルにするという意図があったためです。研究が進むにつれて、追加の要素 (<code>&lt;svg&gt;</code>、<code>&lt;video&gt;</code> など) が今後追加されていく可能性があります。</p>
+<h3 id="-2">要素のサイズはどのようにして決定されますか？ <a class="w-headline-link" href="#-2">#</a></h3>
+<p>Largest Contentful Paint としてレポートされる要素のサイズは、通常ビューポート内でユーザーに対して表示されるサイズとなります。要素がビューポートからはみ出していたり、要素の一部が切り取られていたり、画面に表示されない<a href="https://developer.mozilla.org/docs/Web/CSS/overflow" rel="noopener">オーバーフロー</a>が発生したりしているような場合、そういった部分は要素のサイズには含まれません。</p>
+<p><a href="https://developer.mozilla.org/docs/Glossary/Intrinsic_Size" rel="noopener">本来のサイズ</a>からリサイズされた画像要素については、表示されたサイズと本来のサイズのうち、いずれか小さい方がレポートされます。たとえば、本来のサイズよりもはるかに小さいサイズへと縮小された画像については、表示されたサイズのみがレポートされ、逆に大きなサイズへと引き伸ばされたり拡大されたりした画像については、本来のサイズのみがレポートされます。</p>
+<p>テキスト要素については、そのテキスト ノードのサイズ (すべてのテキスト ノードを包含する最小の長方形) のみが考慮されます。</p>
+<p>あらゆる要素において、CSS を介して適用されているマージン、パディング、ボーダーはすべて考慮されません。</p>
+<div class="w-aside w-aside--note">
+<p>どのテキスト ノードがどの要素に属しているかについての判断は時に難しいものとなり、特にインライン要素やプレーン テキスト ノードだけでなくブロックレベル要素も子要素として含んでいる要素については、特に難しくなります。この場合に重要となるのは、すべてのテキスト ノードは最も近いブロックレベルの祖先要素に属している (そして、その要素にのみ属している) という点です。<a href="https://wicg.github.io/element-timing/#set-of-owned-text-nodes" rel="noopener">仕様</a>では、各テキスト ノードはその<a href="https://developer.mozilla.org/docs/Web/CSS/Containing_block" rel="noopener">包含ブロック</a>を生成する要素に属するとして定義されています。</div></p>
+<h3 id="-3">最大視覚コンテンツはどのタイミングでレポートされますか？ <a class="w-headline-link" href="#-3">#</a></h3>
+<p>Web ページは段階的に読み込まれる場合が多く、その結果としてページ内で最も大きい要素が変更される可能性があります。</p>
+<p>こういった変更の可能性に対応するため、ブラウザーは最初のフレームを描画した直後に、最大のコンテンツ要素を特定する <code>largest-contentful-paint</code> タイプの <a href="https://developer.mozilla.org/docs/Web/API/PerformanceEntry" rel="noopener"><code>PerformanceEntry</code></a> をディスパッチします。しかしながら、後続するフレームのレンダリング後に最大のコンテンツ要素が変更されるたびに、別の <a href="https://developer.mozilla.org/docs/Web/API/PerformanceEntry" rel="noopener"><code>PerformanceEntry</code></a> をディスパッチします。</p>
+<p>たとえば、テキストとヒーロー画像があるページでは、ブラウザーはテキストを最初にレンダリングします。その時点でブラウザーは <code>largest-contentful-paint</code> エントリをディスパッチしますが、その <code>element</code> プロパティはおそらく <code>&lt;p&gt;</code> または <code>&lt;h1&gt;</code> を参照するはずです。その後、ヒーロー画像の読み込みが完了すると 2 番目の <code>largest-contentful-paint</code> エントリがディスパッチされ、その <code>element</code> プロパティは <code>&lt;img&gt;</code> を参照するはずです。</p>
+<p>重要なのは、ある要素についてレンダリングが完了し、ユーザーに対して表示された時点で初めて、その要素は最大のコンテンツ要素としてみなされるという点です。まだ読み込まれていない画像は、&quot;レンダリングされた&quot; とはみなされません。また、<a href="https://developer.mozilla.org/docs/Web/CSS/@font-face/font-display#The_font_display_timeline" rel="noopener">フォント ブロック期</a>に Web フォントを使用するテキスト ノードについても同様です。このような場合に、比較的サイズが小さい要素が最大のコンテンツ要素としてレポートされる可能性がありますが、よりサイズの大きい要素のレンダリングが完了すれば、別の <code>PerformanceEntry</code> オブジェクトを介してすぐにその要素がレポートされます。</p>
+<p>遅れて読み込まれる画像やフォントに加えて、新しいコンテンツが利用可能になったタイミングでページが新しい要素を DOM に追加する場合があります。こういった新しい要素のいずれかがそれまでの最大のコンテンツ要素よりもサイズが大きくなる場合、新しい <code>PerformanceEntry</code> もレポートされます。</p>
+<p>現時点での最大のコンテンツ要素がビューポートから削除された場合 (あるいは DOM から削除された場合)、よりサイズの大きい要素がレンダリングされない限り、その要素が引き続き最大のコンテンツ要素として見なされます。</p>
+<div class="w-aside w-aside--note">
+<p>Chrome 88 より以前のバージョンでは削除された要素は最大のコンテンツ要素としては見なされず、現在の候補の削除が新しい <code>largest-contentful-paint</code> エントリのディスパッチのトリガーとなっていました。しかしながら、画像カルーセルのような一般的な UI パターンにおいては DOM 要素が削除されるケースが多いため、ユーザー体験をより正確に反映するためにこの指標はアップデートされました。詳細については、<a href="https://chromium.googlesource.com/chromium/src/+/master/docs/speed/metrics_changelog/2020_11_lcp.md" rel="noopener">CHANGELOG</a> を参照してください。</div></p>
+<p>ブラウザーは、ユーザーが (タップ、スクロール、キー押下などにより) ページを操作すると、すぐに新しいエントリのレポートを停止します。ユーザーの操作によって、ユーザーに対して表示される内容が変更される場合がよくあるからです (特にスクロールの場合)。</p>
+<p>分析を行う場合には、直近にディスパッチされた <code>PerformanceEntry</code> のみをアナリティクス サービスにレポートする必要があります。</p>
+<div class="w-aside w-aside--caution">
+<p><strong>注意</strong>: ユーザーはバックグラウンド タブでページを開くこともできるため、Largest Contentful Paint はユーザーがタブにフォーカスするまで発生しない可能性があり、そのタイミングはユーザーが最初にタブを読み込んだタイミングよりもずっと後になる可能性があります。</div></p>
+<h4 id="-4">読み込み時間とレンダリング時間 <a class="w-headline-link" href="#-4">#</a></h4>
+<p>セキュリティ上の理由から、<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Timing-Allow-Origin" rel="noopener"><code>Timing-Allow-Origin</code></a> ヘッダーを持たないクロスオリジン画像では画像のレンダリングのタイムスタンプは公開されません。その代わりに、読み込み時間のみが公開されます (この情報はその他多くの Web API を介してすでに公開されているためです)。</p>
+<p>以下の<a href="#measure-lcp-in-javascript">使用例</a>では、レンダリング時間が利用できない要素の処理方法について示しています。ただし、可能な限り<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Timing-Allow-Origin" rel="noopener"><code>Timing-Allow-Origin</code></a> ヘッダーを設定することを常に推奨しています。そうすることで、指標はより正確になります。</p>
+<h3 id="-5">要素のレイアウトやサイズの変更は、どのように処理されますか？ <a class="w-headline-link" href="#-5">#</a></h3>
+<p>新しいパフォーマンス エントリを計算してディスパッチする際に発生するパフォーマンス オーバーヘッドを低く抑えるために要素のサイズや位置を変更しても、新しい LCP 候補は生成されません。要素の初期サイズとビューポート内での位置のみが考慮されます。</p>
+<p>つまり、最初は画面外にレンダリングされ、その後で画面内に移動した画像についてはレポートされない可能性があります。また、最初はビューポート内にレンダリングされていた要素が押し下げられて表示されなくなった場合でも、ビューポート内での初期サイズがレポートされます。</p>
+<h3 id="-6">例 <a class="w-headline-link" href="#-6">#</a></h3>
+<p>ここでは、いくつかの人気 Web サイトにおいて Largest Contentful Paint が発生する場合の例をご紹介します。</p>
+<img     alt="cnn.com の Largest Contentful Paint タイムライン"          decoding="async"     height="311"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/bsBm8poY1uQbq7mNvVJm.png?auto=format&w=1600 1600w"          width="800"   />
+<img     alt="techcrunch.com の Largest Contentful Paint タイムライン"          decoding="async"     height="311"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/xAvLL1u2KFRaqoZZiI71.png?auto=format&w=1600 1600w"          width="800"   />
+<p>上記 2 つのタイムラインでは、コンテンツが読み込まれると、最大の要素が変更されます。1 つ目の例では新しいコンテンツが DOM に追加され、それにより最大の要素が変更されています。2 つ目の例ではレイアウトが変更され、それまで最も大きかったコンテンツがビューポートから削除されています。</p>
+<p>遅れて読み込まれたコンテンツの方がすでにページ上に表示されているコンテンツよりもサイズが大きいといったケースはよく見られますが、必ずしもそうなるわけではありません。次の 2 つの例では、ページが完全に読み込まれる前に Largest Contentful Paint が発生しています。</p>
+<img     alt="instagram.com の Largest Contentful Paint タイムライン"          decoding="async"     height="311"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/uJAGswhXK3bE6Vs4I5bP.png?auto=format&w=1600 1600w"          width="800"   />
+<img     alt="google.com の Largest Contentful Paint タイムライン"          decoding="async"     height="311"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/e0O2woQjZJ92aYlPOJzT.png?auto=format&w=1600 1600w"          width="800"   />
+<p>1 つ目の例では、Instagram のロゴの読み込みが比較的早い段階で完了し、その他のコンテンツが徐々に表示されていく中でもロゴが最大の要素となっています。Google の検索結果ページの例では、画像やロゴの読み込みが完了する前に表示されるテキストの段落が最大の要素となっています。個々の画像はすべてこの段落よりもサイズが小さいため、読み込みプロセス全体を通してこの段落がずっと最大の要素となっています。</p>
+<div class="w-aside w-aside--note">
+<p>Instagram のタイムラインの最初のフレームで、カメラのロゴに緑色のボックスがないことにお気づきの方がいらっしゃるかもしれません。これは、この要素が <code>&lt;svg&gt;</code> 要素だからであり、<code>&lt;svg&gt;</code> 要素は現段階で LCP の候補とされていません。最初の LCP 候補は、2 つ目のフレームに含まれているテキストです。</div></p>
+<h2 id="lcp-3">LCP の測定方法 <a class="w-headline-link" href="#lcp-3">#</a></h2>
+<p>LCP は<a href="/user-centric-performance-metrics/#in-the-lab">ラボ環境</a>または<a href="/user-centric-performance-metrics/#in-the-field">実際のユーザー環境</a>で測定が可能で、以下のツールが使用できます。</p>
+<h3 id="-7">フィールド測定を実施するためのツール <a class="w-headline-link" href="#-7">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome User Experience Report</a></li>
+<li><a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">PageSpeed Insights</a></li>
+<li><a href="https://support.google.com/webmasters/answer/9205520" rel="noopener">Search Console (Core Web Vitals Report)</a></li>
+<li><a href="https://github.com/GoogleChrome/web-vitals" rel="noopener"><code>web-vitals</code> JavaScript ライブラリ</a></li>
+</ul>
+<h3 id="-8">ラボ測定を実施するためのツール <a class="w-headline-link" href="#-8">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-devtools/" rel="noopener">Chrome DevTools</a></li>
+<li><a href="https://developers.google.com/web/tools/lighthouse/" rel="noopener">Lighthouse</a></li>
+<li><a href="https://webpagetest.org/" rel="noopener">WebPageTest</a></li>
+</ul>
+<h3 id="javascript-lcp">JavaScript を使用して LCP を測定する <a class="w-headline-link" href="#javascript-lcp">#</a></h3>
+<p>JavaScript を使用した LCP の測定には、<a href="https://wicg.github.io/largest-contentful-paint/" rel="noopener">Largest Contentful Paint API</a> を使用することができます。以下の例では、<code>largest-contentful-paint</code> エントリをリッスンしてコンソールにログを記録する <a href="https://developer.mozilla.org/docs/Web/API/PerformanceObserver" rel="noopener"><code>PerformanceObserver</code></a> の作成方法を示しています。</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">new</span> <span class="token class-name">PerformanceObserver</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">entryList</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">const</span> entry <span class="token keyword">of</span> entryList<span class="token punctuation">.</span><span class="token function">getEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'LCP candidate:'</span><span class="token punctuation">,</span> entry<span class="token punctuation">.</span>startTime<span class="token punctuation">,</span> entry<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span><span class="token punctuation">{</span>type<span class="token operator">:</span> <span class="token string">'largest-contentful-paint'</span><span class="token punctuation">,</span> buffered<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><div class="w-aside w-aside--warning">
+<p><strong>警告</strong>:</p>
+<p>このコードは <code>largest-contentful-paint</code> エントリをコンソールにログとして記録する方法を示していますが、JavaScript を使用して LCP を測定する方法はより複雑です。詳細については、以下を参照してください。</p>
+</div>
+<p>上記の例では、ログとして記録された各 <code>largest-contentful-paint</code> エントリが現時点での LCP 候補を表しています。一般的には最後に発行されたエントリの <code>startTime</code> 値が LCP 値となりますが、必ずしもそうなるわけではありません。すべての <code>largest-contentful-paint</code> エントリが LCP の測定に有効なわけではありません。</p>
+<p>次のセクションでは、API がレポートする内容と、指標の計算方法の違いについて説明します。</p>
+<h4 id="api">指標と API の違い <a class="w-headline-link" href="#api">#</a></h4>
+<ul>
+<li>API はバックグラウンド タブで読み込まれているページに対して <code>largest-contentful-paint</code> エントリをディスパッチしますが、LCP を計算する場合にはそういったページを無視する必要があります。</li>
+<li>API はページがバックグラウンドに移行した後も <code>largest-contentful-paint</code> エントリをディスパッチし続けますが、LCP を計算する場合にはこういったエントリを無視する必要があります (要素が考慮されるのは、ページがずっとフォアグラウンドにあった場合のみです)。</li>
+<li>API は、ページが <a href="/bfcache/#impact-on-core-web-vitals">Back/Forward Cache</a> から復元された場合の <code>largest-contentful-paint</code> エントリはレポートしませんが、これらはユーザーにとっては別々のページ訪問となるため、こういったケースにおいても LCP は測定される必要があります。</li>
+<li>API では iframe に含まれている要素は考慮されませんが、LCP を正確に測定するためにはこれらの要素も考慮に入れる必要があります。サブフレームが集約のために API を使用してその親フレームに <code>largest-contentful-paint</code> エントリをレポートすることができます。</li>
+</ul>
+<p>こういった微妙な違いをすべて記憶していなくても、<a href="https://github.com/GoogleChrome/web-vitals" rel="noopener"><code>web-vitals</code> JavaScript ライブラリ</a>を使用して LCP を測定すれば、これらの違いを (可能な限り) 処理してくれます。</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span>getLCP<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'web-vitals'</span><span class="token punctuation">;</span><br><br><span class="token comment">// 実行可能となった時点ですぐに LCP の測定やログ記録を実行します。</span><br><span class="token function">getLCP</span><span class="token punctuation">(</span>console<span class="token punctuation">.</span>log<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>JavaScript を使用して LCP を測定する方法に関する詳細な例については、<a href="https://github.com/GoogleChrome/web-vitals/blob/master/src/getLCP.ts" rel="noopener"><code>getLCP()</code> のソース コード</a>を参照してください。</p>
+<div class="w-aside w-aside--note">
+<p>場合によっては (クロスオリジン iframe など)、JavaScript を使用して LCP を測定することはできません。詳細については、<code>web-vitals</code> ライブラリの「<a href="https://github.com/GoogleChrome/web-vitals#limitations" rel="noopener">limitations</a> (制限事項)」セクションを参照してください。</div></p>
+<h3 id="-9">最も重要な要素が最もサイズの大きい要素ではない場合 <a class="w-headline-link" href="#-9">#</a></h3>
+<p>場合によっては、ページ上で最も重要な要素が最もサイズの大きい要素ではないため、開発者の方がこれらの要素以外の要素のレンダリング時間を測定したいと考える可能性があります。これは、「<a href="https://wicg.github.io/element-timing/" rel="noopener">Custom Metrics</a> (カスタム指標)」の記事で説明されている <a href="/custom-metrics/#element-timing-api">Element Timing API</a> を使用すれば可能です。</p>
+<h2 id="lcp-4">LCP の改善方法 <a class="w-headline-link" href="#lcp-4">#</a></h2>
+<p>LCPは、主に次の 4 つの要因の影響を受けます。</p>
+<ul>
+<li>サーバーの応答時間が遅い</li>
+<li>レンダリングを妨げる JavaScript および CSS</li>
+<li>リソースの読み込み時間</li>
+<li>クライアント側のレンダリング</li>
+</ul>
+<p>LCP の改善方法の詳細については、「<a href="/optimize-lcp/">LCP を最適化する</a>」を参照してください。LCP の改善にもつながる個別のパフォーマンス改善手法に関するその他のガイダンスについては、以下を参照してください。</p>
+<ul>
+<li><a href="/apply-instant-loading-with-prpl">PRPL パターンを使用して読み込みを高速化する</a></li>
+<li><a href="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/" rel="noopener">クリティカル レンダリング パスの最適化</a></li>
+<li><a href="/fast#optimize-your-css">CSS を最適化する</a></li>
+<li><a href="/fast#optimize-your-images">画像を最適化する</a></li>
+<li><a href="/fast#optimize-web-fonts">Web フォントを最適化する</a></li>
+<li><a href="/fast#optimize-your-javascript">JavaScript を最適化する</a> (クライアント サイドでレンダリングを行うサイト向け)</li>
+</ul>
+<h2 id="-10">その他のリソース <a class="w-headline-link" href="#-10">#</a></h2>
+<ul>
+<li><a href="https://youtu.be/ctavZT87syI" rel="noopener">Annie Sullivan</a> による「<a href="https://anniesullie.com/" rel="noopener">Chrome のパフォーマンス監視から得られた教訓</a>」<a href="https://perfnow.nl/" rel="noopener">performance.now()</a> より (2019)</li>
+</ul>
+<h2 id="changelog">CHANGELOG <a class="w-headline-link" href="#changelog">#</a></h2>
+<p>Occasionally, bugs are discovered in the APIs used to measure metrics, and
+sometimes in the definitions of the metrics themselves. As a result, changes
+must sometimes be made, and these changes can show up as improvements or
+regressions in your internal reports and dashboards.</p>
+<p>To help you manage this, all changes to either the implementation or definition
+of these metrics will be surfaced in this
+<a href="http://bit.ly/chrome-speed-metrics-changelog" rel="noopener">CHANGELOG</a>.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">パフォーマンス</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/metrics/">指標</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        最終更新: <time>Jun 17, 2020</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/ja/metrics/lcp/index.md"
+      >
+        記事を改善する
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/learn-web-vitals"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              バグを報告する
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              ソースを表示する
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">関連性のあるコンテンツ</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome のアップデート
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              ケーススタディ
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              ポッドキャスト
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              ショー
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">接続する</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            すべての製品
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="ja"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            利用規約とプライバシーポリシー
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            コミュニティガイドライン
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

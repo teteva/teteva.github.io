@@ -1,0 +1,621 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=216716636b837">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=7f043903df38e">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Photoshop's journey to the web</title>
+<meta name="description" content="Over the last three years, Chrome has been working to empower web applications that want to push the boundaries of what's possible in the browser. One such web application has been Photoshop. The idea of running software as complex as Photoshop directly in the browser would have been hard to imagine just a few years ago. However, by using various new standardized web technologies, Adobe has now brought a public beta of Photoshop to the web. " />
+
+<link rel="canonical" href="https://web.dev/ps-on-the-web/" />
+
+<meta itemprop="name" content="Photoshop's journey to the web" />
+<meta itemprop="description" content="Over the last three years, Chrome has been working to empower web applications that want to push the boundaries of what's possible in the browser. One such web application has been Photoshop. The idea of running software as complex as Photoshop directly in the browser would have been hard to imagine just a few years ago. However, by using various new standardized web technologies, Adobe has now brought a public beta of Photoshop to the web. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/ps-on-the-web/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Photoshop's journey to the web" />
+<meta property="og:description" content="Over the last three years, Chrome has been working to empower web applications that want to push the boundaries of what's possible in the browser. One such web application has been Photoshop. The idea of running software as complex as Photoshop directly in the browser would have been hard to imagine just a few years ago. However, by using various new standardized web technologies, Adobe has now brought a public beta of Photoshop to the web. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="A part of Photoshop's user interface." />
+<meta property="tag" content="capabilities" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Photoshop's journey to the web" />
+<meta name="twitter:description" content="Over the last three years, Chrome has been working to empower web applications that want to push the boundaries of what's possible in the browser. One such web application has been Photoshop. The idea of running software as complex as Photoshop directly in the browser would have been hard to imagine just a few years ago. However, by using various new standardized web technologies, Adobe has now brought a public beta of Photoshop to the web. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=d3e6c91b0b92a', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=2f3a7d07b1b6b', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="A part of Photoshop&#x27;s user interface."     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format"     srcset="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/pYiISdhsJe3oEL871Dqp.png?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#why-photoshop-came-to-the-web">Why Photoshop came to the web</a></li><li class="toc__listitem"><a class="toc__anchor" href="#how-photoshop-came-to-the-web">How Photoshop came to the web</a></li><li class="toc__listitem"><a class="toc__anchor" href="#webassembly-porting-with-emscripten">WebAssembly porting with Emscripten</a></li><li class="toc__listitem"><a class="toc__anchor" href="#webassembly-debugging">WebAssembly debugging</a></li><li class="toc__listitem"><a class="toc__anchor" href="#high-performance-storage">High performance storage</a></li><li class="toc__listitem"><a class="toc__anchor" href="#p3-color-space-for-canvas">P3 color space for canvas</a></li><li class="toc__listitem"><a class="toc__anchor" href="#web-components-and-lit">Web Components and Lit</a></li><li class="toc__listitem"><a class="toc__anchor" href="#service-worker-caching-with-workbox">Service worker caching with Workbox</a></li><li class="toc__listitem"><a class="toc__anchor" href="#what's-next-for-adobe-on-the-web">What's next for Adobe on the web</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="photoshop&#39;s-journey-to-the-web">Photoshop's journey to the web</h1>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Oct 26, 2021</time>
+             — Updated <time>Nov 17, 2021</time> 
+          </div>
+        
+
+        
+        
+
+        
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/nattestad/"> <img     alt="Thomas Nattestad"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/UyUsatSDE2wdnfy3KHzO.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/UyUsatSDE2wdnfy3KHzO.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/UyUsatSDE2wdnfy3KHzO.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/UyUsatSDE2wdnfy3KHzO.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/UyUsatSDE2wdnfy3KHzO.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/UyUsatSDE2wdnfy3KHzO.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/nattestad/">Thomas Nattestad</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/fractorious">Twitter</a>
+               
+               
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/nabeelalshamma/"> <img     alt="Nabeel Al-Shamma"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/gZlM5s1kj09oCG5h2buz.jpeg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/gZlM5s1kj09oCG5h2buz.jpeg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/gZlM5s1kj09oCG5h2buz.jpeg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/gZlM5s1kj09oCG5h2buz.jpeg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/gZlM5s1kj09oCG5h2buz.jpeg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/gZlM5s1kj09oCG5h2buz.jpeg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/nabeelalshamma/">Nabeel Al-Shamma</a>
+    </cite>
+    <div class="author__links cluster">
+               
+               <a href="https://github.com/alshamma">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#why-photoshop-came-to-the-web">Why Photoshop came to the web</a></li><li class="toc__listitem"><a class="toc__anchor" href="#how-photoshop-came-to-the-web">How Photoshop came to the web</a></li><li class="toc__listitem"><a class="toc__anchor" href="#webassembly-porting-with-emscripten">WebAssembly porting with Emscripten</a></li><li class="toc__listitem"><a class="toc__anchor" href="#webassembly-debugging">WebAssembly debugging</a></li><li class="toc__listitem"><a class="toc__anchor" href="#high-performance-storage">High performance storage</a></li><li class="toc__listitem"><a class="toc__anchor" href="#p3-color-space-for-canvas">P3 color space for canvas</a></li><li class="toc__listitem"><a class="toc__anchor" href="#web-components-and-lit">Web Components and Lit</a></li><li class="toc__listitem"><a class="toc__anchor" href="#service-worker-caching-with-workbox">Service worker caching with Workbox</a></li><li class="toc__listitem"><a class="toc__anchor" href="#what's-next-for-adobe-on-the-web">What's next for Adobe on the web</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <p>Over the last three years, Chrome has been working to empower web applications that want to push the boundaries of what's possible in the browser. One such web application has been Photoshop. The idea of running software as complex as Photoshop directly in the browser would have been hard to imagine just a few years ago. However, by using various new standardized web technologies, Adobe has now brought a public beta of Photoshop to the web.</p>
+<img     alt="The Photoshop web app running in a browser with an image showing an elephant on the canvas and the &#x27;selection tools&#x27; menu item open."          decoding="async"     height="500"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format"     srcset="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/kfFAUTzDHzvE3hXISyQO.png?auto=format&w=1600 1600w"          width="800"   />
+<p>In this post, we'd like to share for the first time the details of how our collaboration is extending Photoshop to the web. You can use all the APIs Adobe used and more in your own apps as well. Be sure to check out our <a href="/tags/capabilities/">web capabilities related blog posts</a> for inspiration and watch our <a href="https://fugu-tracker.web.app/" rel="noopener">API tracker</a> for the latest and greatest we're working on.</p>
+<h2 id="why-photoshop-came-to-the-web">Why Photoshop came to the web <a class="w-headline-link" href="#why-photoshop-came-to-the-web">#</a></h2>
+<p>As the web has evolved, one thing that hasn't changed are the core advantages that websites and web apps offer over platform-specific applications. These advantages include many unique capabilities such as being linkable, ephemeral, and universal, but they boil down to enabling simple access, easy sharing, and great collaboration.</p>
+<p>The simple power of a URL is that anyone can click it and instantly access it. All you need is a browser. There is no need to install an application or worry about what operating system you are running on. For web applications, that means users can have access to the application and their documents and comments. This makes the web the ideal collaboration platform, something that is becoming more and more essential to creative and marketing teams.</p>
+<p><a href="https://docs.google.com/" rel="noopener">Google Docs</a> was a pioneer of this simplified access. Most of us know how easy it is to start a document, send the link to someone, and immediately jump into not only the application, but the specific document or comment as well. Since then, a plethora of amazing applications, such as <a href="https://www.youtube.com/watch?v=Nrm5G9A_dfs" rel="noopener">those we've shown off in the past</a>, have adopted this model and now Photoshop, too, will benefit.</p>
+<h2 id="how-photoshop-came-to-the-web">How Photoshop came to the web <a class="w-headline-link" href="#how-photoshop-came-to-the-web">#</a></h2>
+<p>The web started out as a platform only suited for documents, but has grown dramatically throughout its history. Early apps like <a href="https://www.google.com/gmail/" rel="noopener">Gmail</a> showed that more complex interactivity and applications were at least possible. Since then, we've seen impressive co-development where web apps push the boundaries of what's possible, and browser vendors respond by further expanding web capabilities. The latest iteration of this virtuous loop is what has enabled Photoshop on the web.</p>
+<p>Adobe previously brought <a href="https://spark.adobe.com/sp/" rel="noopener">Spark</a> and <a href="https://lightroom.adobe.com/" rel="noopener">Lightroom</a> to the web and had been interested in bringing Photoshop to the web for many years. However, they were blocked by the performance limitations of JavaScript, the absence of a good compile target for their code, and the lack of web capabilities. Read on to learn what Chrome built in the browser to solve these problems.</p>
+<h2 id="webassembly-porting-with-emscripten">WebAssembly porting with Emscripten <a class="w-headline-link" href="#webassembly-porting-with-emscripten">#</a></h2>
+<p>WebAssembly and its C++ toolchain <a href="https://emscripten.org/" rel="noopener">Emscripten</a> have been the key to unlocking Photoshop's ability to come to the web, as it meant that Adobe would not have to start from scratch, but could leverage their existing Photoshop codebase. WebAssembly is a portable binary instruction set shipping in all browsers that was designed as a compilation target for programming languages. This means that applications such as Photoshop that are written in C++ can be ported directly to the web without requiring a rewrite in JavaScript. To get started porting yourself, check out the full <a href="https://emscripten.org/docs/index.html" rel="noopener">Emscripten documentation</a>, or follow this <a href="https://developers.google.com/web/updates/2018/03/emscripting-a-c-library" rel="noopener">guided example of how to port a library</a>.</p>
+<p>Emscripten is a fully-featured toolchain that not only helps you compile your C++ to Wasm, but provides a translation layer that turns POSIX API calls into web API calls and even converts OpenGL into WebGL. For example, you can port applications that reference the local filesystem and <a href="https://emscripten.org/docs/porting/files/file_systems_overview.html#file-system-overview" rel="noopener">Emscripten will provide an emulated file system</a> to maintain functionality.</p>
+<p>Emscripten has been capable of bringing most parts of Photoshop to the web for a while, but it wasn't necessarily fast enough. We have continually worked with Adobe to figure out where bottlenecks are and improve Emscripten. Photoshop depends upon multithreading. Bringing dynamic <a href="https://emscripten.org/docs/porting/pthreads.html" rel="noopener">multithreading</a> to WebAssembly was a critical requirement.</p>
+<p>Also, exception-based error handling is very common in C++, but wasn't well supported in Emscripten and WebAssembly. We have worked with the <a href="https://www.w3.org/community/webassembly/" rel="noopener">WebAssembly Community Group</a> in the W3C to improve the WebAssembly standard and the tooling around it to bring C++ exceptions to WebAssembly.</p>
+<p>Emscripten doesn't just work on large applications, but also lets you port libraries or smaller projects! For example, you can see <a href="https://docs.opencv.org/3.4/d4/da1/tutorial_js_setup.html" rel="noopener">how you can compile the popular OpenCV library</a> to the web through Emscripten.</p>
+<p>Lastly, WebAssembly offers advanced performance primitives such as <a href="https://emscripten.org/docs/porting/simd.html" rel="noopener">SIMD instructions</a> which dramatically improve your web app performance. For example, <a href="https://halide-lang.org/" rel="noopener">Halide</a> is essential to Adobe's performance, and here SIMD provides a 3–4× speedup on average and in some cases a 80–160× speedup.</p>
+<h2 id="webassembly-debugging">WebAssembly debugging <a class="w-headline-link" href="#webassembly-debugging">#</a></h2>
+<p>No large project can be successfully completed without the appropriate tools for the job, and it's for this reason that the Chrome team developed full featured WebAssembly debugging support. It provides support for stepping through the source code, setting breakpoints and pausing on exceptions, variable inspection with rich type support, and even basic support for evaluation in the DevTools console!</p>
+<img     alt="WebAssembly debugging in DevTools showing breakpoints in the code so it can be stepped through."          decoding="async"     height="325"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format"     srcset="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/ZwSsG07jcIvFZOdid5yd.png?auto=format&w=1600 1600w"          width="800"   />
+<p>Be sure to check out the <a href="https://developer.chrome.com/blog/wasm-debugging-2020/" rel="noopener">authoritative guide on how to utilize WebAssembly Debugging</a>.</p>
+<h2 id="high-performance-storage">High performance storage <a class="w-headline-link" href="#high-performance-storage">#</a></h2>
+<p>Given how large Photoshop documents can be, a critical need for Photoshop is the ability to dynamically move data from on-disk to in-memory as the user pans around. On other platforms, this is accomplished usually through memory mapping via <a href="https://en.wikipedia.org/wiki/Mmap" rel="noopener"><code>mmap</code></a>, but this hasn't been performantly possible on the web—that is until origin private file system access handles were developed and implemented as an origin trial! You can read how to leverage this new API <a href="https://web.dev/file-system-access/#accessing-files-optimized-for-performance-from-the-origin-private-file-system">in the documentation</a>.</p>
+<h2 id="p3-color-space-for-canvas">P3 color space for canvas <a class="w-headline-link" href="#p3-color-space-for-canvas">#</a></h2>
+<p>Historically, colors on the web have been specified in the <a href="https://en.wikipedia.org/wiki/SRGB" rel="noopener">sRGB</a> color space, which is a standard from the mid-nineties, based on the capabilities of cathode-ray tube monitors. Cameras and monitors have come a long way in the intervening quarter-century, and many larger and more capable color spaces have been standardized. One of the most popular modern color spaces is <a href="https://en.wikipedia.org/wiki/DCI-P3" rel="noopener">Display P3</a>. Photoshop uses a <a href="https://github.com/WICG/canvas-color-space/blob/main/CanvasColorSpaceProposal.md" rel="noopener">Display P3 Canvas</a> to display images more accurately in the browser. In particular, images with bright whites, bright colors, and details in shadows will display as best as possible on modern displays that support Display P3 data.
+The Display P3 Canvas API is being further built upon to enable <a href="https://github.com/w3c/ColorWeb-CG/blob/master/hdr_html_canvas_element.md" rel="noopener">high dynamic range</a> displays.</p>
+<h2 id="web-components-and-lit">Web Components and Lit <a class="w-headline-link" href="#web-components-and-lit">#</a></h2>
+<p>Photoshop is a famously large and feature-rich application, with hundreds of UI elements supporting dozens of workflows. The app is built by multiple teams using a variety of tools and development practices, but its disparate parts need to come together into a cohesive, high-performing whole.</p>
+<p>To meet this challenge, Adobe turned to <a href="https://developer.mozilla.org/docs/Web/Web_Components" rel="noopener">Web Components</a> and the <a href="https://lit.dev" rel="noopener">Lit library</a>. Photoshop's UI elements come from Adobe's <a href="https://opensource.adobe.com/spectrum-web-components/" rel="noopener">Spectrum Web Components</a> library, a lightweight, performant implementation of the Adobe design system that works with any framework, or no framework at all.</p>
+<p>What's more, the entire Photoshop app is built using Lit-based Web Components. Leaning on the browser's built-in component model and Shadow DOM encapsulation, the team found it easy to cleanly integrate a few &quot;islands&quot; of React code provided by other Adobe teams.</p>
+<h2 id="service-worker-caching-with-workbox">Service worker caching with Workbox <a class="w-headline-link" href="#service-worker-caching-with-workbox">#</a></h2>
+<p><a href="https://developer.mozilla.org/docs/Web/API/Service_Worker_API" rel="noopener">Service workers</a> act as a programmable local proxy, intercepting network requests and responding with data from the network, long-lived caches, or a mixture of both.</p>
+<p>As part of the <a href="https://v8.dev/" rel="noopener">V8</a> team's efforts to improve performance, the first time a service worker responds with a cached WebAssembly response, Chrome generates and stores an optimized version of the code—even for multi-megabyte WebAssembly scripts, which are common in the Photoshop codebase. A similar precompilation takes place when <a href="https://v8.dev/blog/code-caching-for-devs#use-service-worker-caches" rel="noopener">JavaScript is cached</a> by a service worker during its <a href="https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle#install" rel="noopener"><code>install</code> step</a>. In both cases, Chrome is able to load and execute the optimized versions of cached scripts with minimal runtime overhead.</p>
+<p>Photoshop on the web takes advantage of this by deploying a service worker that precaches many of its JavaScript and WebAssembly scripts. Because the URLs for these scripts are generated at build time, and because the logic of keeping caches up to date can be complex, they turned to a set of libraries maintained by Google called <a href="https://developers.google.com/web/tools/workbox/" rel="noopener">Workbox</a> to generate their service worker as part of their build process.</p>
+<p>A Workbox-based service worker along with the V8 engine's script caching led to measurable performance improvements. The specific numbers vary based on the device executing the code, but the team estimates these optimizations decreased the time spent on code initialization by 75%.</p>
+<h2 id="what's-next-for-adobe-on-the-web">What's next for Adobe on the web <a class="w-headline-link" href="#what's-next-for-adobe-on-the-web">#</a></h2>
+<p>The launch of the Photoshop beta is just the beginning, and we've got several performance and feature improvements already underway as Photoshop tracks towards their full launch after this beta. Adobe isn't stopping with Photoshop and plans to aggressively expand <a href="https://www.adobe.com/creativecloud.html" rel="noopener">Creative Cloud</a> to the web, making it a primary platform for both creative content creation and collaboration. This will enable millions of first-time creators to tell their story and benefit from innovative workflows on the web.</p>
+<p>As Adobe continues to push the boundaries of what's possible, the Chrome team will continue our collaboration to drive the web forward for Adobe and the vibrant web developer ecosystem in general. As other browsers also catch up on these modern browser capabilities, we're excited to see Adobe make their products available there as well. Stay tuned for future updates as we continue to push the web forward!</p>
+<p>You can learn more about accessing Photoshop on the web (beta) in the <a href="https://helpx.adobe.com/photoshop/using/photoshop-web-faq.html" rel="noopener">Adobe Help Center</a>.</p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/capabilities/">Capabilities</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Nov 17, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/blog/ps-on-the-web/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@fractorious | Nabeel Al-Shamma"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

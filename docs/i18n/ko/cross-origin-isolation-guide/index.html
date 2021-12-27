@@ -1,0 +1,718 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=5dd378c4e94c6">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>출처 간 격리를 이용하기 위한 가이드</title>
+<meta name="description" content="출처 간 격리를 이용하면 웹 페이지에서 SharedArrayBuffer와 같은 강력한 기능을 사용할 수 있습니다. 이 문서에서는 웹사이트에서 출처 간 격리를 이용하는 방법을 설명합니다." />
+
+<link rel="canonical" href="https://web.dev/i18n/ko/cross-origin-isolation-guide/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/cross-origin-isolation-guide/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/cross-origin-isolation-guide/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/cross-origin-isolation-guide/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/cross-origin-isolation-guide/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/cross-origin-isolation-guide/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/cross-origin-isolation-guide/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/cross-origin-isolation-guide/" />
+<meta itemprop="name" content="출처 간 격리를 이용하기 위한 가이드" />
+<meta itemprop="description" content="출처 간 격리를 이용하면 웹 페이지에서 SharedArrayBuffer와 같은 강력한 기능을 사용할 수 있습니다. 이 문서에서는 웹사이트에서 출처 간 격리를 이용하는 방법을 설명합니다." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/ko/cross-origin-isolation-guide/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="출처 간 격리를 이용하기 위한 가이드" />
+<meta property="og:description" content="출처 간 격리를 이용하면 웹 페이지에서 SharedArrayBuffer와 같은 강력한 기능을 사용할 수 있습니다. 이 문서에서는 웹사이트에서 출처 간 격리를 이용하는 방법을 설명합니다." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="security" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="출처 간 격리를 이용하기 위한 가이드" />
+<meta name="twitter:description" content="출처 간 격리를 이용하면 웹 페이지에서 SharedArrayBuffer와 같은 강력한 기능을 사용할 수 있습니다. 이 문서에서는 웹사이트에서 출처 간 격리를 이용하는 방법을 설명합니다." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=7fd7e284a5612', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=482836d4597b1', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="메뉴 열기">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">메뉴 열기</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        배우기
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        측정
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        블로그
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        정보
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="닫기"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">닫기</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        배우기
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        측정
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        블로그
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        정보
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#" class="w-toc__header--link">
+        출처 간 격리를 이용하기 위한 가이드
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#chrome-devtools">Chrome DevTools 사용</a></li><li><a href="#analysis">출처 간 격리의 영향 분석</a></li><li><a href="#()">(고급) 사용 중단 보고 사용</a></li><li><a href="#-2">출처 간 격리 사용하기</a></li><li><a href="#-3">리소스</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@agektmr"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>공유</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="" class="w-article-header__headline">출처 간 격리를 이용하기 위한 가이드</h1>
+      
+        <p class="w-article-header__subhead w-mb--non">
+          출처 간 격리를 이용하면 웹 페이지에서 SharedArrayBuffer와 같은 강력한 기능을 사용할 수 있습니다. 이 문서에서는 웹사이트에서 출처 간 격리를 이용하는 방법을 설명합니다.
+        </p>
+      
+
+      
+        <div class="w-author__published">
+          <time>Feb 9, 2021</time>
+           <span class="w-author__separator">•</span> 업데이트됨 <time>Aug 5, 2021</time> 
+        </div>
+      
+
+      
+      
+      <div class="w-layout-container--narrow w-post-signpost">
+        <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/cross-origin-isolation-guide/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/cross-origin-isolation-guide/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/cross-origin-isolation-guide/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/cross-origin-isolation-guide/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/cross-origin-isolation-guide/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/cross-origin-isolation-guide/">
+      English</a></span>
+      </div>
+      
+
+      
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/agektmr/"><img     alt="Eiji Kitamura"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/agektmr/">Eiji Kitamura</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/agektmr"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/agektmr">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://blog.agektmr.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <p>이 가이드에서는 출처 간 격리를 이용하는 방법을 보여줍니다. <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer" rel="noopener"><code>SharedArrayBuffer</code></a>, <a href="/monitor-total-page-memory-usage/"><code>performance.measureUserAgentSpecificMemory()</code></a>, <a href="https://developer.chrome.com/blog/cross-origin-isolated-hr-timers/" rel="noopener">높은 정밀도의 고해상도 타이머</a> 또는 JS Self-Profiling API를 사용하려면 출처 간 격리가 필요합니다.</p>
+<p>출처 간 격리를 이용하려는 경우, 이것이 광고 배치와 같은 웹사이트의 다른 출처 간 리소스에 미치는 영향을 평가하세요.</p>
+<details class="w-details" >
+ <summary class="w-details__summary">
+  <h2 class="w-details__header">
+    웹사이트에서 <code>SharedArrayBuffer</code>가 사용되는 위치를 결정하세요.
+  </h2>
+  <p class="w-details__preview"> Chrome 92부터 출처 간 격리 없이는 <code>SharedArrayBuffer</code>를 사용하는 기능이 더 이상 작동하지 않습니다. <code>SharedArrayBuffer</code> 사용 중단 메시지 때문에 이 페이지에 오게 되었다면 웹사이트 또는 여기에 내장된 리소스 중 하나가 <code>SharedArrayBuffer</code>를 사용하고 있을 가능성이 높습니다. 사용 중단으로 인해 웹사이트에서 아무 문제도 생기지 않도록 우선 이것이 사용되는 위치를 확인하세요.</p>
+</summary>
+<div class="w-aside w-aside--objective">
+<p><strong>목적</strong>:</p>
+<ul>
+<li><code>SharedArrayBuffer</code>를 계속 사용하려면 출처 간 격리를 활성화하세요.</li>
+<li><code>SharedArrayBuffer</code>를 사용하는 제3자 코드에 의존하는 경우, 제3자 공급자에게 조치를 취하도록 알리세요. </div></li>
+</ul>
+<p>사이트에서 <code>SharedArrayBuffer</code>가 사용되는 위치를 확실히 모르는 경우, 두 가지 방법으로 알아낼 수 있습니다.</p>
+<ul>
+<li>Chrome DevTools 사용</li>
+<li>(고급) 사용 중단 보고 사용</li>
+</ul>
+<p><code>SharedArrayBuffer</code> 사용 위치를 이미 알고 있다면 <a href="#analysis">출처 간 격리의 영향 분석</a>으로 건너뛰세요.</p>
+<h3 id="chrome-devtools">Chrome DevTools 사용 <a class="w-headline-link" href="#chrome-devtools">#</a></h3>
+<p>개발자는 <a href="https://developers.google.com/web/tools/chrome-devtools/open" rel="noopener">Chrome DevTools</a>를 사용하여 웹사이트를 검사할 수 있습니다.</p>
+<ol>
+<li><code>SharedArrayBuffer</code>를 사용하고 있다고 의심되는 페이지에서 <a href="https://developers.google.com/web/tools/chrome-devtools/open" rel="noopener">Chrome DevTools를 엽니다</a>.</li>
+<li><strong>콘솔</strong> 패널을 선택합니다.</li>
+<li>페이지가 <code>SharedArrayBuffer</code>를 사용하는 경우 다음 메시지가 표시됩니다.<web-copy-code><pre class="language-text"><code class="language-text">[Deprecation] SharedArrayBuffer will require cross-origin isolation as of M92, around May 2021. See https://developer.chrome.com/blog/enabling-shared-array-buffer/ for more details. common-bundle.js:535</code></pre>
+</web-copy-code></li>
+<li>메시지 끝에 있는 파일 이름과 줄 번호(예: <code>common-bundle.js:535</code>)는 <code>SharedArrayBuffer</code>가 어디서 출처했는지를 나타냅니다. 제3자 라이브러리인 경우 개발자에게 연락해 문제를 해결하세요. 웹사이트의 일부로 구현된 경우라면 아래 가이드에 따라 출처 간 격리를 활성화하세요.</li>
+</ol>
+<figure class="w-figure"><img     alt="출처 간 격리 없이 SharedArrayBuffer를 사용할 때 DevTools 콘솔 경고"     class="w-screenshot"     decoding="async"     height="163"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format"     srcset="https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=1600 1600w"          width="800"   /> <figcaption>출처 간 격리 없이 SharedArrayBuffer를 사용할 때 DevTools 콘솔 경고</figcaption></figure>
+<h3 id="()">(고급) 사용 중단 보고 사용 <a class="w-headline-link" href="#()">#</a></h3>
+<p>일부 브라우저에는 지정된 엔드포인트에 <a href="https://wicg.github.io/deprecation-reporting/" rel="noopener">API 사용 중단을 보고하는 기능이 있습니다.</a></p>
+<ol>
+<li><a href="/coop-coep/#set-up-reporting-endpoint">사용 중단 보고서 서버를 설정하고 보고 URL을 가져옵니다</a>. 공공 서비스를 사용하거나 직접 구축하여 이를 수행할 수 있습니다.</li>
+<li>URL을 사용하여 잠재적으로 <code>SharedArrayBuffer</code>를 제공할 페이지로 다음 HTTP 헤더를 설정합니다.<web-copy-code><pre class="language-http"><code class="language-http"><span class="token header-name keyword">Report-To:</span> {"group":"default","max_age":86400,"endpoints":[{"url":"THE_DEPRECATION_ENDPOINT_URL"}]}</code></pre>
+</web-copy-code></li>
+<li>헤더가 전파되기 시작하면 등록한 엔드포인트에서 사용 중단 보고서 수집을 시작합니다.</li>
+</ol>
+<p>여기에서 예제 구현을 참조하세요: <a href="https://first-party-test.glitch.me" rel="noopener">https://first-party-test.glitch.me</a> .</p>
+</details>
+<h2 id="analysis">출처 간 격리의 영향 분석 <a class="w-headline-link" href="#analysis">#</a></h2>
+<p>실제로 어떤 부분도 건드리지 않고 출처 간 격리를 활성화했을 때 사이트에 미치는 영향을 평가할 수 있다면 좋지 않을까요? <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy" rel="noopener"><code>Cross-Origin-Opener-Policy-Report-Only</code></a> 및 <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy" rel="noopener"><code>Cross-Origin-Embedder-Policy-Report-Only</code></a> HTTP 헤더를 사용하면 그렇게 할 수 있습니다.</p>
+<ol>
+<li>최상위 문서에서 <a href="/coop-coep/#1.-set-the-cross-origin-opener-policy:-same-origin-header-on-the-top-level-document"><code>Cross-Origin-Opener-Policy-Report-Only: same-origin</code></a>을 설정합니다. 이름에서 알 수 있듯이 이 헤더는 <code>COOP: same-origin</code>이 사이트에 <strong>잠재적으로 미칠</strong> 영향에 대한 보고서만 보냅니다. 실제로 팝업 창과의 통신을 중단시키지 않습니다.</li>
+<li>보고를 설정하고 보고서를 수신하고 저장하도록 웹 서버를 구성합니다.</li>
+<li>최상위 문서에서 <a href="/coop-coep/#3.-use-the-coep-report-only-http-header-to-assess-embedded-resources"><code>Cross-Origin-Embedder-Policy-Report-Only: require-corp</code></a>를 설정합니다. 다시 말하지만, 이 헤더를 사용하면 아직 사이트 기능에 실제로 영향을 주지 않으면서 <code>COEP: require-corp</code>을 활성화할 때의 영향을 확인할 수 있습니다. 이전 단계에서 설정한 동일한 보고 서버로 보고서를 보내도록 이 헤더를 구성할 수 있습니다.</li>
+</ol>
+<div class="w-aside w-aside--note">
+<p>Chrome DevTools <strong>네트워크</strong> 패널에서 <a href="https://developers.google.com/web/tools/chrome-devtools/network#information" rel="noopener"><strong>도메인</strong> 컬럼을 활성화</a>하여 어떤 리소스가 영향을 받는지 전반적으로 파악할 수도 있습니다. </div></p>
+<div class="w-aside w-aside--caution">
+<p><strong>주의</strong>:</p>
+<p>출처 간 격리를 활성화하면 명시적으로 선택하지 않은 출처 간 리소스의 로딩이 차단되고 최상위 문서가 팝업 창과 통신할 수 없게 됩니다.</p>
+<p>출처 간 격리를 위해서는 모든 하위 리소스를 명시적으로 선택해야 하므로 <code>Cross-Origin-Resource-Policy</code>를 대규모로 배포할 방법을 모색했습니다. 그리고 그 반대로 향하는 아이디어를 생각해 냈습니다. 바로, 모든 자격 증명을 제거하여 CORP 헤더 없이 리소스를 로드할 수 있는 <a href="https://github.com/mikewest/credentiallessness/" rel="noopener">새로운 COEP &quot;자격 증명 없는&quot; 모드</a>입니다. 작동 방식에 대한 세부 사항은 고려 중이지만 하위 리소스가 <code>Cross-Origin-Resource-Policy</code> 헤더를 보내도록 해야 하는 부담이 덜어지를 바랍니다.</p>
+<p>또한, <code>Cross-Origin-Opener-Policy: same-origin</code> 헤더는 OAuth 및 결제와 같은 출처 간 창 상호 작용이 필요한 통합을 중단시키는 것으로 알려져 있습니다. 이 문제를 완화하기 위해 <code>Cross-Origin-Opener-Policy: same-origin-allow-popups</code>에 대한 출처 간 격리를 활성화하는 <a href="https://github.com/whatwg/html/issues/6364" rel="noopener">조건을 덜 엄격하게 하는</a> 방법을 모색하고 있습니다. 그러면 자체적으로 열리는 창과의 통신이 가능해질 것입니다.</p>
+<p>출처 간 격리를 사용하고 싶지만 이러한 문제로 인해 차단된 경우, <a href="https://developer.chrome.com/blog/enabling-shared-array-buffer/#origin-trial" rel="noopener">최초 평가판에 등록</a>하고 새 모드를 사용할 수 있을 때까지 기다릴 것을 권장합니다. 이러한 새로운 모드를 사용할 수 있을 때까지 최초 평가판을 종료할 계획이 없습니다.</p>
+</div>
+<h2 id="">출처 간 격리의 영향 완화 <a class="w-headline-link" href="#">#</a></h2>
+<p>출처 간 격리의 영향을 받을 리소스를 결정했으면 이러한 출처 간 리소스를 실제로 선택하는 방법에 대한 다음의 일반 지침을 따르세요.</p>
+<ol>
+<li>이미지, 스크립트, 스타일시트, iframe 등과 같은 출처 간 리소스에서 <a href="https://resourcepolicy.fyi/#cross-origin" rel="noopener"><code>Cross-Origin-Resource-Policy: cross-origin</code></a> 헤더를 설정합니다. Same-site 리소스에서는 <a href="https://resourcepolicy.fyi/#same-origin" rel="noopener"><code>Cross-Origin-Resource-Policy: same-site</code></a> 헤더를 설정합니다.</li>
+<li>리소스가 <a href="/cross-origin-resource-sharing/">CORS</a>와 함께 제공되는 경우 최상위 문서의 HTML 태그에 <code>crossorigin</code> 특성을 설정합니다(예: <code>&lt;img src=&quot;example.jpg&quot; crossorigin&gt;</code>).</li>
+<li>iframe에 로드된 출처 간 리소스에 다른 iframe 레이어가 포함된 경우, 계속 진행하기 전에 이 섹션에 설명된 단계를 재귀적으로 적용하세요.</li>
+<li>모든 출처 간 리소스가 선택된 것을 확인한 후, iframe에 로드된 출처 간 리소스에서 <code>Cross-Origin-Embedder-Policy: require-corp</code> 헤더를 설정합니다.</li>
+<li><code>postMessage()</code>를 통한 통신이 필요한 출처 간 팝업 창이 없도록 하세요. 출처 간 격리가 활성화된 경우 이 창이 계속 작동하도록 할 방법이 없습니다. 출처 간에 격리되지 않은 다른 문서로 통신을 이동하거나 다른 통신 방법(예: HTTP 요청)을 사용할 수 있습니다.</li>
+</ol>
+<h2 id="-2">출처 간 격리 사용하기 <a class="w-headline-link" href="#-2">#</a></h2>
+<p>출처 간 격리로 인한 영향을 완화한 후에는 출처 간 격리를 활성화하기 위한 다음 일반적 지침을 따르세요.</p>
+<ol>
+<li>최상위 문서에서 <code>Cross-Origin-Opener-Policy: same-origin</code> 헤더를 설정합니다. <code>Cross-Origin-Opener-Policy-Report-Only: same-origin</code>을 설정했다면 대체하세요. 이렇게 하면 최상위 문서와 해당 팝업 창 간의 통신이 차단됩니다.</li>
+<li>최상위 문서에서 <code>Cross-Origin-Embedder-Policy: require-corp</code> 헤더를 설정합니다. <code>Cross-Origin-Embedder-Policy-Report-Only: require-corp</code>를 설정했다면 대체하세요. 이렇게 하면 선택되지 않은 출처 간 리소스의 로드가 차단됩니다.</li>
+<li><code>self.crossOriginIsolated</code>가 콘솔에서 <code>true</code>를 반환하는지 확인하여 페이지가 출처 간에 격리되었는지 검증하세요.</li>
+</ol>
+<div class="w-aside w-aside--gotchas"><strong>갓차!</strong>
+<p>단순한 서버는 헤더 전송을 지원하지 않기 때문에 로컬 서버에서 출처 간 격리를 활성화하는 일은 어려울 수 있습니다. 명령줄 플래그 <code>--enable-features=SharedArrayBuffer</code>와 함께 Chrome을 시작하여 출처 간 격리를 사용하지 않고 <code>SharedArrayBuffer</code>를 활성화할 수 있습니다. <a href="https://www.chromium.org/developers/how-tos/run-chromium-with-flags" rel="noopener">각 플랫폼에서 명령줄 플래그로 Chrome을 실행하는 방법</a>을 알아보세요.</p>
+</div>
+<h2 id="-3">리소스 <a class="w-headline-link" href="#-3">#</a></h2>
+<ul>
+<li><a href="/coop-coep/">COOP 및 COEP를 사용하여 웹사이트를 &quot;출처 간 격리&quot;로 만들기</a></li>
+<li><a href="https://developer.chrome.com/blog/enabling-shared-array-buffer/" rel="noopener">Android Chrome 88 및 Desktop Chrome 92에서 SharedArrayBuffer 업데이트</a></li>
+</ul>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/security/">보안</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        마지막 업데이트: <time>Aug 5, 2021</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/ko/secure/cross-origin-isolation-guide/index.md"
+      >
+        기사 개선하기
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/secure"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              버그 신고
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              소스 보기
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">관련된 콘텐츠</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome 업데이트
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              웹 기초
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              사례 연구
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              팟캐스트
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              쇼
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">연결</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            전체 제품
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="ko"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            약관 및 개인정보 보호
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            커뮤니티 가이드라인
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

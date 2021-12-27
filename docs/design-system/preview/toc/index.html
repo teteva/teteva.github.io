@@ -1,0 +1,244 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=5ba47b1047da5">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=ef2bf1c1ebd01">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+<meta name="robots" content="noindex" />
+
+
+<title>Preview</title>
+<meta name="description" content="" />
+
+<link rel="canonical" href="https://web.dev/design-system/preview/toc/" />
+
+<meta itemprop="name" content="Preview" />
+<meta itemprop="description" content="" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/design-system/preview/toc/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Preview" />
+<meta property="og:description" content="" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Preview" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=df98c0d62e20f', 'module');
+
+
+
+
+  loadScript('/js/design-system.js?v=8c1c17795e7c', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+
+    <style>
+      /* Extra padding for theme toggle */
+      body {
+        padding: 1rem 1rem 5rem 1rem;
+      }
+
+      .theme-toggle {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        padding: 1rem;
+        z-index: 10;
+        background: var(--color-mid-bg);
+      }
+
+      
+    </style>
+  </head>
+  <body>
+    <div class="preview">
+      <!-- MARKUP TAKEN FROM GENERATED OUTPUT -->
+<div class="toc">
+  <div class="toc__content">
+    <h2 class="toc__header">In this article</h2>
+    <ul class="toc__list">
+      <li>
+        <a href="#what-are-animations">What are animations?</a>
+        <ul class="toc__list">
+          <li><a href="#hodo-animations-work">How do animations work?</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="#what-are-animation-frames">What are animation frames?</a>
+      </li>
+      <li>
+        <a href="#what-impacts-animation-frames"
+          >What impacts animation frames?</a
+        >
+      </li>
+      <li>
+        <a href="#animation-frames:-updates-that-matter"
+          >Animation frames: Updates that matter</a
+        >
+        <ul class="toc__list">
+          <li>
+            <a href="#main-and-compositor-thread-updates"
+              >Main and compositor thread updates</a
+            >
+          </li>
+          <li>
+            <a href="#missing-paint-updates" class="w-scroll-spy__active"
+              >Missing paint updates</a
+            >
+          </li>
+          <li><a href="#detecting-animations">Detecting animations</a></li>
+          <li>
+            <a href="#quality-versus-quantity">Quality versus quantity</a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <a href="#states-of-a-single-animation-frame"
+          >States of a single animation frame</a
+        >
+      </li>
+      <li>
+        <a href="#putting-it-all-together:-a-percent-dropped-frames-metric"
+          >Putting it all together: A Percent Dropped Frames metric</a
+        >
+      </li>
+      <li>
+        <a href="#try-it-yourself-in-developer-tooling!"
+          >Try it yourself in developer tooling!</a
+        >
+        <ul class="toc__list">
+          <li><a href="#performance-hud">Performance HUD</a></li>
+          <li><a href="#frame-rendering-stats">Frame Rendering Stats</a></li>
+          <li>
+            <a href="#frame-viewer-in-devtools-performance-profile-recordings"
+              >Frame Viewer in DevTools performance profile recordings</a
+            >
+          </li>
+          <li><a href="#chrome-tracing">Chrome tracing</a></li>
+        </ul>
+      </li>
+      <li><a href="#what's-next">What's next</a></li>
+      <li><a href="#feedback">Feedback</a></li>
+    </ul>
+    <!---->
+  </div>
+</div>
+
+    </div>
+    <div class="theme-toggle">
+      <theme-toggle>
+  <label class="toggle-switch" for="theme-toggle">
+    <span class="toggle-switch__label ">Dark theme</span>
+    <input type="checkbox" role="switch" class="toggle-switch__input" id="theme-toggle" />
+    <div class="toggle-switch__decor focus-ring" aria-hidden="true">
+      <div class="toggle-switch__thumb"></div>
+    </div>
+  </label>
+</theme-toggle>
+    </div>
+    <!-- Sets a specific state for windowed previews -->
+    <script>
+      const urlSearchParams = new URLSearchParams(window.location.search);
+      const params = Object.fromEntries(urlSearchParams.entries());
+
+      const state = params.state || '';
+
+      document.documentElement.setAttribute('data-state', state);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,844 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=339152f4b57a5">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=11957af897e0e">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Otimize a Cumulative Layout Shift</title>
+<meta name="description" content="Cumulative Layout Shift  (CLS) é uma métrica que quantifica a frequência com que os usuários experimentam mudanças repentinas no conteúdo da página. Neste guia, abordaremos a otimização de causas comuns de CLS, como imagens e iframes sem dimensões ou conteúdo dinâmico." />
+
+<link rel="canonical" href="https://web.dev/i18n/pt/optimize-cls/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/optimize-cls/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/optimize-cls/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/optimize-cls/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/optimize-cls/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/optimize-cls/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/optimize-cls/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/optimize-cls/" />
+<meta itemprop="name" content="Otimize a Cumulative Layout Shift" />
+<meta itemprop="description" content="Cumulative Layout Shift  (CLS) é uma métrica que quantifica a frequência com que os usuários experimentam mudanças repentinas no conteúdo da página. Neste guia, abordaremos a otimização de causas comuns de CLS, como imagens e iframes sem dimensões ou conteúdo dinâmico." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="pt_BR" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/pt/optimize-cls/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Otimize a Cumulative Layout Shift" />
+<meta property="og:description" content="Cumulative Layout Shift  (CLS) é uma métrica que quantifica a frequência com que os usuários experimentam mudanças repentinas no conteúdo da página. Neste guia, abordaremos a otimização de causas comuns de CLS, como imagens e iframes sem dimensões ou conteúdo dinâmico." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="Deslocamentos de layout podem empurrar repentinamente o conteúdo que você está lendo ou está prestes a clicar mais para baixo na página, levando a uma experiência do usuário insatisfatória. Reservar espaço para conteúdo dinâmico causando mudanças de layout leva a uma experiência do usuário mais agradável." />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Otimize a Cumulative Layout Shift" />
+<meta name="twitter:description" content="Cumulative Layout Shift  (CLS) é uma métrica que quantifica a frequência com que os usuários experimentam mudanças repentinas no conteúdo da página. Neste guia, abordaremos a otimização de causas comuns de CLS, como imagens e iframes sem dimensões ou conteúdo dinâmico." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=ee7e5998f4c12', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=8b61ece915608', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Aprender
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Medir
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        Sobre
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Fechar</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="Deslocamentos de layout podem empurrar repentinamente o conteúdo que você está lendo ou está prestes a clicar mais para baixo na página, levando a uma experiência do usuário insatisfatória. Reservar espaço para conteúdo dinâmico causando mudanças de layout leva a uma experiência do usuário mais agradável."     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/74TRx6aETydsBGa2IZ7R.png?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="Nesta página">
+    <div class="course-toc__heading font-google-sans weight-medium">Nesta página</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#imagens-sem-dimensoes">Imagens sem dimensões 🌆</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#historia">Historia</a></li><li class="toc__listitem"><a class="toc__anchor" href="#melhores-praticas-atuais">Melhores práticas atuais</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#anuncios-incorporacoes-e-iframes-sem-dimensoes">Anúncios, incorporações e iframes sem dimensões 📢😱</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#anuncios">Anúncios</a></li><li class="toc__listitem"><a class="toc__anchor" href="#incorporacoes-e-iframes">Incorporações e iframes</a></li><li class="toc__listitem"><a class="toc__anchor" href="#conteudo-dinamico">Conteúdo dinâmico 📐</a></li><li class="toc__listitem"><a class="toc__anchor" href="#fontes-da-web-que-causam-foitfout">Fontes da Web que causam FOIT/FOUT</a></li><li class="toc__listitem"><a class="toc__anchor" href="#animacoes">Animações 🏃‍♀️</a></li><li class="toc__listitem"><a class="toc__anchor" href="#ferramentas-de-desenvolvimento">Ferramentas de desenvolvimento 🔧</a></li></ul></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="otimize-a-cumulative-layout-shift">Otimize a Cumulative Layout Shift</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            Aprenda como evitar mudanças repentinas de layout para melhorar a experiência do usuário
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>May 5, 2020</time>
+             — Atualizado <time>Aug 17, 2021</time> 
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/optimize-cls/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/optimize-cls/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/optimize-cls/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/optimize-cls/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/optimize-cls/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/optimize-cls/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/addyosmani/"> <img     alt="Addy Osmani"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/addyosmani/">Addy Osmani</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/addyosmani">Twitter</a>
+               <a href="https://github.com/addyosmani">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="Nesta página">
+      <summary>
+        Nesta página
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#imagens-sem-dimensoes">Imagens sem dimensões 🌆</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#historia">Historia</a></li><li class="toc__listitem"><a class="toc__anchor" href="#melhores-praticas-atuais">Melhores práticas atuais</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#anuncios-incorporacoes-e-iframes-sem-dimensoes">Anúncios, incorporações e iframes sem dimensões 📢😱</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#anuncios">Anúncios</a></li><li class="toc__listitem"><a class="toc__anchor" href="#incorporacoes-e-iframes">Incorporações e iframes</a></li><li class="toc__listitem"><a class="toc__anchor" href="#conteudo-dinamico">Conteúdo dinâmico 📐</a></li><li class="toc__listitem"><a class="toc__anchor" href="#fontes-da-web-que-causam-foitfout">Fontes da Web que causam FOIT/FOUT</a></li><li class="toc__listitem"><a class="toc__anchor" href="#animacoes">Animações 🏃‍♀️</a></li><li class="toc__listitem"><a class="toc__anchor" href="#ferramentas-de-desenvolvimento">Ferramentas de desenvolvimento 🔧</a></li></ul></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <div class="youtube">  <lite-youtube    videoid="AQqFZ5t8uNc"    videoStartAt="88"  >  </lite-youtube></div>
+<p>&quot;Eu estava prestes a clicar nisso! Por que ele se moveu? 😭&quot;</p>
+<p>Os deslocamentos de layout podem distrair os usuários. Imagine que você começou a ler um artigo quando, de repente, os elementos mudam de posição na página, fazendo você perder a posição da leitura e fazendo que você pare para procurar o lugar onde parou. Isto é muito comum na web, inclusive ao ler notícias ou tentar clicar nos botões 'Pesquisar' ou 'Adicionar ao carrinho'. Essas experiências são visualmente chocantes e frustrantes. Freqüentemente, elas são causadas quando elementos visíveis são forçados a se mover porque outro elemento foi adicionado repentinamente à página ou foi redimensionado.</p>
+<p>A <a href="/cls">Cumulative Layout Shift</a> - CLS (deslocamento cumulativo de layout), que é uma métrica <a href="/vitals">Core Web Vitals</a>, mede a instabilidade do conteúdo ao somar pontuações de deslocamentos nas alterações de layout que não ocorrem dentro de 500 ms da interação do usuário. Ela observa quanto conteúdo visível mudou dentro da janela de visualização, bem como a distância em que os elementos impactados foram deslocados.</p>
+<p>Neste guia, veremos como otimizar causas comuns de deslocamentos de layout.</p>
+<picture>
+  <source srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/9mWVASbWDLzdBUpVcjE1.svg" media="(min-width: 640px)">
+  <img     alt="Bons valores de CLS estão abaixo de 0,1, valores baixos são maiores que 0,25 e qualquer coisa entre precisa de melhorias"     class="w-screenshot w-screenshot--filled width-full"     decoding="async"     height="96"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/uqclEgIlTHhwIgNTXN3Y.svg"               width="384"   />
+</picture>
+<p>As causas mais comuns de uma CLS ruim são:</p>
+<ul>
+<li>Imagens sem dimensões</li>
+<li>Anúncios, incorporações e iframes sem dimensões</li>
+<li>Conteúdo injetado dinamicamente</li>
+<li>Fontes da Web que causam FOIT/FOUT</li>
+<li>Ações que aguardam uma resposta da rede antes de atualizar o DOM</li>
+</ul>
+<h2 id="imagens-sem-dimensoes">Imagens sem dimensões 🌆 <a class="w-headline-link" href="#imagens-sem-dimensoes">#</a></h2>
+<p><strong>Resumo:</strong> sempre inclua os atributos de tamanho <code>width</code> e <code>height</code> nas suas imagens e elementos de vídeo. Como alternativa, reserve o espaço necessário com as <a href="https://css-tricks.com/aspect-ratio-boxes/" rel="noopener">caixas de proporção de aspecto do CSS</a>. Essa abordagem garante que o navegador possa alocar a quantidade correta de espaço no documento enquanto a imagem é carregada.</p>
+  <figure class="w-figure">
+    <video                  class="w-screenshot"      controls                        loop      muted            poster="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8wKRITUkK3Zrp5jvQ1Xw.jpg?auto=format"                >      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/10TEOBGBqZm1SEXE7KiC.webm" type="video/webm" />      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/WOQn6K6OQcoElRw0NCkZ.mp4" type="video/mp4" />    </video>
+   <figcaption class="w-figcaption">
+      Imagens sem especificação de width e height.
+    </figcaption>
+  </figure>
+  <figure class="w-figure">
+    <video                  class="w-screenshot"      controls                        loop      muted            poster="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/wm4VqJtKvove6qjiIjic.jpg?auto=format"                >      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/38UiHViz44OWqlKFe1VC.webm" type="video/webm" />      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/sFxDb36aEMvTPIyZHz1O.mp4" type="video/mp4" />    </video>
+   <figcaption class="w-figcaption">
+      Imagens com especificação de width e height.
+    </figcaption>
+  </figure>
+<figure class="w-figure">
+  <img     alt="Lighthouse report showing the before/after impact to Cumulative Layout Shift after setting dimensions on images"          decoding="async"     height="148"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/A2OyrzSXuW1qYGWAarGx.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+  Impacto na CLS mostrado pelo Lighthouse 6.0 ao especificar dimensões nas imagens.
+  </figcaption>
+</figure>
+<h3 id="historia">Historia <a class="w-headline-link" href="#historia">#</a></h3>
+<p>No início da web, os desenvolvedores adicionavam os atributos <code>width</code> e <code>height</code> <code>&lt;img&gt;</code> para garantir que espaço suficiente fosse alocado na página antes que o navegador começasse a buscar imagens. Isso reduziria a necessidade de refazer o fluxo e o layout.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>puppy.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>640<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>360<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Puppy with balloons<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>Você deve ter observado que os atributos <code>width</code> e a <code>height</code> acima não incluem unidades. Essas dimensões em &quot;pixels&quot; garantiriam a reserva de uma área de 640 x 360. A imagem seria esticada para caber neste espaço, independentemente da correspondência ou não de suas verdadeiras dimensões.</p>
+<p>Quando o <a href="https://www.smashingmagazine.com/2011/01/guidelines-for-responsive-web-design/" rel="noopener">Web Design Responsivo</a> foi introduzido, os desenvolvedores começaram a omitir <code>width</code> e <code>height</code> e passaram a usar CSS para redimensionar imagens:</p>
+<web-copy-code><pre class="language-css"><code class="language-css"><span class="token selector">img</span> <span class="token punctuation">{</span><br>  <span class="token property">width</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span> <span class="token comment">/* or max-width: 100%; */</span><br>  <span class="token property">height</span><span class="token punctuation">:</span> auto<span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>Uma desvantagem dessa abordagem é que o espaço só pode ser alocado para uma imagem depois que ela começar a ser baixada e o navegador tiver condições de determinar suas dimensões. À medida que as imagens são carregadas, a página se recompõe para posicionar cada imagem que aparece na tela. Tornou-se comum o texto de repente rolar para baixo na tela. Isto não trouxe uma boa experiência para o usuário.</p>
+<p>É aqui que entra a questão da proporção. A proporção de uma imagem é um valor que representa sua largura em relação à sua altura. É comum ver esse valor expresso como dois números separados por dois pontos (por exemplo 16:9 ou 4:3). Para uma proporção x:y, a imagem tem x unidades de largura e y unidades de altura.</p>
+<p>Isso significa que, se conhecermos uma das dimensões, a outra pode ser calculada. Para uma proporção de 16:9:</p>
+<ul>
+<li>Se puppy.jpg tem 360 px de altura, a largura é 360 x (16/9) = 640 px</li>
+<li>Se puppy.jpg tem uma largura de 640 px, a altura é 640 x (9/16) = 360 px</li>
+</ul>
+<p>Conhecer a proporção da imagem permite que o navegador calcule e reserve espaço suficiente para a altura e a área associada.</p>
+<h3 id="melhores-praticas-atuais">Melhores práticas atuais <a class="w-headline-link" href="#melhores-praticas-atuais">#</a></h3>
+<p>Os navegadores modernos agora definem a proporção padrão das imagens com base nos atributos de largura e altura de uma imagem, portanto, é importante defini-las para evitar deslocamentos no layout. Graças ao CSS Working Group, os desenvolvedores só precisam definir os atributos <code>width</code> e <code>height</code> normalmente:</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token comment">&lt;!-- set a 640:360 i.e a 16:9 - aspect ratio --></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>puppy.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>640<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>360<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Puppy with balloons<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>… que as <a href="https://developer.mozilla.org/docs/Web/CSS/Cascade#User-agent_stylesheets" rel="noopener">folhas de estilo UA</a> de todos os navegadores adicionam uma <a href="https://html.spec.whatwg.org/multipage/rendering.html#attributes-for-embedded-content-and-images" rel="noopener">proporção default com</a> base nos atributos de <code>width</code> e <code>height</code> já existentes no elemento:</p>
+<web-copy-code><pre class="language-css"><code class="language-css"><span class="token selector">img</span> <span class="token punctuation">{</span><br>  <span class="token property">aspect-ratio</span><span class="token punctuation">:</span> <span class="token function">attr</span><span class="token punctuation">(</span>width<span class="token punctuation">)</span> / <span class="token function">attr</span><span class="token punctuation">(</span>height<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>Isso calcula uma proporção com base nos atributos <code>width</code> e <code>height</code> antes que a imagem seja carregada. Essas informações são fornecidas bem no início do cálculo do layout. Assim que o navegador sabe que uma imagem deve ter uma certa largura (por exemplo, <code>width: 100%</code>), a proporção da imagem é usada para calcular a altura.</p>
+<p>Dica: se você está tendo dificuldades para entender a proporção, temos disponível uma <a href="https://aspectratiocalculator.com/16-9.html" rel="noopener">calculadora</a> útil que pode lhe ajudar.</p>
+<p>As alterações na proporção da imagem acima foram implementadas no <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1547231" rel="noopener">Firefox</a> e <a href="https://bugs.chromium.org/p/chromium/issues/detail?id=979891" rel="noopener">Chromium</a> e estão chegando ao <a href="https://twitter.com/smfr/status/1220051332767174656" rel="noopener">WebKit</a> (Safari).</p>
+<p>Para um aprofundamento fantástico no tópico da proporção de aspecto, com mais detalhes acerca das imagens responsivas, veja <a href="https://blog.logrocket.com/jank-free-page-loading-with-media-aspect-ratios/" rel="noopener">Carregamento de páginas sem interrupções com proporções de mídia</a>.</p>
+<p>Se sua imagem estiver em um container, você pode usar CSS para redimensionar a imagem para ocupar a largura desse container. Definimos <code>height: auto;</code> para evitar que a altura da imagem seja um valor fixo (por exemplo, <code>360px</code>).</p>
+<web-copy-code><pre class="language-css"><code class="language-css"><span class="token selector">img</span> <span class="token punctuation">{</span><br>  <span class="token property">height</span><span class="token punctuation">:</span> auto<span class="token punctuation">;</span><br>  <span class="token property">width</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p><strong>E as imagens responsivas?</strong></p>
+<p>Ao trabalhar com <a href="/serve-responsive-images">imagens responsivas</a>, <code>srcset</code> define quais as imagens que você permite que o navegador selecione e o tamanho de cada imagem. Para garantir que os atributos width e height de <code>&lt;img&gt;</code> possam ser definidos, cada imagem deve manter a mesma proporção.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span><br>  <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1000<span class="token punctuation">"</span></span><br>  <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1000<span class="token punctuation">"</span></span><br>  <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>puppy-1000.jpg<span class="token punctuation">"</span></span><br>  <span class="token attr-name">srcset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>puppy-1000.jpg 1000w, puppy-2000.jpg 2000w, puppy-3000.jpg 3000w<span class="token punctuation">"</span></span><br>  <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Puppy with balloons<span class="token punctuation">"</span></span><br><span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>E a <a href="https://developer.mozilla.org/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#Art_direction" rel="noopener">direção de arte</a>?</p>
+<p>As páginas poderão decidir incluir uma foto recortada de uma imagem em janelas de exibição estreitas com a imagem inteira exibida na área de trabalho.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>picture</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span> <span class="token attr-name">media</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>(max-width: 799px)<span class="token punctuation">"</span></span> <span class="token attr-name">srcset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>puppy-480w-cropped.jpg<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span> <span class="token attr-name">media</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>(min-width: 800px)<span class="token punctuation">"</span></span> <span class="token attr-name">srcset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>puppy-800w.jpg<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>puppy-800w.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Puppy with balloons<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>picture</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>É bem possível que essas imagens tenham proporções diferentes e os navegadores ainda estejam avaliando qual deve ser a solução mais eficiente aqui, inclusive se as dimensões devem ser especificadas em todas as fontes. Até que uma solução seja decidida, poderá ainda ser necessária a alteração do layout.</p>
+<h2 id="anuncios-incorporacoes-e-iframes-sem-dimensoes">Anúncios, incorporações e iframes sem dimensões 📢😱 <a class="w-headline-link" href="#anuncios-incorporacoes-e-iframes-sem-dimensoes">#</a></h2>
+<h3 id="anuncios">Anúncios <a class="w-headline-link" href="#anuncios">#</a></h3>
+<p>Os anúncios são um dos maiores contribuintes para as mudanças de layout na web. Redes de anúncios e editores geralmente oferecem suporte a tamanhos de anúncios dinâmicos. Os tamanhos dos anúncios aumentam o desempenho/receita devido a taxas de cliques mais altas e a mais anúncios competindo no leilão. Infelizmente, isto pode levar a uma experiência do usuário abaixo da ideal devido aos anúncios empurrando o conteúdo visível que você está visualizando para baixo na página.</p>
+<p>Durante o ciclo de vida do anúncio, diversos pontos podem causar mudanças de layout:</p>
+<ul>
+<li>Quando um site insere o container do anúncio no DOM</li>
+<li>Quando um site redimensiona o container do anúncio com o código da fonte primária</li>
+<li>Quando a biblioteca de tags do anúncio carrega (e redimensiona o container do anúncio)</li>
+<li>Quando o anúncio preenche um container (e é redimensionado se o anúncio final tiver um tamanho diferente)</li>
+</ul>
+<p>A boa notícia é que é possível que os sites sigam as práticas recomendadas para reduzir o deslocamento causado pelos anúncios. Os sites podem atenuar essas alterações de layout através das seguintes estratégias:</p>
+<ul>
+<li>Reservar espaço para o local do anúncio estaticamente.
+<ul>
+<li>Em outras palavras, aplicar o estilo do elemento antes que a biblioteca de tags do anúncio carregue.</li>
+<li>Se anúncios forem inseridos no fluxo do conteúdo, certifique-se de que os deslocamentos sejam eliminados reservando o tamanho do local. Esses anúncios <em>não devem</em> causar deslocamentos de layout se carregados fora da tela.</li>
+</ul>
+</li>
+<li>Tomar cuidado ao posicionar anúncios que não sejam fixos próximos à parte superior da janela de visualização.
+<ul>
+<li>No exemplo abaixo, é recomendado mover o anúncio abaixo do logotipo &quot;world vision&quot; e reservar espaço suficiente para o slot.</li>
+</ul>
+</li>
+<li>Evitar recolher o espaço reservado se nenhum anúncio for retornado quando o local do anúncio estiver visível, exibindo um placeholder.</li>
+<li>Eliminar deslocamentos reservando o maior tamanho possível para o local do anúncio.
+<ul>
+<li>Isto funciona, mas corre-se o risco de ter um espaço em branco se um criativo de anúncio menor ocupar o espaço.</li>
+</ul>
+</li>
+<li>Escolher o tamanho mais provável para o local do anúncio com base em dados históricos.</li>
+</ul>
+<p>Alguns sites podem descobrir que o recolhimento inicial do local pode reduzir deslocamentos de layout, caso seja improvável que o local do anúncio seja preenchido. Não existe uma maneira simples de escolher o tamanho exato a cada vez, a menos que você mesmo tenha controle sobre a veiculação do anúncio.</p>
+  <figure class="w-figure">
+    <video                  class="w-screenshot"      controls                        loop      muted            poster="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/rW77UoJQBHHehihkw2Rd.jpg?auto=format"                >      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/bmxqj3kZyplh0ncMAt7x.webm" type="video/webm" />      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/60c4T7aYOsKtZlaWBndS.mp4" type="video/mp4" />    </video>
+   <figcaption class="w-figcaption">
+      Anúncios sem espaço suficiente reservado.
+    </figcaption>
+  </figure>
+  <figure class="w-figure">
+      <video                  class="w-screenshot"      controls                        loop      muted            poster="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/rW77UoJQBHHehihkw2Rd.jpg?auto=format"                >      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/tyUFKrue5vI9o5qKjP42.webm" type="video/webm" />      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/hVxty51kdN1w5BuUvj2O.mp4" type="video/mp4" />    </video>
+   <figcaption class="w-figcaption">
+      Anúncios com espaço suficiente reservado.
+    </figcaption>
+  </figure>
+<figure class="w-figure">
+  <img     alt="Lighthouse report showing the before/after impact to Cumulative Layout Shift of reserving space for banners like ads"          decoding="async"     height="148"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/cX6R4ACb4uVKlUb0cv1c.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+    Impacto Lighthouse 6.0 da reserva de espaço para este banner na CLS
+  </figcaption>
+</figure>
+<h4 id="reservar-espaco-para-o-local-do-anuncio-estaticamente">Reservar espaço para o local do anúncio estaticamente <a class="w-headline-link" href="#reservar-espaco-para-o-local-do-anuncio-estaticamente">#</a></h4>
+<p>Aplicar estilos estaticamente sobre elementos DOM de slot com os mesmos tamanhos passados para sua biblioteca de tags. Isto pode ajudar a garantir que a biblioteca não introduza mudanças de layout ao carregar. Se você não fizer isto, a biblioteca pode alterar o tamanho do elemento do slot após o layout da página.</p>
+<p>Considere também os tamanhos de veiculações de anúncios menores. Se um anúncio menor for veiculado, um editor poderá definir o estilo do container (maior) para evitar deslocamentos no layout. A desvantagem dessa abordagem é que ela aumentará a quantidade de espaço em branco, portanto, lembre-se dessa compensação.</p>
+<h4 id="evitar-colocar-anuncios-perto-do-topo-da-janela-de-visualizacao">Evitar colocar anúncios perto do topo da janela de visualização <a class="w-headline-link" href="#evitar-colocar-anuncios-perto-do-topo-da-janela-de-visualizacao">#</a></h4>
+<p>Anúncios próximos ao topo da janela de visualização podem provocar um deslocamento maior no layout do que aqueles que aparecem no meio. Isto ocorre porque os anúncios na parte superior geralmente fazem com que mais conteúdo desça, o que significa que mais elementos se movem quando o anúncio causa um deslocamento. Por outro lado, os anúncios próximos ao meio da janela de visualização podem não deslocar tantos elementos já que o conteúdo acima dele terá menos probabilidade de se mover.</p>
+<h3 id="incorporacoes-e-iframes">Incorporações e iframes <a class="w-headline-link" href="#incorporacoes-e-iframes">#</a></h3>
+<p>Widgets incorporáveis permitem incluir conteúdo portátil da web na sua página (por exemplo, vídeos do YouTube, mapas do Google Maps, postagens de mídia social e assim por diante). Essas incorporações podem assumir várias formas:</p>
+<ul>
+<li>Fallback de HTML e uma tag JavaScript transformando o substituto numa incorporação sofisticada</li>
+<li>Trecho de HTML inline</li>
+<li>Incorporação de iframe</li>
+</ul>
+<p>Essas incorporações muitas vezes não sabem com antecedência qual será o tamanho do seu conteúdo (por exemplo, no caso de uma postagem de mídia social - ela vem com uma imagem incorporada? vídeo? múltiplas linhas de texto?). Como resultado, as plataformas que oferecem incorporações nem sempre reservam espaço suficiente para elas e podem causar deslocamentos de layout quando finalmente carregam.</p>
+<figure class="w-figure">
+  <video                  class="w-screenshot"      controls                        loop      muted            poster="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/w0TM1JilKPQktQgb94un.jpg?auto=format"                >      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/NRhY88MbNJxe4o0F52eS.webm" type="video/webm" />      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/PzOpQnPH88Ymbe3MCH7B.mp4" type="video/mp4" />    </video>
+ <figcaption class="w-figcaption">
+    Incorporação sem reserva de espaço.
+  </figcaption>
+</figure>
+<figure class="w-figure">
+  <video                  class="w-screenshot"      controls                        loop      muted            poster="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/gtYqKkoEse47ErJPqVjg.jpg?auto=format"                >      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/aA8IoNeQTCEudE45hYzh.webm" type="video/webm" />      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/xjCWjSv4Z3YB29jSDGae.mp4" type="video/mp4" />    </video>
+ <figcaption class="w-figcaption">
+  Incorporação com reserva de espaço.
+  </figcaption>
+</figure>
+<figure class="w-figure">
+<img     alt="Lighthouse report showing the before/after impact to Cumulative Layout Shift of reserving space for this embed on CLS"          decoding="async"     height="148"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/2XaMbZBmUit1Vz8UBshH.png?auto=format&w=1600 1600w"          width="800"   />
+<figcaption class="w-figcaption">
+  Impacto Lighthouse 6.0 na CLS da reserva de espaço para esta incorporação
+</figcaption>
+</figure>
+<p>Para contornar isso, você pode minimizar a CLS pré-computando espaço suficiente para incorporações com um placeholder ou fallback. Um workflow que você pode usar para incorporações é o seguinte:</p>
+<ul>
+<li>Obtenha a altura de sua incorporação final inspecionando-a com as ferramentas de desenvolvimento do seu navegador</li>
+<li>Assim que a incorporação for carregada, o iframe contido será redimensionado para que que seu conteúdo caiba.</li>
+</ul>
+<p>Tome nota das dimensões e aplique estilos num placeholder para a incorporação de acordo. Você pode precisar levar em consideração diferenças sutis nos tamanhos dos anúncios / placeholders de posição entre os diferentes formatos usando consultas de mídia (media queries).</p>
+<h3 id="conteudo-dinamico">Conteúdo dinâmico 📐 <a class="w-headline-link" href="#conteudo-dinamico">#</a></h3>
+<p><strong>Resumo:</strong> evite inserir novo conteúdo acima do conteúdo existente, a menos que seja em resposta a uma interação do usuário. Isto garante que quaisquer mudanças de layout que ocorram sejam esperadas.</p>
+<p>Você provavelmente já experimentou mudanças de layout devido à IU que surge na parte superior ou inferior da janela de visualização quando você está tentando carregar um site. Semelhante aos anúncios, isto geralmente acontece com banners e formulários que deslocam o restante do conteúdo da página:</p>
+<ul>
+<li>
+<p>&quot;Inscreva-se no nosso boletim!&quot; (uau, vamos com calma! Acabamos de nos conhecer!)</p>
+</li>
+<li>
+<p>&quot;Conteúdo relacionado&quot;</p>
+</li>
+<li>
+<p>&quot;Instale nosso aplicativo [iOS/Android]&quot;</p>
+</li>
+<li>
+<p>&quot;Ainda estamos recebendo pedidos&quot;</p>
+</li>
+<li>
+<p>&quot;Aviso RGPD&quot;</p>
+<figure class="w-figure">
+  <video                  class="w-screenshot"      controls                        loop      muted            poster="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/PF9ulVHDQOvoWendb6ea.jpg?auto=format"                >      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/LEicZ7zHqGFrXl67Olve.webm" type="video/webm" />      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/XFvOHc2OB8vUD9GbpL2w.mp4" type="video/mp4" />    </video>
+ <figcaption class="w-figcaption">
+      Conteúdo dinâmico sem reserva de espaço.
+ </figcaption>
+  </figure>
+</li>
+</ul>
+<p>Se você precisar exibir esse tipo de recurso, reserve espaço suficiente na janela de visualização para ele com antecedência (por exemplo, usando um placeholder ou uma interface esqueleto) para que, quando carregar, não faça com que o conteúdo da página se desloque de repente.</p>
+<p>Em alguns casos, adicionar conteúdo dinamicamente é uma parte importante da experiência do usuário. Por exemplo, ao carregar mais produtos para uma lista de itens ou ao atualizar o conteúdo do feed ao vivo. Existem várias maneiras de evitar mudanças inesperadas de layout nesses casos:</p>
+<ul>
+<li>Substitua o conteúdo antigo pelo novo conteúdo em um container de tamanho fixo ou use um carrossel e remova o conteúdo antigo após a transição. Lembre-se de desativar todos os links e controles até que a transição seja concluída para evitar cliques ou toques acidentais enquanto o novo conteúdo está chegando.</li>
+<li>Faça com que o usuário inicie o carregamento do novo conteúdo, para que ele não se surpreenda com a mudança (por exemplo, com um botão &quot;Carregar mais&quot; ou &quot;Atualizar&quot;). É recomendado pré-buscar o conteúdo antes da interação do usuário para que ele apareça imediatamente. Lembre-se que mudanças de layout que ocorrem dentro de 500 ms da entrada do usuário não são contadas para o CLS.</li>
+<li>Carregue totalmente o conteúdo fora da tela e sobreponha um aviso ao usuário de que as informações estão disponíveis (por exemplo, com um botão &quot;Rolar para cima&quot;).</li>
+</ul>
+<figure class="w-figure">
+  <img     alt="Examples of dynamic content loading without causing unexpected layout shifts from Twitter and the Chloé website"          decoding="async"     height="458"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format"     srcset="https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/OcYv93SYnIg1kfTihK6xqRDebvB2/TjsYVkcDf03ZOVCcsizv.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">Exemplos de carregamento de conteúdo dinâmico sem causar mudanças inesperadas de layout. Esquerda: Carregamento de conteúdo de feed ao vivo no Twitter. À direita: exemplo "Carregar mais" no site da Chloé. Confira como a equipe YNAP <a href="https://medium.com/ynap-tech/how-to-optimize-for-cls-when-having-to-load-more-content-3f60f0cf561c">otimizou para CLS ao carregar mais conteúdo</a>.</figcaption>
+</figure>
+<h3 id="fontes-da-web-que-causam-foitfout">Fontes da Web que causam FOIT/FOUT <a class="w-headline-link" href="#fontes-da-web-que-causam-foitfout">#</a></h3>
+<p>Baixar e renderizar fontes da web pode causar mudanças de layout de duas maneiras:</p>
+<ul>
+<li>A fonte de fallback foi trocada por uma nova fonte (FOUT - flash de texto sem estilo)</li>
+<li>Texto &quot;invisível&quot; é exibido até que uma nova fonte seja renderizada (FOIT - flash de texto invisível)</li>
+</ul>
+<p>As seguintes ferramentas podem ajudá-lo a minimizar o problema:</p>
+<ul>
+<li><code><a href="/font-display/">font-display</a></code> permite que você modifique o comportamento da renderização de fontes personalizadas usando valores como <code>auto</code> , <code>swap</code> , <code>block</code> , <code>fallback</code> e <code>optional</code>. Infelizmente, todos esses valores (exceto <a href="http://crrev.com/749080" rel="noopener">opcional</a>) podem causar uma alteração de layout de uma das maneiras acima.</li>
+<li>A <a href="https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/webfont-optimization#the_font_loading_api" rel="noopener">Font Loading API</a> pode reduzir o tempo necessário para obter as fontes necessárias.</li>
+</ul>
+<p>Em relação ao Chrome 83, posso recomendar também o seguinte:</p>
+<ul>
+<li>Usar <code>&lt;link rel=preload&gt;</code> nas principais fontes da web: uma fonte pré-carregada terá uma chance maior de encontrar a primeira renderização, e nesse caso não haverá mudança de layout.</li>
+<li>Combinar <code>&lt;link rel=preload&gt;</code> e <code>font-display: optional</code></li>
+</ul>
+<p>Leia <a href="/preload-optional-fonts/">Impedindo o deslocamento de layout e flashes de texto invisível (FOIT) ao carregar fontes opcionais</a> para mais detalhes.</p>
+<h3 id="animacoes">Animações 🏃‍♀️ <a class="w-headline-link" href="#animacoes">#</a></h3>
+<p><strong>Resumo:</strong> Prefira animações com <code>transform</code> em vez de animar propriedades que causam alterações de layout.</p>
+<p>Mudanças nos valores das propriedades CSS podem exigir que o navegador reaja a essas alterações. Uma série de valores provocam um novo layout, renderização e composições, como <code>box-shadow</code> ,<code>box-sizing</code>. Diversas propriedades CSS podem ser alteradas de maneira menos onerosa.</p>
+<p>Para saber mais sobre quais propriedades CSS causam alterações no layout, veja <a href="https://csstriggers.com/" rel="noopener">Gatilhos CSS</a> e <a href="https://www.html5rocks.com/en/tutorials/speed/high-performance-animations/" rel="noopener">Animações de alto desempenho</a>.</p>
+<h3 id="ferramentas-de-desenvolvimento">Ferramentas de desenvolvimento 🔧 <a class="w-headline-link" href="#ferramentas-de-desenvolvimento">#</a></h3>
+<p>Há uma série de ferramentas disponíveis para medir e depurar a Cumulative Layout Shift (CLS).</p>
+<p>O <a href="https://developers.google.com/web/tools/lighthouse" rel="noopener">Lighthouse</a> <a href="https://github.com/GoogleChrome/lighthouse/releases" rel="noopener">6.0</a> e superior inclui suporte a medição de CLS em ambiente de laboratório. Esta versão também destaca os nós que causam a maior parte dos deslocamentos no layout.</p>
+<img     alt="O Lighthouse 6.0 inclui suporte à medição de CLS na seção de métricas"          decoding="async"     height="309"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/J11KOGFVAOjRMdihwX5t.jpg?auto=format&w=1600 1600w"          width="800"   />
+<p>O painel <a href="https://developers.google.com/web/tools/chrome-devtools/evaluate-performance" rel="noopener">Performance</a> no DevTools destaca os deslocamentos de layout na seção <strong>Experience</strong> a partir do Chrome 84. A tela <strong>Summary</strong> para um registro de <code>Layout Shift</code> inclui a pontuação do deslocamento cumulativo layout cumulativa, bem como uma sobreposição de retângulo mostrando as regiões afetadas.</p>
+<figure class="w-figure"><img     alt="Registros de mudança de layout exibidos no painel de desempenho do Chrome DevTools ao expandir a seção Experiência"          decoding="async"     height="438"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/ApDKifKCRNGWI2SXSR1g.jpg?auto=format&w=1600 1600w"          width="800"   /> <figcaption class="w-figcaption"> Depois de registrar um novo registro no painel Performance, a seção <b>Experience</b> dos resultados é preenchida com uma barra tingida de vermelho exibindo um registro de <code>Layout Shift</code> Clicar no registro permite detalhar os elementos impactados (por exemplo, observe as entradas de movimento de/para).</figcaption></figure>
+<p>A medição da CLS no mundo real agregado num nível de origem também é possível usando o <a href="/chrome-ux-report-bigquery/">Relatório de Experiência do Usuário Chrome</a> (CrUX). Os dados do CrUX para CLS estão disponíveis por meio do BigQuery e um <a href="https://github.com/GoogleChrome/CrUX/blob/master/sql/cls-summary.sql" rel="noopener">exemplo de consulta</a> está disponível para monitorar o desempenho da CLS.</p>
+<p>É só isso para este guia. Espero que ele ajude a manter suas páginas um pouco menos evasivas :)</p>
+<p><em>Com agradecimentos a Philip Walton, Kenji Baheux, Warren Maresca, Annie Sullivan, Steve Kobes e Gilberto Cocchi por suas avaliações úteis.</em></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/performance/">Desempenho</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/web-vitals/">Web Vitals</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Aug 17, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/pt/blog/optimize-cls/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@addyosmani"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Compartilhar</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Registrar um bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Visualizar código-fonte
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Conteúdo relacionado</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Atualizações do Chrome
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Estudos de caso
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Conectar</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          Todos os produtos
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="pt"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Termos e privacidade
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Diretrizes da comunidade
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

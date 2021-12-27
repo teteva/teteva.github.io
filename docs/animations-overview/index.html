@@ -1,0 +1,706 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=5ea2068c4a536">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Why are some animations slow?</title>
+<meta name="description" content="Animating well is core to a great web experience. This post explains why certain types of animation perform better than others. " />
+
+<link rel="canonical" href="https://web.dev/animations-overview/" />
+
+<meta itemprop="name" content="Why are some animations slow?" />
+<meta itemprop="description" content="Animating well is core to a great web experience. This post explains why certain types of animation perform better than others. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/animations-overview/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Why are some animations slow?" />
+<meta property="og:description" content="Animating well is core to a great web experience. This post explains why certain types of animation perform better than others. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="animations" />
+<meta property="tag" content="performance" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Why are some animations slow?" />
+<meta name="twitter:description" content="Animating well is core to a great web experience. This post explains why certain types of animation perform better than others. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=67ed8d2b5492d', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=2fa5802dd42e6', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#why-are-some-animations-slow" class="w-toc__header--link">
+        Why are some animations slow?
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#fps">Animation performance and frame rate</a></li><li><a href="#pipeline">The rendering pipeline</a><ol><li><a href="#layout">Animating layout properties</a></li><li><a href="#paint">Animating paint properties</a></li><li><a href="#composite">Animating composite properties</a></li></ol></li><li><a href="#layers">What is a layer?</a></li><li><a href="#css-js">CSS vs JavaScript performance</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@rachelandrew"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Share</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="why-are-some-animations-slow" class="w-article-header__headline">Why are some animations slow?</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Oct 6, 2020</time>
+          
+        </div>
+      
+
+      
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/animations"
+          >Animations</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/rachelandrew/"><img     alt="Rachel Andrew"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/dUAN2DEXHRT6G6iPrIby.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/dUAN2DEXHRT6G6iPrIby.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/dUAN2DEXHRT6G6iPrIby.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/dUAN2DEXHRT6G6iPrIby.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/dUAN2DEXHRT6G6iPrIby.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/dUAN2DEXHRT6G6iPrIby.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/rachelandrew/">Rachel Andrew</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/rachelandrew"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/rachelandrew">GitHub</a>
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://glitch.com/@rachelandrew"
+          >Glitch</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://rachelandrew.co.uk/">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <p>Modern browsers can animate two CSS properties cheaply: <code>transform</code> and <code>opacity</code>.
+If you animate anything else,
+the chances are you're not going to hit a silky smooth 60 frames per second (FPS).
+This post explains why this is the case.</p>
+<h2 id="fps">Animation performance and frame rate <a class="w-headline-link" href="#fps">#</a></h2>
+<p>It is widely accepted that a frame rate of 60 FPS is the target when animating anything on the web.
+This frame rate will ensure that your animations look smooth.
+On the web a frame is the time that it takes to do all of the work required to update and repaint the screen.
+If each frame does not complete within 16.7ms (1000ms / 60 ≈ 16.7),
+then users will perceive the delay.</p>
+<h2 id="pipeline">The rendering pipeline <a class="w-headline-link" href="#pipeline">#</a></h2>
+<p>To display something on a webpage the browser has to go through the following sequential steps:</p>
+<ol>
+<li><strong>Style</strong>: Calculate the styles that apply to the elements.</li>
+<li><strong>Layout</strong>: Generate the geometry and position for each element.</li>
+<li><strong>Paint</strong>: Fill out the pixels for each element into <a href="#layers">layers</a>.</li>
+<li><strong>Composite</strong>: Draw the layers to the screen.</li>
+</ol>
+<p>These four steps are known as the browser's <strong>rendering pipeline</strong>.</p>
+<p>When you animate something on a page that has already loaded
+these steps have to happen again.
+This process begins from the step that has to be changed in order to allow the animation to take place.</p>
+<p>As mentioned before, these steps are <strong>sequential</strong>.
+For example, if you animate something that changes layout, the paint and composite
+steps also have to run again. Animating something that changes layout
+is therefore more expensive than animating something that only changes compositing.</p>
+<div class="w-aside w-aside--note">
+<p>For an in-depth look at exactly how this process happens in the browser
+read <a href="https://alistapart.com/article/braces-to-pixels/" rel="noopener">From Braces to Pixels</a> and
+<a href="https://developers.google.com/web/updates/2018/09/inside-browser-part3" rel="noopener">Inside look at modern browser browser</a>.</p>
+</div>
+<h3 id="layout">Animating layout properties <a class="w-headline-link" href="#layout">#</a></h3>
+<p>Layout changes involve calculating the geometry (position and size) of all the elements affected by the change.
+If you change one element,
+the geometry of other elements may need to be recalculated.
+For example, if you change the width of the <code>&lt;html&gt;</code> element any of its children may be affected.
+Due to the way elements overflow and affect one another,
+changes further down the tree can sometimes result in layout calculations all the way back up to the top.</p>
+<p>The larger the tree of visible elements,
+the longer it takes to perform layout calculations.</p>
+<h3 id="paint">Animating paint properties <a class="w-headline-link" href="#paint">#</a></h3>
+<p><a href="https://developers.google.com/web/updates/2018/09/inside-browser-part3#paint" rel="noopener">Paint</a>
+is the process of determining in what order elements should be painted to the screen.
+It is often the longest-running of all tasks in the pipeline.</p>
+<p>The majority of painting in modern browsers is done in
+<a href="https://software.intel.com/content/www/us/en/develop/articles/software-vs-gpu-rasterization-in-chromium.html" rel="noopener">software rasterizers</a>.
+Depending on how the elements in your app are grouped into layers,
+other elements besides the one that changed may also need to be painted.</p>
+<h3 id="composite">Animating composite properties <a class="w-headline-link" href="#composite">#</a></h3>
+<p><a href="https://developers.google.com/web/updates/2018/09/inside-browser-part3#what_is_compositing" rel="noopener">Compositing</a>
+is the process of separating the page into layers, converting the information about how the page should look
+into pixels (rasterization), and putting the layers together to create a page (compositing).</p>
+<p>This is why the <code>opacity</code> property is included in the list of things which are cheap to animate.
+As long as this property is in its own layer, changes to it can be handled by the GPU during the compositing step.
+Chromium-based browsers and WebKit create a new layer for any element which has a CSS transition or animation on <code>opacity</code>.</p>
+<div class="w-aside w-aside--note">
+<p>For an in-depth look at compositing see the article
+<a href="https://www.smashingmagazine.com/2016/12/gpu-animation-doing-it-right/" rel="noopener">GPU Animation: Doing It Right</a></p>
+</div>
+<h2 id="layers">What is a layer? <a class="w-headline-link" href="#layers">#</a></h2>
+<p>By placing the things that will be animated or transitioned onto a new layer,
+the browser only needs to repaint those items and not everything else.
+You may be familiar with Photoshop's concept of a layer which contains a bunch of elements that can be moved together.
+Browser rendering layers are similar to that idea.</p>
+<p>While the browser does a good job of making decisions about what elements should be on a new layer,
+if it misses one there are ways to force layer creation.
+You can find out about that in <a href="/animations-guide">How to create high-performance animations</a>.
+However, creating new layers should be done with care because each layer uses memory.
+On devices with limited memory creating new layers may cause more of a performance problem than the one you are trying to solve.
+In addition, each layer's textures need to be uploaded to the GPU.
+Therefore you may well hit constraints of bandwidth between the CPU and GPU.</p>
+<div class="w-aside w-aside--note">
+<p>You can read a good explanation of layers, and how to create them in
+<a href="https://dassur.ma/things/forcing-layers/" rel="noopener">Layers and how to force them</a>.</p>
+</div>
+<h2 id="css-js">CSS vs JavaScript performance <a class="w-headline-link" href="#css-js">#</a></h2>
+<p>You might wonder: is it better from a performance perspective to use CSS or JavaScript for animations?</p>
+<p>CSS-based animations, and <a href="/web-animations/">Web Animations</a> (in the browsers that support the API),
+are typically handled on a thread known as the <em>compositor thread</em>.
+This is different from the browser's <em>main thread</em>, where styling, layout, painting, and JavaScript are executed.
+This means that if the browser is running some expensive tasks on the main thread,
+these animations can keep going without being interrupted.</p>
+<p>As explained in this article,
+other changes to transforms and opacity can, in many cases, also be handled by the compositor thread.</p>
+<p>If any animation triggers paint, layout, or both,
+the main thread will be required to do work.
+This is true for both CSS and JavaScript animations,
+and the overhead of layout or paint will likely dwarf any work associated with CSS or JavaScript execution,
+rendering the question moot.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/animations/">Animations</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">Performance</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Oct 6, 2020</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/animations/animations-overview/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/animations"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

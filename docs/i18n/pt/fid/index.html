@@ -1,0 +1,766 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=a00ae8d078417">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>First Input Delay (FID)</title>
+<meta name="description" content="Este artigo apresenta a métrica First Input Delay (FID) e explica como medi-la" />
+
+<link rel="canonical" href="https://web.dev/i18n/pt/fid/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/fid/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/fid/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/fid/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/fid/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/fid/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/fid/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/fid/" />
+<meta itemprop="name" content="First Input Delay (FID)" />
+<meta itemprop="description" content="Este artigo apresenta a métrica First Input Delay (FID) e explica como medi-la" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="pt_BR" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/pt/fid/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="First Input Delay (FID)" />
+<meta property="og:description" content="Este artigo apresenta a métrica First Input Delay (FID) e explica como medi-la" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="metrics" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="First Input Delay (FID)" />
+<meta name="twitter:description" content="Este artigo apresenta a métrica First Input Delay (FID) e explica como medi-la" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=3fccbbfc97df6', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=c63e74b3f0d0e', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Abrir menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Abrir menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Aprender
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Medir
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        Sobre
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Fechar"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Fechar</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Aprender
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Medir
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        Sobre
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#first-input-delay-(fid)" class="w-toc__header--link">
+        First Input Delay (FID)
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#o-que-e-fid">O que é FID?</a><ol><li><a href="#o-que-e-uma-boa-pontuacao-da-fid">O que é uma boa pontuação da FID?</a></li></ol></li><li><a href="#fid-em-detalhes">FID em detalhes</a><ol><li><a href="#e-se-uma-interacao-nao-tiver-um-ouvinte-de-eventos">E se uma interação não tiver um ouvinte de eventos?</a></li><li><a href="#por-que-considerar-apenas-a-primeira-entrada">Por que considerar apenas a primeira entrada?</a></li><li><a href="#o-que-conta-como-uma-primeira-entrada">O que conta como uma primeira entrada?</a></li><li><a href="#e-se-um-usuario-nunca-interagir-com-seu-site">E se um usuário nunca interagir com seu site?</a></li><li><a href="#por-que-considerar-apenas-o-atraso-de-entrada">Por que considerar apenas o atraso de entrada?</a></li></ol></li><li><a href="#como-medir-a-fid">Como medir a FID</a><ol><li><a href="#ferramentas-de-campo">Ferramentas de campo</a></li><li><a href="#medicao-da-fid-em-javascript">Medição da FID em JavaScript</a></li><li><a href="#analisando-e-relatando-dados-da-fid">Analisando e relatando dados da FID</a></li></ol></li><li><a href="#como-melhorar-a-fid">Como melhorar a FID</a></li><li><a href="#changelog">CHANGELOG</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@philwalton"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Compartilhar</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="first-input-delay-(fid)" class="w-article-header__headline">First Input Delay (FID)</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Nov 7, 2019</time>
+           <span class="w-author__separator">•</span> Atualizado <time>Jun 19, 2020</time> 
+        </div>
+      
+
+      
+      
+      <div class="w-layout-container--narrow w-post-signpost">
+        <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/fid/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/fid/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/fid/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/fid/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/fid/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/fid/">
+      English</a></span>
+      </div>
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        ><span class="w-post-signpost__divider">|</span><a
+          class="w-post-signpost__link"
+          href="/metrics"
+          >Métricas</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/philipwalton/"><img     alt="Philip Walton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/philipwalton/">Philip Walton</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/philwalton"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/philipwalton">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://philipwalton.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <div class="w-aside w-aside--note">
+<p>First Input Delay (FID), ou Atraso da Primeira Entrada, é uma métrica importante e centrada no usuário para medir a <a href="/user-centric-performance-metrics/#types-of-metrics">responsividade do carregamento</a> porque quantifica a experiência que os usuários sentem ao tentar interagir com páginas que não respondem: uma FID baixa ajuda a garantir que a página seja <a href="/user-centric-performance-metrics/#questions">utilizável</a>. </div></p>
+<p>Todos nós sabemos como é importante causar uma boa primeira impressão. É importante ao conhecer novas pessoas e também ao construir experiências na web.</p>
+<p>Na web, uma boa primeira impressão pode fazer a diferença entre alguém se tornar um usuário fiel ou sair e nunca mais voltar. A questão é: o que causa uma boa impressão e como você mede o tipo de impressão que provavelmente está causando nos usuários?</p>
+<p>Na web, as primeiras impressões podem assumir muitas formas diferentes: temos as primeiras impressões sobre o design e o apelo visual de um site, bem como as primeiras impressões sobre sua velocidade e capacidade de resposta.</p>
+<p>Embora seja difícil medir o quanto os usuários gostam do design de um site com APIs da web, medir sua velocidade e capacidade de resposta não é!</p>
+<p>A primeira impressão que os usuários têm de quão rápido seu site carrega pode ser medida com a <a href="/fcp/">First Contentful Paint (FCP)</a>. Mas a rapidez com que seu site pode renderizar pixels na tela é apenas parte da história. Igualmente importante é a capacidade de resposta do seu site quando os usuários tentam interagir com esses pixels!</p>
+<p>A métrica First Input Delay (FID) ajuda a medir a primeira impressão do usuário sobre a interatividade e capacidade de resposta do seu site.</p>
+<h2 id="o-que-e-fid">O que é FID? <a class="w-headline-link" href="#o-que-e-fid">#</a></h2>
+<p>A FID mede o tempo desde quando um usuário interage pela primeira vez com uma página (ou seja, quando clica num link, toca num botão ou usa um controle personalizado baseado em JavaScript) até o momento em que o navegador é realmente capaz de começar a processar manipuladores de eventos em resposta a essa interação.</p>
+<picture>
+  <source srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eXyvkqRHQZ5iG38Axh1Z.svg" media="(min-width: 640px)" width="400", height="100">
+  <img     alt="Bons valores fid são 2,5 segundos, valores fracos são maiores que 4,0 segundos e qualquer coisa entre precisa de melhorias"     class="w-screenshot w-screenshot--filled width-full"     decoding="async"     height="300"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/Se4TiXIdp8jtLJVScWed.svg"               width="400"   />
+</picture>
+<h3 id="o-que-e-uma-boa-pontuacao-da-fid">O que é uma boa pontuação da FID? <a class="w-headline-link" href="#o-que-e-uma-boa-pontuacao-da-fid">#</a></h3>
+<p>Para fornecer uma boa experiência ao usuário, os sites devem se esforçar para ter uma First Input Delay de <strong>100 milissegundos</strong> ou menos. Para garantir que você está atingindo essa meta para a maioria de seus usuários, um bom limite para medir é o <strong>75º percentil</strong> de carregamentos de página, segmentado em dispositivos móveis e desktop.</p>
+<div class="w-aside w-aside--note">
+<p>Para saber mais sobre a pesquisa e a metodologia por trás dessa recomendação, veja: <a href="/defining-core-web-vitals-thresholds/">Definindo os limites das Core Web Vitals</a> </div></p>
+<h2 id="fid-em-detalhes">FID em detalhes <a class="w-headline-link" href="#fid-em-detalhes">#</a></h2>
+<p>Como desenvolvedores que escrevem código que responde a eventos, geralmente presumimos que nosso código será executado imediatamente - assim que o evento acontecer. Mas, como usuários, todos nós frequentemente experimentamos o oposto - carregamos uma página web em nosso telefone, tentamos interagir com ela e ficamos frustrados quando nada acontece.</p>
+<p>Em geral, o atraso de entrada (também conhecido como latência de entrada) acontece porque o thread principal do navegador está ocupado fazendo outra coisa, então ele não pode (ainda) responder ao usuário. Um motivo comum para isto é o navegador estar ocupado analisando e executando um grande arquivo JavaScript carregado pelo seu aplicativo. Enquanto está ocupado com isso, ele não pode executar nenhum ouvinte de evento porque o JavaScript que está carregando pode instruí-lo a fazer outra coisa.</p>
+<div class="w-aside w-aside--gotchas"><strong>Pegadinhas!</strong>
+<p>A FID mede apenas o &quot;atraso&quot; no processamento do evento. Ela não mede o tempo de processamento do evento em si, nem o tempo que o navegador leva para atualizar a IU após a execução dos manipuladores de eventos. Embora esse tempo afete a experiência do usuário, incluí-lo como parte da FID incentivaria os desenvolvedores a responder aos eventos de forma assíncrona, o que melhoraria a métrica, mas provavelmente tornaria a experiência pior. Veja <a href="#why-only-consider-the-input-delay">por que considerar apenas o atraso de entrada</a> abaixo, para mais detalhes. </div></p>
+<p>Considere a seguinte linha do tempo de um carregamento de página web típico:</p>
+<p><a href="https://web-dev.imgix.net/image/admin/9tm3f6pwlHMqNKuFvaP0.svg"><img      alt="Exemplo de rastreamento de carregamento de página"            decoding="async"      height="260"            loading="lazy"            src="https://web-dev.imgix.net/image/admin/9tm3f6pwlHMqNKuFvaP0.svg"                  width="800"    /></a></p>
+<p>A visualização acima mostra uma página que está fazendo algumas solicitações de rede para recursos (provavelmente arquivos CSS e JS) e, depois que o download desses recursos termina, eles são processados no thread principal.</p>
+<p>Isso resulta em períodos em que o thread principal fica momentaneamente ocupado, o que é indicado pelos blocos de <a href="https://html.spec.whatwg.org/multipage/webappapis.html#concept-task" rel="noopener">tarefas</a> de cor bege.</p>
+<p>Atrasos longos na primeira entrada normalmente ocorrem entre a <a href="/fcp/">First Contentful Paint (FCP)</a> e a <a href="/tti/">Time to Interactive (TTI)</a> porque a página renderizou parte de seu conteúdo, mas ainda não é interativa de forma confiável. Para ilustrar como isso pode acontecer, FCP e TTI foram adicionadas à linha do tempo:</p>
+<p><a href="https://web-dev.imgix.net/image/admin/24Y3T5sWNuZD9fKhkuER.svg"><img      alt="Exemplo de rastreamento de carregamento de página com FCP e TTI"            decoding="async"      height="340"            loading="lazy"            src="https://web-dev.imgix.net/image/admin/24Y3T5sWNuZD9fKhkuER.svg"                  width="800"    /></a></p>
+<p>Você deve ter notado que há uma boa quantidade de tempo (incluindo três <a href="/custom-metrics/#long-tasks-api">tarefas longas</a>) entre a FCP e a TTI. Se um usuário tentar interagir com a página durante esse tempo (por exemplo, clicar num link), haverá um atraso entre quando o clique é recebido e quando o thread principal será capaz de responder.</p>
+<p>Considere o que aconteceria se um usuário tentasse interagir com a página próximo ao início da tarefa mais longa:</p>
+<p><a href="https://web-dev.imgix.net/image/admin/krOoeuQ4TWCbt9t6v5Wf.svg"><img      alt="Exemplo de rastreamento de carregamento de página com FCP, TTI e FID"            decoding="async"      height="380"            loading="lazy"            src="https://web-dev.imgix.net/image/admin/krOoeuQ4TWCbt9t6v5Wf.svg"                  width="800"    /></a></p>
+<p>Como a entrada ocorre enquanto o navegador está no meio da execução de uma tarefa, ele precisa esperar até que a tarefa seja concluída para poder responder à entrada. O tempo de espera é o valor FID para este usuário nesta página.</p>
+<div class="w-aside w-aside--note">
+<p>Neste exemplo, o usuário acabou de interagir com a página no início do período mais ocupado da thread principal. Se o usuário tivesse interagido com a página apenas um momento antes (durante o período ocioso), o navegador poderia ter respondido imediatamente. Essa variação no atraso de entrada ressalta a importância de olhar para a distribuição dos valores FID ao relatar a métrica. Você pode ler mais sobre isto na seção abaixo sobre como analisar e relatar os dados da FID. </div></p>
+<h3 id="e-se-uma-interacao-nao-tiver-um-ouvinte-de-eventos">E se uma interação não tiver um ouvinte de eventos? <a class="w-headline-link" href="#e-se-uma-interacao-nao-tiver-um-ouvinte-de-eventos">#</a></h3>
+<p>O FID mede o delta entre o momento em que um evento de entrada é recebido e a próxima vez que o thread principal fica ocioso. Isto significa que a FID é medida <strong>mesmo nos casos em que um ouvinte de evento não foi registrado.</strong> A razão é porque muitas interações do usuário não requerem um ouvinte de evento, mas <em>exigem</em> que o thread principal esteja ocioso, para que possa executar.</p>
+<p>Por exemplo, todos os elementos HTML a seguir precisam aguardar a conclusão das tarefas em andamento no thread principal antes de responder às interações do usuário:</p>
+<ul>
+<li>Campos de texto, caixas de seleção e botões de opção ( <code>&lt;input&gt;</code>, <code>&lt;textarea&gt;</code> )</li>
+<li>Menus dropdown com Select ( <code>&lt;select&gt;</code> )</li>
+<li>Links ( <code>&lt;a&gt;</code> )</li>
+</ul>
+<h3 id="por-que-considerar-apenas-a-primeira-entrada">Por que considerar apenas a primeira entrada? <a class="w-headline-link" href="#por-que-considerar-apenas-a-primeira-entrada">#</a></h3>
+<p>Embora um atraso de qualquer entrada possa levar a uma experiência ruim do usuário, recomendamos medir o primeiro atraso de entrada por alguns motivos:</p>
+<ul>
+<li>O primeiro atraso de entrada será a primeira impressão do usuário sobre a capacidade de resposta do seu site, e as primeiras impressões são críticas para moldar nossa impressão geral da qualidade e confiabilidade de um site.</li>
+<li>Os maiores problemas de interatividade que vemos na web hoje ocorrem durante o carregamento da página. Portanto, acreditamos que o foco inicial em melhorar a primeira interação do usuário com o site terá o maior impacto na melhoria da interatividade geral da web.</li>
+<li>As soluções recomendadas sobre como sites devem corrigir grandes atrasos na primeira entrada (dividir o código, carregar menos JavaScript no início, etc.) não são necessariamente as mesmas soluções para corrigir atrasos de entrada lentos após o carregamento da página. Separando essas métricas, poderemos fornecer diretrizes de desempenho mais específicas para os desenvolvedores web.</li>
+</ul>
+<h3 id="o-que-conta-como-uma-primeira-entrada">O que conta como uma primeira entrada? <a class="w-headline-link" href="#o-que-conta-como-uma-primeira-entrada">#</a></h3>
+<p>A FID é uma métrica que mede a capacidade de resposta de uma página durante o carregamento. Como tal, ela se concentra apenas nos eventos de entrada causados por ações discretas como cliques, toques e pressionamentos de tecla.</p>
+<p>Outras interações, como rolagem e zoom, são ações contínuas e têm restrições de desempenho completamente diferentes (além disso, os navegadores são geralmente capazes de ocultar sua latência executando-as em um thread separado).</p>
+<p>Em outras palavras, a FID se concentra no R (responsividade) do <a href="https://developers.google.com/web/fundamentals/performance/rail" rel="noopener">modelo de desempenho RAIL</a> , enquanto que a rolagem e o zoom estão mais relacionados ao A (animação), e suas qualidades de desempenho devem ser avaliadas separadamente.</p>
+<h3 id="e-se-um-usuario-nunca-interagir-com-seu-site">E se um usuário nunca interagir com seu site? <a class="w-headline-link" href="#e-se-um-usuario-nunca-interagir-com-seu-site">#</a></h3>
+<p>Nem todos os usuários irão interagir com o seu site sempre que o visitarem. E nem todas as interações são relevantes para a FID (conforme mencionamos na seção anterior). Além disso, as primeiras interações de alguns usuários serão em momentos ruins (quando o thread principal está ocupado por um longo período de tempo), e as primeiras interações de outros usuários serão em momentos bons (quando o thread principal está completamente ocioso).</p>
+<p>Isto significa que alguns usuários não terão valores FID, alguns usuários terão valores FID baixos e alguns usuários provavelmente terão valores FID altos.</p>
+<p>A maneira como você rastreia, relata e analisa o FID provavelmente será um pouco diferente de outras métricas com as quais você pode estar acostumado. A próxima seção explica a melhor maneira de fazer isso.</p>
+<h3 id="por-que-considerar-apenas-o-atraso-de-entrada">Por que considerar apenas o atraso de entrada? <a class="w-headline-link" href="#por-que-considerar-apenas-o-atraso-de-entrada">#</a></h3>
+<p>Conforme mencionado acima, o FID mede apenas o &quot;atraso&quot; durante o processamento de eventos. Ele não mede o tempo de processamento do evento em si, nem o tempo que o navegador leva para atualizar a IU após a execução dos manipuladores de eventos.</p>
+<p>Mesmo que esse tempo seja importante para o usuário e <em>afete</em> sua experiência, ele não está incluído nesta métrica, pois isto poderia incentivar os desenvolvedores a adicionar soluções que realmente poderiam tornar a experiência pior, ou seja, eles poderiam encapsular a lógica de manipulação de eventos num callback assíncrono (via <code>setTimeout()</code> ou <code>requestAnimationFrame()</code>) para separá-lo da tarefa associada ao evento. O resultado seria uma melhoria na pontuação da métrica, mas a resposta percebida pelo usuário seria mais lenta.</p>
+<p>No entanto, enquanto a FID mede apenas a parte do &quot;atraso&quot; da latência do evento, os desenvolvedores que desejam controlar mais o ciclo de vida do evento podem fazer isso usando a <a href="https://wicg.github.io/event-timing/" rel="noopener">API de temporização de eventos</a>. Consulte o guia sobre <a href="/custom-metrics/#event-timing-api">métricas personalizadas</a> para mais detalhes.</p>
+<h2 id="como-medir-a-fid">Como medir a FID <a class="w-headline-link" href="#como-medir-a-fid">#</a></h2>
+<p>A FID é uma métrica que só pode ser medida <a href="/user-centric-performance-metrics/#in-the-field">em campo</a>, pois exige que um usuário real interaja com sua página. Você pode medir a FID com as seguintes ferramentas.</p>
+<div class="w-aside w-aside--note">
+<p>A FID requer um usuário real e, portanto, não pode ser medida no laboratório. No entanto, a métrica <a href="/tbt/">Total Blocking Time (TBT)</a> é mensurável em laboratório, se correlaciona bem com a FID em campo e também captura problemas que afetam a interatividade. As otimizações que melhoram a TBT no laboratório também devem melhorar a FID para seus usuários. </div></p>
+<h3 id="ferramentas-de-campo">Ferramentas de campo <a class="w-headline-link" href="#ferramentas-de-campo">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Relatório de experiência do usuário Chrome</a></li>
+<li><a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">PageSpeed Insights</a></li>
+<li><a href="https://support.google.com/webmasters/answer/9205520" rel="noopener">Console de Busca (relatório Core Web Vitals)</a></li>
+<li><a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">Biblioteca JavaScript <code>web-vitals</code></a></li>
+</ul>
+<h3 id="medicao-da-fid-em-javascript">Medição da FID em JavaScript <a class="w-headline-link" href="#medicao-da-fid-em-javascript">#</a></h3>
+<p>Para medir a FID em JavaScript, você pode usar a <a href="https://wicg.github.io/event-timing" rel="noopener">API Event Timing</a>. O exemplo a seguir mostra como criar um <a href="https://developer.mozilla.org/docs/Web/API/PerformanceObserver" rel="noopener"><code>PerformanceObserver</code></a> que escuta as entradas <a href="https://wicg.github.io/event-timing/#sec-performance-event-timing" rel="noopener"><code>first-input</code></a> e as registra no console:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">new</span> <span class="token class-name">PerformanceObserver</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">entryList</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">const</span> entry <span class="token keyword">of</span> entryList<span class="token punctuation">.</span><span class="token function">getEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token keyword">const</span> delay <span class="token operator">=</span> entry<span class="token punctuation">.</span>processingStart <span class="token operator">-</span> entry<span class="token punctuation">.</span>startTime<span class="token punctuation">;</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'FID candidate:'</span><span class="token punctuation">,</span> delay<span class="token punctuation">,</span> entry<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span><span class="token punctuation">{</span>type<span class="token operator">:</span> <span class="token string">'first-input'</span><span class="token punctuation">,</span> buffered<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><div class="w-aside w-aside--warning">
+<p><strong>Aviso</strong>:  Este código mostra como registrar as entradas <code>first-input</code> no console e calcular seu atraso. No entanto, medir a FID em JavaScript é mais complicado. Veja detalhes abaixo: </div></p>
+<p>No exemplo acima, o valor do atraso <code>first-input</code> é medido tomando o delta entre os timestamps <code>startTime</code> e <code>processingStart</code> da entrada. Na maioria dos casos, esse será o valor FID; entretanto, nem todas as entradas <code>first-input</code> são válidas para medir a FID.</p>
+<p>A seção a seguir lista as diferenças entre o que a API informa e como a métrica é calculada.</p>
+<h4 id="diferencas-entre-a-metrica-e-a-api">Diferenças entre a métrica e a API <a class="w-headline-link" href="#diferencas-entre-a-metrica-e-a-api">#</a></h4>
+<ul>
+<li>A API despachará <code>first-input</code> para páginas carregadas numa aba de plano de fundo, mas essas páginas devem ser ignoradas ao calcular a FID.</li>
+<li>A API também despachará as entradas <code>first-input</code> se a página estiver em segundo plano antes da ocorrência da primeira entrada, mas essas páginas também devem ser ignoradas ao calcular a FID (entradas são consideradas apenas se a página estava em primeiro plano o tempo todo).</li>
+<li>A API não relata <code>first-input</code> quando a página é restaurada do <a href="/bfcache/#impact-on-core-web-vitals">cache back/forward</a>, mas a FID deve ser medida nesses casos, pois os usuários as experimentam como visitas de página distintas.</li>
+<li>A API não considera elementos dentro de iframes, mas para medir corretamente a FID, você deve considerá-los. Os subquadros podem usar a API para relatar suas entradas <code>first-input</code> ao quadro pai para agregação.</li>
+</ul>
+<p>Em vez de memorizar todas essas diferenças sutis, os desenvolvedores podem usar a <a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">biblioteca JavaScript <code>web-vitals</code></a> para medir a FID, que já lida com essas diferenças (onde for possível):</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span>getFID<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'web-vitals'</span><span class="token punctuation">;</span><br><br><span class="token comment">// Measure and log FID as soon as it's available.</span><br><span class="token function">getFID</span><span class="token punctuation">(</span>console<span class="token punctuation">.</span>log<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>Para um exemplo completo de como medir a FID em JavaScript, consulte <a href="https://github.com/GoogleChrome/web-vitals/blob/master/src/getFID.ts" rel="noopener">o código-fonte de <code>getFID()</code></a>.</p>
+<div class="w-aside w-aside--note">
+<p>Em alguns casos (como iframes de origem cruzada), não é possível medir a FID em JavaScript. Consulte a seção de <a href="https://github.com/GoogleChrome/web-vitals#limitations" rel="noopener">limitações</a> da biblioteca <code>web-vitals</code> para mais detalhes. </div></p>
+<h3 id="analisando-e-relatando-dados-da-fid">Analisando e relatando dados da FID <a class="w-headline-link" href="#analisando-e-relatando-dados-da-fid">#</a></h3>
+<p>Devido à variação esperada nos valores da FID, é fundamental que, ao relatar a FID, você observe a distribuição dos valores e se concentre nos percentis mais altos.</p>
+<p>Embora a <a href="/defining-core-web-vitals-thresholds/#choice-of-percentile">escolha do percentil</a> para todos os limites do Core Web Vitals seja o 75º, para a FID em particular, ainda recomendamos olhar para os percentis 95 a 99, pois eles corresponderão às primeiras experiências particularmente ruins que os usuários estão tendo com o seu site. E isto irá revelar as áreas que mais precisam de melhorias.</p>
+<p>Isto vale mesmo se você segmentar seus relatórios por categoria ou tipo de dispositivo. Por exemplo, se você executa relatórios separados para desktop e celular, o valor de FID que deve lhe interessar em desktops deve ser o percentil 95 a 99 dos usuários de desktop, e o valor FID com que deve lhe interessar em dispositivos móveis deve ser o percentil 95 a 99 dos usuários móveis.</p>
+<h2 id="como-melhorar-a-fid">Como melhorar a FID <a class="w-headline-link" href="#como-melhorar-a-fid">#</a></h2>
+<p>Para aprender como melhorar a FID para um site específico, você pode executar uma auditoria de desempenho do Lighthouse e prestar atenção a quaisquer <a href="/lighthouse-performance/#opportunities">oportunidades</a> específicas que a auditoria sugerir.</p>
+<p>Embora o FID seja uma métrica de campo (e o Lighthouse seja uma ferramenta de métrica de laboratório), a orientação para melhorar a FID é a mesma indicada para melhorar a métrica de laboratório <a href="/tbt/">Total Blocking Time (TBT)</a>.</p>
+<p>Para saber como melhorar a FID, veja <a href="/optimize-fid/">Otimize a FID</a>. Para obter orientações adicionais sobre técnicas de desempenho individual que também podem melhorar a FID, consulte:</p>
+<ul>
+<li><a href="/third-party-summary/">Reduza o impacto do código de terceiros</a></li>
+<li><a href="/bootup-time/">Reduza o tempo de execução do JavaScript</a></li>
+<li><a href="/mainthread-work-breakdown/">Minimize o trabalho da thread principal</a></li>
+<li><a href="/resource-summary/">Mantenha as contagens de solicitações baixas e os tamanhos de transferência pequenos</a></li>
+</ul>
+<h2 id="changelog">CHANGELOG <a class="w-headline-link" href="#changelog">#</a></h2>
+<p>Occasionally, bugs are discovered in the APIs used to measure metrics, and
+sometimes in the definitions of the metrics themselves. As a result, changes
+must sometimes be made, and these changes can show up as improvements or
+regressions in your internal reports and dashboards.</p>
+<p>To help you manage this, all changes to either the implementation or definition
+of these metrics will be surfaced in this
+<a href="http://bit.ly/chrome-speed-metrics-changelog" rel="noopener">CHANGELOG</a>.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">Desempenho</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/metrics/">Métricas</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Jun 19, 2020</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/pt/metrics/fid/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/learn-web-vitals"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Registrar um bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Visualizar código-fonte
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Conteúdo relacionado</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Atualizações do Chrome
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Estudos de caso
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Conectar</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            Todos os produtos
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="pt"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Termos e privacidade
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Diretrizes da comunidade
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

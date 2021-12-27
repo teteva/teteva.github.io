@@ -1,0 +1,910 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=641058a282b3c">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=7e9ee6bcecea1">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>최대 콘텐츠풀 페인트 최적화</title>
+<meta name="description" content="Largest Contentful Paint(최대 콘텐츠풀 페인트, LCP)는 페이지의 메인 콘텐츠가 화면에 모두 렌더링되었을 때를 결정하는 데 사용됩니다. 느린 서버 응답 시간, 리소스 로드 시간, 클라이언트 측 렌더링을 개선해 LCP를 최적화하는 방법을 알아보세요." />
+
+<link rel="canonical" href="https://web.dev/i18n/ko/optimize-lcp/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/optimize-lcp/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/optimize-lcp/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/optimize-lcp/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/optimize-lcp/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/optimize-lcp/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/optimize-lcp/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/optimize-lcp/" />
+<meta itemprop="name" content="최대 콘텐츠풀 페인트 최적화" />
+<meta itemprop="description" content="Largest Contentful Paint(최대 콘텐츠풀 페인트, LCP)는 페이지의 메인 콘텐츠가 화면에 모두 렌더링되었을 때를 결정하는 데 사용됩니다. 느린 서버 응답 시간, 리소스 로드 시간, 클라이언트 측 렌더링을 개선해 LCP를 최적화하는 방법을 알아보세요." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/ko/optimize-lcp/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="최대 콘텐츠풀 페인트 최적화" />
+<meta property="og:description" content="Largest Contentful Paint(최대 콘텐츠풀 페인트, LCP)는 페이지의 메인 콘텐츠가 화면에 모두 렌더링되었을 때를 결정하는 데 사용됩니다. 느린 서버 응답 시간, 리소스 로드 시간, 클라이언트 측 렌더링을 개선해 LCP를 최적화하는 방법을 알아보세요." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="LCP 배너 최적화" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="최대 콘텐츠풀 페인트 최적화" />
+<meta name="twitter:description" content="Largest Contentful Paint(최대 콘텐츠풀 페인트, LCP)는 페이지의 메인 콘텐츠가 화면에 모두 렌더링되었을 때를 결정하는 데 사용됩니다. 느린 서버 응답 시간, 리소스 로드 시간, 클라이언트 측 렌더링을 개선해 LCP를 최적화하는 방법을 알아보세요." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=76a612d851433', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=f27cfff4881f2', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          배우기
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        측정
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        블로그
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        정보
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">닫기</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="LCP 배너 최적화"     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="이 페이지에서">
+    <div class="course-toc__heading font-google-sans weight-medium">이 페이지에서</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#slow-servers">느린 서버 응답 시간</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#cdn">사용자를 가까운 CDN으로 라우팅</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-2">자산 캐시</a></li><li class="toc__listitem"><a class="toc__anchor" href="#html">HTML 페이지 캐시 우선 제공</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">조기에 타사 연결 구축</a></li><li class="toc__listitem"><a class="toc__anchor" href="#(sxg)">서명된 교환(SXG) 사용</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#render-blocking-resources">렌더링 차단 JavaScript 및 CSS</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#css">CSS 차단 시간 단축</a></li><li class="toc__listitem"><a class="toc__anchor" href="#css-2">CSS 축소</a></li><li class="toc__listitem"><a class="toc__anchor" href="#css-3">중요하지 않은 CSS 지연</a></li><li class="toc__listitem"><a class="toc__anchor" href="#css-4">중요 CSS 즉시 처리</a></li><li class="toc__listitem"><a class="toc__anchor" href="#javascript">JavaScript 차단 시간 단축</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#slow-resource-load-times">느린 리소스 로드 시간</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-4">이미지 최적화 및 압축</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">중요한 리소스 미리 로드</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-6">텍스트 파일 압축</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-7">적응형 게재</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-8">서비스 작업자를 사용하여 자산 캐시</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#client-side-rendering">클라이언트 측 렌더링</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#javascript-2">중요 JavaScript 최소화</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-9">서버 측 렌더링 사용</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-10">사전 렌더링 사용</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-11">개발자 도구</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="">최대 콘텐츠풀 페인트 최적화</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            메인 콘텐츠를 더 빠르게 렌더링하는 방법.
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>May 5, 2020</time>
+             — 업데이트됨 <time>Aug 20, 2020</time> 
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/optimize-lcp/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/optimize-lcp/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/optimize-lcp/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/optimize-lcp/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/optimize-lcp/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/optimize-lcp/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/houssein/"> <img     alt="Houssein Djirdeh"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/houssein/">Houssein Djirdeh</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/hdjirdeh">Twitter</a>
+               <a href="https://github.com/housseindjirdeh">GitHub</a>
+               <a href="https://glitch.com/@housseindjirdeh">Glitch</a>
+               <a href="https://houssein.me/">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="이 페이지에서">
+      <summary>
+        이 페이지에서
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#slow-servers">느린 서버 응답 시간</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#cdn">사용자를 가까운 CDN으로 라우팅</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-2">자산 캐시</a></li><li class="toc__listitem"><a class="toc__anchor" href="#html">HTML 페이지 캐시 우선 제공</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">조기에 타사 연결 구축</a></li><li class="toc__listitem"><a class="toc__anchor" href="#(sxg)">서명된 교환(SXG) 사용</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#render-blocking-resources">렌더링 차단 JavaScript 및 CSS</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#css">CSS 차단 시간 단축</a></li><li class="toc__listitem"><a class="toc__anchor" href="#css-2">CSS 축소</a></li><li class="toc__listitem"><a class="toc__anchor" href="#css-3">중요하지 않은 CSS 지연</a></li><li class="toc__listitem"><a class="toc__anchor" href="#css-4">중요 CSS 즉시 처리</a></li><li class="toc__listitem"><a class="toc__anchor" href="#javascript">JavaScript 차단 시간 단축</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#slow-resource-load-times">느린 리소스 로드 시간</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-4">이미지 최적화 및 압축</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">중요한 리소스 미리 로드</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-6">텍스트 파일 압축</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-7">적응형 게재</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-8">서비스 작업자를 사용하여 자산 캐시</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#client-side-rendering">클라이언트 측 렌더링</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#javascript-2">중요 JavaScript 최소화</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-9">서버 측 렌더링 사용</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-10">사전 렌더링 사용</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-11">개발자 도구</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <div class="youtube">  <lite-youtube    videoid="AQqFZ5t8uNc"    videoStartAt="1073"  >  </lite-youtube></div>
+<blockquote>
+  <p>쓸 만한 콘텐츠가 보이지 않아요! 로드하는 데 왜 이렇게 오래 걸리는 거죠? 😖</p>
+</blockquote>
+<p>열악한 사용자 경험에 큰 영향을 미치는 요소 중 하나는 사용자가 화면에 렌더링되는 콘텐츠를 보기까지 얼마나 많은 시간이 걸리느냐입니다. <a href="/fcp">First Contentful Paint</a>(최초 콘텐츠풀 페인트, FIP)는 초기 DOM 콘텐츠가 렌더링되는 데 걸리는 시간을 측정하지만 페이지에서 가장 크고 일반적으로 가장 의미 있는 콘텐츠를 렌더링하는 데 걸린 시간은 포착하지 않습니다.</p>
+<p><a href="/lcp">Large Contentful Paint</a>(최대 콘텐츠풀 페인트, LCP)는 <a href="/vitals/">)Core Web Vitals</a> 메트릭이며 뷰포트에서 가장 큰 콘텐츠 요소가 표시되는 시점을 측정합니다. 페이지의 메인 콘텐츠가 화면에서 렌더링을 완료한 시점을 결정하는 데 사용할 수 있습니다.</p>
+  <picture>
+    <source srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/elqsdYqQEefWJbUM2qMO.svg" media="(min-width: 640px)">
+    <img     alt="좋은 LCP 값은 2.5초이고 나쁜 값은 4.0초보다 크며 그 사이에는 개선이 필요합니다."     class="w-screenshot w-screenshot--filled width-full"     decoding="async"     height="96"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/9trpfS9wruEPGekHqBdn.svg"               width="384"   />
+  </picture>
+<p>열악한 LCP 값이 발생하는 일반적인 이유는 다음과 같습니다.</p>
+<ul>
+<li><a href="#slow-servers">느린 서버 응답 시간</a></li>
+<li><a href="#render-blocking-resources">렌더링 차단 JavaScript 및 CSS</a></li>
+<li><a href="#slow-resource-load-times">느린 리소스 로드 시간</a></li>
+<li><a href="#client-side-rendering">클라이언트 측 렌더링</a></li>
+</ul>
+<h2 id="slow-servers">느린 서버 응답 시간 <a class="w-headline-link" href="#slow-servers">#</a></h2>
+<p>브라우저가 서버에서 콘텐츠를 수신하는 데 시간이 오래 걸릴수록 화면에 무엇이든 렌더링하는 데 더 오래 걸립니다. 더 빠른 서버 응답 시간은 LCP를 포함한 모든 단일 페이지 로드 메트릭을 직접적으로 향상시킵니다.</p>
+<p>가장 먼저 해야 할 것은 서버에서 콘텐츠를 처리하는 방법과 위치를 개선하는 것입니다. <a href="/time-to-first-byte"><strong>Time to First Byte</strong></a>(최초 바이트까지의 시간, TTBT)로 서버 응답 시간을 측정하세요. 다음과 같이 다양한 방식으로 TTBT를 개선할 수 있습니다.</p>
+<ul>
+<li>서버 최적화</li>
+<li>사용자를 가까운 CDN으로 라우팅</li>
+<li>자산 캐시</li>
+<li>HTML 페이지 캐시 우선 제공</li>
+<li>조기에 타사 연결 구축</li>
+<li>서명된 교환 사용</li>
+</ul>
+<h3 id="">서버 최적화 <a class="w-headline-link" href="#">#</a></h3>
+<p>서버가 완료하는 데 상당한 시간이 걸리는 쿼리를 실행하고 있나요? 아니면 서버 측에서 진행되는 다른 복잡한 작업으로 인해 페이지 콘텐츠를 반환하는 프로세스를 지연되나요? 서버 측 코드의 효율성을 분석하고 개선하면 브라우저가 데이터를 수신하는 데 걸리는 시간이 빨라집니다.</p>
+<p>대부분의 서버 측 웹 프레임워크는 브라우저에서 요청할 때 고정 페이지를 즉시 제공하는 것이 아니라, 웹 페이지를 동적으로 생성해야 합니다. 즉, 브라우저가 요청할 때 이미 준비된 완전한 HTML 파일을 보내는 것이 아니라 프레임워크에서 페이지를 구성하는 논리를 실행해야 한다는 의미입니다. 이는 데이터베이스 쿼리의 결과가 보류 중이거나 구성 요소가 UI 프레임워크(예: <a href="https://reactjs.org/docs/react-dom-server.html" rel="noopener">React</a> )에 의해 마크업으로 생성되어야 하기 때문일 수 있습니다. 서버에서 실행되는 여러 가지 웹 프레임워크에는 이 프로세스의 속도를 높이는 데 사용할 수 있는 성능 지침이 있습니다.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>자세한 내용은 <a href="/overloaded-server/">과부하 서버 수정</a>을 확인하세요.</p>
+</div></aside>
+<h3 id="cdn">사용자를 가까운 CDN으로 라우팅 <a class="w-headline-link" href="#cdn">#</a></h3>
+<p>콘텐츠 전송 네트워크(CDN)은 여러 위치에 분산된 서버 네트워크입니다. 웹 페이지의 콘텐츠가 단일 서버에서 호스팅되는 경우 지리적으로 멀리 떨어져 있는 사용자에게는 해당 웹사이트가 느리게 표시될 수 있습니다. 브라우저 요청이 말 그대로 세계를 한 바퀴 돌아야 하기 때문이죠. 사용자가 멀리 떨어진 서버에 대한 네트워크 요청을 기다리지 않도록 하려면 CDN을 사용하는 것이 좋습니다.</p>
+<h3 id="-2">자산 캐시 <a class="w-headline-link" href="#-2">#</a></h3>
+<p>HTML이 고정적이며 모든 요청에 대해 변경할 필요가 없는 경우 캐싱을 통해 HTML이 불필요하게 다시 생성되는 것을 방지할 수 있습니다. 서버 측 캐싱은 생성된 HTML의 복사본을 디스크에 저장해 TTFB를 줄이고 리소스 사용을 최소화할 수 있습니다.</p>
+<p>도구 체인에 따라 서버 캐싱을 적용하는 다양한 방법이 있습니다.</p>
+<ul>
+<li>캐시된 콘텐츠를 제공하거나 애플리케이션 서버 앞에 설치된 경우 캐시 서버 역할을 하도록 역방향 프록시(<a href="https://varnish-cache.org/" rel="noopener">Varnish</a> , <a href="https://www.nginx.com/" rel="noopener">nginx</a>) 구성</li>
+<li>클라우드 공급자(<a href="https://firebase.google.com/docs/hosting/manage-cache" rel="noopener">Firebase</a>, <a href="https://aws.amazon.com/caching/" rel="noopener">AWS</a>, <a href="https://docs.microsoft.com/en-us/azure/architecture/best-practices/caching" rel="noopener">Azure</a>)의 캐시 동작 구성 및 관리</li>
+<li>콘텐츠가 캐시되어 사용자에게 더 가까운 곳에 저장되도록 엣지 서버를 제공하는 CDN 사용</li>
+</ul>
+<h3 id="html">HTML 페이지 캐시 우선 제공 <a class="w-headline-link" href="#html">#</a></h3>
+<p>설치되면 <a href="https://developer.mozilla.org/docs/Web/API/Service_Worker_API" rel="noopener">서비스 작업자</a>가 브라우저 백그라운드에서 실행되고 서버의 요청을 가로챌 수 있습니다. 이 수준의 프로그래밍 방식 캐시 제어를 사용하면 HTML 페이지 콘텐츠의 일부 또는 전체를 캐시하고 콘텐츠가 변경된 경우에만 캐시를 업데이트할 수 있습니다.</p>
+<p>다음 차트는 이 패턴을 사용하여 사이트에서 LCP 분포가 어떻게 감소했는지 보여줍니다.</p>
+<figure class="w-figure">
+  <img     alt="HTML 캐싱 전후 최대 콘텐츠풀 페인트 분포"          decoding="async"     height="495"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<figure class="w-figure">
+  <img     alt="HTML 캐싱 전후 최대 콘텐츠풀 페인트 분포"          decoding="async"     height="495"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption"> 페이지 로드 시 서비스 작업자 여부에 따른 최대 콘텐츠풀 분포 - <a href="https://philipwalton.com/articles/smaller-html-payloads-with-service-workers/">philipwalton.com</a> </figcaption>
+</figure>
+<p>이 차트는 지난 28일 동안 단일 사이트의 LCP 분포를 서비스 작업자 상태별로 분류하여 보여줍니다. 캐시 우선 HTML 페이지 서비스가 서비스 작업자(차트의 파란색 부분)에 도입된 후 얼마나 많은 페이지 로드가 더 빨라진 LCP 값을 갖게 됐는지 확인하세요.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>전체 또는 부분 캐시 우선 HTML 페이지를 제공하는 기술에 대해 자세히 알아보려면 <a href="https://philipwalton.com/articles/smaller-html-payloads-with-service-workers/" rel="noopener">서비스 작업자가 있는 더 작은 HTML 페이로드</a>를 참조하세요.</p>
+</div></aside>
+<h3 id="-3">조기에 타사 연결 구축 <a class="w-headline-link" href="#-3">#</a></h3>
+<p>타사 출처에 대한 서버 요청은 특히 페이지에 중요한 콘텐츠를 표시해야 하는 경우 LCP에 영향을 줄 수 있습니다. <code>rel=&quot;preconnect&quot;</code>를 사용하여 페이지가 최대한 빨리 연결을 구축할 것임을 브라우저에 알립니다.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preconnect<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p><code>dns-prefetch</code>를 사용하여 DNS 조회를 더 빠르게 해결할 수도 있습니다.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dns-prefetch<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>두 힌트 모두 다르게 작동하지만 <code>preconnect</code>를 지원하지 않는 브라우저에 대한 대체로 <code>dns-prefetch</code>를 사용할 수도 있습니다.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span><br>  …<br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preconnect<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dns-prefetch<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>인지된 페이지 속도를 개선하려면 <a href="/preconnect-and-dns-prefetch/">초기에 네트워크 연결 구축</a>을 읽고 자세히 알아보세요.</p>
+</div></aside>
+<h3 id="(sxg)">서명된 교환(SXG) 사용 <a class="w-headline-link" href="#(sxg)">#</a></h3>
+<p><a href="https://web.dev/signed-exchanges">서명된 교환(SXG)</a>이란 쉽게 캐시할 수 있는 형식으로 콘텐츠를 제공하여 더 빠른 사용자 경험을 가능하게 하는 전달 메커니즘입니다. 특히 <a href="https://developers.google.com/search/docs/advanced/experience/signed-exchange" rel="noopener">Google 검색</a>은 SXG를 캐시하고 때로는 미리 가져옵니다. Google 검색에서 트래픽의 많은 부분을 수신하는 사이트의 경우 SXG는 LCP를 개선하기 위한 중요한 도구가 될 수 있습니다. 자세한 내용은 <a href="/signed-exchanges">서명된 교환</a>을 참조하세요.</p>
+<h2 id="render-blocking-resources">렌더링 차단 JavaScript 및 CSS <a class="w-headline-link" href="#render-blocking-resources">#</a></h2>
+<p>브라우저에서 콘텐츠를 렌더링하려면 먼저 HTML 마크업을 DOM 트리로 구문 분석해야 합니다. HTML 파서는 외부 스타일시트( <code>&lt;link rel=&quot;stylesheet&quot;&gt;</code>) 또는 동기 JavaScript 태그( <code>&lt;script src=&quot;main.js&quot;&gt;</code>)를 만나면 일시 중지됩니다.</p>
+<p>스크립트와 스타일시트는 모두 FCP를 지연시키고 결과적으로 LCP까지 지연시키는 렌더링 차단 리소스입니다. 중요하지 않은 JavaScript 및 CSS를 지연시키면 웹 페이지의 메인 콘텐츠 로드 속도를 빠르게 할 수 있습니다.</p>
+<h3 id="css">CSS 차단 시간 단축 <a class="w-headline-link" href="#css">#</a></h3>
+<p>다음과 같은 방법으로 필요한 최소 CSS만 사이트에서 렌더링을 차단하도록 합니다.</p>
+<ul>
+<li>CSS 축소</li>
+<li>중요하지 않은 CSS 지연</li>
+<li>중요 CSS 즉시 처리</li>
+</ul>
+<h3 id="css-2">CSS 축소 <a class="w-headline-link" href="#css-2">#</a></h3>
+<p>가독성을 높이기 위해 CSS 파일에는 공백, 들여쓰기 또는 주석과 같은 문자를 포함할 수 있습니다. 이런 문자는 모두 브라우저에 필요하지 않으며, 이러한 파일을 축소하면 제거됩니다. 궁극적으로 CSS 차단량을 줄이면 페이지의 메인 콘텐츠를 완전히 렌더링하는 데 걸리는 시간(LCP)이 항상 향상됩니다.</p>
+<p>모듈 번들러 또는 빌드 도구를 사용하는 경우 적절한 플러그인을 포함하여 모든 빌드에서 CSS 파일을 축소합니다.</p>
+<ul>
+<li>Webpack: <a href="https://github.com/NMFR/optimize-css-assets-webpack-plugin" rel="noopener">optimize-css-assets-webpack-plugin</a></li>
+<li>Gulp: <a href="https://www.npmjs.com/package/gulp-clean-css" rel="noopener">gulp-clean-css</a></li>
+<li>Rollup: <a href="https://www.npmjs.com/package/rollup-plugin-css-porter" rel="noopener">rollup-plugin-css-porter</a></li>
+</ul>
+<figure class="w-figure">
+  <img     alt="LCP 개선 예시: CSS 축소 이전/이후"          decoding="async"     height="139"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+    LCP 개선 예시: CSS 축소 이전/이후
+  </figcaption>
+</figure>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>자세한 내용은 <a href="/minify-css/">CSS</a> 축소 가이드를 참조하세요.</p>
+</div></aside>
+<h3 id="css-3">중요하지 않은 CSS 지연 <a class="w-headline-link" href="#css-3">#</a></h3>
+<p>Chrome DevTools의 <a href="https://developers.google.com/web/tools/chrome-devtools/coverage" rel="noopener">Coverage</a> 탭을 사용하여 웹 페이지에서 사용하지 않는 CSS를 찾습니다.</p>
+<img     alt="Chrome DevTools의 Coverage 탭"          decoding="async"     height="559"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=1600 1600w"          width="800"   />
+<p>다음과 같은 방법으로 최적화할 수 있습니다.</p>
+<ul>
+<li>사용하지 않는 CSS를 완전히 제거하거나 사이트의 별도 페이지에서 사용하는 경우 다른 스타일시트로 이동합니다.</li>
+<li>초기 렌더링에 필요하지 않은 CSS의 경우 <a href="https://github.com/filamentgroup/loadCSS/blob/master/README.md" rel="noopener">loadCSS</a>를 사용해 <code>rel=&quot;preload&quot;</code> 및 <code>onload</code>를 활용해 비동기식으로 파일을 로드합니다.</li>
+</ul>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preload<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet.css<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>style<span class="token punctuation">"</span></span> <span class="token special-attr"><span class="token attr-name">onload</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value javascript language-javascript"><span class="token keyword">this</span><span class="token punctuation">.</span>rel<span class="token operator">=</span><span class="token string">'stylesheet'</span></span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><figure class="w-figure">
+  <img     alt="LCP 개선 예시: 중요하지 않은 CSS 지연 이전/이후"          decoding="async"     height="139"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+    LCP 개선 예시: 중요하지 않은 CSS 지연 이전/이후
+  </figcaption>
+</figure>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>자세한 내용은 <a href="/defer-non-critical-css/">중요하지 않은 CSS 지연</a> 가이드를 참조하세요.</p>
+</div></aside>
+<h3 id="css-4">중요 CSS 즉시 처리 <a class="w-headline-link" href="#css-4">#</a></h3>
+<p>스크롤 없이 볼 수 있는 콘텐츠에 사용되는 중요 경로 CSS를 <code>&lt;head&gt;</code>에 포함해 즉시 처리합니다</p>
+<figure class="w-figure">
+  <img     alt="중요 CSS 즉시 처리됨"     class="w-screenshot w-screenshot--filled"     decoding="async"     height="325"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">중요 CSS 즉시 처리됨</figcaption>
+</figure>
+<p>중요한 스타일을 즉시 처리하면 중요한 CSS를 가져오기 위해 왕복 요청을 할 필요가 없습니다. 나머지를 연기하면 CSS 차단 시간이 최소화됩니다.</p>
+<p>사이트에 즉시 처리 스타일을 수동으로 추가할 수 없다면 라이브러리를 사용해 프로세스를 자동화하세요. 예시는 다음과 같습니다.</p>
+<ul>
+<li><a href="https://github.com/addyosmani/critical" rel="noopener">Critical</a>, <a href="https://github.com/filamentgroup/criticalCSS" rel="noopener">CriticalCSS</a> 및 <a href="https://github.com/pocketjoso/penthouse" rel="noopener">Penthouse</a> 는 모두 스크롤 없이 볼 수 있는 CSS를 추출하고 즉시 처리하는 패키지입니다.</li>
+<li><a href="https://github.com/GoogleChromeLabs/critters" rel="noopener">Critters</a>는 중요한 CSS를 즉시 처리하고 나머지는 지연 로드하는 웹팩 플러그인입니다.</li>
+</ul>
+<figure class="w-figure">
+  <img     alt="LCP 개선 예시: 중요 CSS 즉시 처리 이전/이후"          decoding="async"     height="175"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+    LCP 개선 예시: 중요 CSS 즉시 처리 이전/이후
+  </figcaption>
+</figure>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>자세히 알아보려면 <a href="/extract-critical-css/">중요 CSS 추출</a> 가이드를 살펴보세요.</p>
+</div></aside>
+<h3 id="javascript"><a>JavaScript 차단 시간 단축</a> <a class="w-headline-link" href="#javascript">#</a></h3>
+<p>필요한 최소한의 JavaScript를 다운로드하여 사용자에게 제공합니다. 차단하는 JavaScript의 양을 줄이면 렌더링 속도가 빨라지고 결과적으로 LCP가 향상됩니다.</p>
+<p>몇 가지 다른 방법으로 스크립트를 최적화하여 이를 수행할 수 있습니다.</p>
+<ul>
+<li><a href="https://web.dev/reduce-network-payloads-using-text-compression/">JavaScript 파일 축소 및 압축</a></li>
+<li><a href="https://web.dev/reduce-javascript-payloads-with-code-splitting/">사용하지 않는 JavaScript 지연</a></li>
+<li><a href="https://web.dev/serve-modern-code-to-modern-browsers/">사용하지 않는 Polyfills 최소화</a></li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p><a href="/optimize-fid/">최초 입력 지연 최적화</a> 가이드에서는 JavaScript 차단 시간을 줄이는 데 필요한 모든 기술을 조금 더 자세히 설명합니다.</p>
+</div></aside>
+<h2 id="slow-resource-load-times">느린 리소스 로드 시간 <a class="w-headline-link" href="#slow-resource-load-times">#</a></h2>
+<p>CSS 또는 JavaScript 차단 시간이 증가는 성능 저하에 직접적 영향을 미치지만, 다른 많은 유형의 리소스를 로드하는 데 걸리는 시간도 페인트 시간에 영향을 줄 수 있습니다. LCP에 영향을 미치는 요소 유형은 다음과 같습니다.</p>
+<ul>
+<li><code>&lt;img&gt;</code> 요소</li>
+<li><code>&lt;svg&gt;</code> 요소 내부의 <code>&lt;image&gt;</code></li>
+<li><code>&lt;video&gt;</code> 요소(<a href="https://developer.mozilla.org/docs/Web/HTML/Element/video#attr-poster" rel="noopener">포스터</a> 이미지는 LCP 측정에 사용됨)</li>
+<li><a href="https://developer.mozilla.org/docs/Web/CSS/url()" rel="noopener"><code>url()</code></a> 함수를 통해 로드된 배경 이미지가 있는 요소<a>(CSS 그라데이션</a>과는 대조적임)</li>
+<li>텍스트 노드 또는 기타 인라인 수준 텍스트 요소를 포함하는 <a href="https://developer.mozilla.org/docs/Web/HTML/Block-level_elements" rel="noopener">블록 수준 요소</a></li>
+</ul>
+<p>스크롤 없이 볼 수 있는 상태로 렌더링된 경우 이러한 요소를 로드하는 데 걸리는 시간은 LCP에 직접적인 영향을 미칩니다. 이러한 파일이 가능한 한 빨리 로드되도록 하는 몇 가지 방법이 있습니다.</p>
+<ul>
+<li>이미지 최적화 및 압축</li>
+<li>중요한 리소스 미리 로드</li>
+<li>텍스트 파일 압축</li>
+<li>네트워크 연결을 기반으로 다양한 자산 제공(적응형 서비스)</li>
+<li>서비스 작업자를 사용하여 자산 캐시</li>
+</ul>
+<h3 id="-4">이미지 최적화 및 압축 <a class="w-headline-link" href="#-4">#</a></h3>
+<p>대부분의 사이트에서 이미지는 페이지 로드가 완료되었을 때 표시되는 가장 큰 요소입니다. 대표 이미지, 대형 캐러셀 또는 배너 이미지 등이 이러한 예시에 속합니다.</p>
+<figure class="w-figure">
+  <img     alt=""          decoding="async"     height="925"          loading="lazy"     sizes="(min-width: 459px) 459px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=918 918w"          width="459"   />
+  <figcaption>이미지가 가장 큰 페이지 요소인 경우: <a href="https://design.google/">design.google</a></figcaption>
+</figure>
+<p>이러한 유형의 이미지를 로드하고 렌더링하는 데 걸리는 시간을 개선하면 LCP 속도 향상에 직접적인 영향을 미칩니다. 이를 달성하는 방법은 다음과 같습니다.</p>
+<ul>
+<li>처음부터 이미지를 사용하지 않는 것이 좋습니다. 콘텐츠와 관련이 없는 경우 삭제하세요.</li>
+<li>이미지 압축(예: <a href="/use-imagemin-to-compress-images">Imagemin</a> 사용)</li>
+<li>이미지를 최신 형식(JPEG 2000, JPEG XR 또는 WebP)으로 변환</li>
+<li>반응형 이미지 사용</li>
+<li>이미지 CDN 사용 고려</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>이러한 모든 기술을 자세히 설명하는 가이드 및 리소스를 확인하려면 <a href="/fast/#optimize-your-images">이미지 최적화</a>를 참조하세요.</p>
+</div></aside>
+<h3 id="-5">중요한 리소스 미리 로드 <a class="w-headline-link" href="#-5">#</a></h3>
+<p>특정 CSS 또는 JavaScript 파일에서 선언되거나 사용되는 중요한 리소스는 애플리케이션의 수많은 CSS 파일 중 하나에 저장된 글꼴처럼 생각보다 늦게 가져오게 될 수 있습니다.</p>
+<p>특정 리소스에 우선순위를 지정해야 하는 경우 <code>&lt;link rel=&quot;preload&quot;&gt;</code>를 사용해 더 빨리 가져옵니다. <a href="https://developer.mozilla.org/docs/Web/HTML/Preloading_content#What_types_of_content_can_be_preloaded" rel="noopener">다양한 유형의 리소스</a>를 미리 로드할 수 있지만 먼저 글꼴, 스크롤 없이 볼 수 있는 이미지 또는 동영상, 중요한 경로 CSS 또는 JavaScript와 같은 <a href="/preload-critical-assets/">중요한 자산을 미리 로드</a>하는 데 집중해야 합니다.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preload<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>script<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>script.js<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preload<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>style<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>style.css<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preload<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>image<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>img.png<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preload<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>video<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>vid.webm<span class="token punctuation">"</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>video/webm<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preload<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>font.woff2<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>font<span class="token punctuation">"</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>font/woff2<span class="token punctuation">"</span></span> <span class="token attr-name">crossorigin</span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>Chrome 73부터 <a href="/preload-responsive-images/">반응형 이미지</a>와 함께 사전 로드를 사용해 더 빠른 이미지 로드를 위한 두 가지 패턴을 조합할 수 있습니다.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span><br>  <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preload<span class="token punctuation">"</span></span><br>  <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>image<span class="token punctuation">"</span></span><br>  <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wolf.jpg<span class="token punctuation">"</span></span><br>  <span class="token attr-name">imagesrcset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wolf_400px.jpg 400w, wolf_800px.jpg 800w, wolf_1600px.jpg 1600w<span class="token punctuation">"</span></span><br>  <span class="token attr-name">imagesizes</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50vw<span class="token punctuation">"</span></span><br><span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><h3 id="-6">텍스트 파일 압축 <a class="w-headline-link" href="#-6">#</a></h3>
+<p><a href="https://www.youtube.com/watch?v=whGwm0Lky2s&amp;feature=youtu.be&amp;t=14m11s" rel="noopener">Gzip</a> 및 <a href="https://opensource.googleblog.com/2015/09/introducing-brotli-new-compression.html" rel="noopener">Brotli</a>와 같은 압축 알고리즘은 서버와 브라우저 사이에 전송되는 텍스트 파일(HTML, CSS, JavaScript)의 크기를 크게 줄일 수 있습니다. Gzip은 모든 브라우저에서 효과적으로 지원되며 더 나은 압축 결과를 제공하는 Brotli 역시 <a href="https://caniuse.com/#feat=brotli" rel="noopener">거의 모든 최신 브라우저에서 사용할 수 있습니다</a>.</p>
+<p>리소스를 압축하면 전달 크기가 최소화되어 로드 시간이 향상되고 결과적으로 LCP가 향상됩니다.</p>
+<ol>
+<li>먼저 서버에서 이미 파일을 자동으로 압축하는 것은 아닌지 확인하세요. 대부분의 호스팅 플랫폼, CDN 및 역방향 프록시 서버는 기본적으로 자산을 압축으로 인코딩하거나 쉽게 구성할 수 있도록 지원합니다.</li>
+<li>파일을 압축하기 위해 서버를 수정해야 하는 경우 gzip 대신 더 나은 압축 비율을 제공하는 Brotli를 사용하는 것이 좋습니다.</li>
+<li>사용할 압축 알고리즘을 선택한 후에는 브라우저에서 요청하는 즉시 자산을 압축하는 대신 빌드 프로세스 중에 미리 자산을 압축하세요. 이렇게 하면 서버 오버헤드가 최소화되고, 특히 높은 압축률을 사용한 경우 요청 시 지연이 방지됩니다.</li>
+</ol>
+<figure class="w-figure">
+  <img     alt="LCP 개선 예시: Brotli 압축 이전/이후"          decoding="async"     height="139"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+    LCP 개선 예시: Brotli 압축 이전/이후
+  </figcaption>
+</figure>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>자세한 내용은 <a href="/reduce-network-payloads-using-text-compression/">네트워크 페이로드 축소 및 압축</a> 가이드를 참조하세요.</p>
+</div></aside>
+<h3 id="-7">적응형 게재 <a class="w-headline-link" href="#-7">#</a></h3>
+<p>페이지의 메인 콘텐츠를 구성하는 리소스를 로드할 때 사용자의 기기나 네트워크 상황에 따라 조건부로 다른 자산을 가져오는 것이 효과적일 수 있습니다. <a href="https://wicg.github.io/netinfo/" rel="noopener">네트워크 정보</a>, <a href="https://www.w3.org/TR/device-memory/" rel="noopener">장치 메모리</a> 및 <a href="https://html.spec.whatwg.org/multipage/workers.html#navigator.hardwareconcurrency" rel="noopener">HardwareConcurrency</a> API를 사용하여 수행할 수 있습니다.</p>
+<p>초기 렌더링에 중요한 큰 자산이 있는 경우 사용자의 연결 또는 장치에 따라 동일한 리소스의 다양한 변형을 사용할 수 있습니다. 예를 들어, 4G보다 연결 속도가 낮다면 동영상 대신 이미지를 표시할 수 있습니다.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">if</span> <span class="token punctuation">(</span>navigator<span class="token punctuation">.</span>connection <span class="token operator">&amp;&amp;</span> navigator<span class="token punctuation">.</span>connection<span class="token punctuation">.</span>effectiveType<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token keyword">if</span> <span class="token punctuation">(</span>navigator<span class="token punctuation">.</span>connection<span class="token punctuation">.</span>effectiveType <span class="token operator">===</span> <span class="token string">'4g'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token comment">// Load video</span><br>  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span><br>    <span class="token comment">// Load image</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>사용할 수 있는 유용한 속성 목록은 다음과 같습니다.</p>
+<ul>
+<li><code>navigator.connection.effectiveType</code>: 유효 연결 유형</li>
+<li><code>navigator.connection.saveData</code>: 데이터 절약 활성화/비활성화</li>
+<li><code>navigator.hardwareConcurrency</code>: CPU 코어 수</li>
+<li><code>navigator.deviceMemory</code>: 장치 메모리</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>자세한 내용은 <a href="/adaptive-serving-based-on-network-quality/">네트워크 품질 기반 적응형 게재</a>를 참조하세요.</p>
+</div></aside>
+<h3 id="-8">서비스 작업자를 사용하여 자산 캐시 <a class="w-headline-link" href="#-8">#</a></h3>
+<p>서비스 작업자는 이 글의 앞에서 언급했듯 더 작은 HTML 응답을 제공하는 것을 포함하여 여러 가지 유용한 작업에 사용될 수 있습니다. 또한 반복 요청 시 네트워크에서 대신 브라우저에 제공할 수 있는 정적 리소스를 캐시하는 데 사용할 수도 있습니다.</p>
+<p>서비스 작업자를 사용하여 중요한 리소스를 미리 캐싱하면 로드 시간을 크게 줄일 수 있습니다. 연결 상태가 약한 상태에서, 심지어는 오프라인에서 웹 페이지를 다시 로드하는 사용자의 경우 특히 그렇습니다. <a href="https://developers.google.com/web/tools/workbox/" rel="noopener">Workbox</a>와 같은 라이브러리는 사전 캐시된 자산 업데이트 프로세스를 만들 수 있으며 이는 커스텀 서비스 작업자를 작성하는 것보다 쉽습니다.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>서비스 작업자 및 Workbox에 대해 자세히 알아보려면 <a href="/reliable/">네트워크 안정성</a>을 참조하세요.</p>
+</div></aside>
+<h2 id="client-side-rendering">클라이언트 측 렌더링 <a class="w-headline-link" href="#client-side-rendering">#</a></h2>
+<p>많은 사이트에서 클라이언트 측 JavaScript 논리를 사용하여 브라우저에서 직접 페이지를 렌더링합니다. <a href="https://reactjs.org/" rel="noopener">React</a> , <a href="https://angular.io/" rel="noopener">Angular</a> 및 <a href="https://vuejs.org/" rel="noopener">Vue</a> 같은 프레임워크 및 라이브러리를 사용하면 웹 페이지의 다양한 측면을 완전히 서버가 아닌 클라이언트에서 처리하는 단일 페이지 애플리케이션을 더 쉽게 구축할 수 있습니다.</p>
+<p>대부분 클라이언트에서 렌더링되는 사이트를 구축하는 경우 대규모 JavaScript 번들을 사용한다면 LCP에 미칠 수 있는 영향에 주의해야 합니다. 이를 방지하기 위한 최적화가 이루어지지 않으면 모든 중요한 JavaScript의 다운로드 및 실행이 완료될 때까지 사용자가 페이지의 콘텐츠를 보거나 상호 작용할 수 없습니다.</p>
+<p>클라이언트 측 렌더링 사이트를 구축할 때는 다음과 같은 최적화 방식을 고려하세요.</p>
+<ul>
+<li>중요 JavaScript 최소화</li>
+<li>서버 측 렌더링 사용</li>
+<li>사전 렌더링 사용</li>
+</ul>
+<h3 id="javascript-2">중요 JavaScript 최소화 <a class="w-headline-link" href="#javascript-2">#</a></h3>
+<p>사이트의 콘텐츠가 일정량의 JavaScript가 다운로드된 후에만 표시되거나 상호 작용할 수 있는 경우 번들의 크기를 최대한 줄여야 합니다. 이를 위해서는 다음과 같은 방법을 사용하세요.</p>
+<ul>
+<li>JavaScript 축소</li>
+<li>사용하지 않는 JavaScript 지연</li>
+<li>사용하지 않는 Polyfills 최소화</li>
+</ul>
+<p>이러한 최적화에 대해 자세히 알아보려면 <a href="#reduce-javascript-blocking-time">JavaScript 차단 시간 단축</a> 섹션으로 돌아가세요.</p>
+<h3 id="-9">서버 측 렌더링 사용 <a class="w-headline-link" href="#-9">#</a></h3>
+<p>대부분 클라이언트에서 렌더링되는 사이트의 경우 항상 JavaScript의 양을 최소화하는 것에 가장 먼저 집중해야 합니다. 그러나 최대한 LCP를 개선하기 위해 서버 렌더링 경험을 결합하는 것도 고려해볼 수 있습니다.</p>
+<p>이 개념은 서버를 사용하여 애플리케이션을 HTML로 렌더링하는 방식으로 작동합니다. 그러면 클라이언트가 모든 JavaScript 및 필수 데이터를 동일한 DOM 콘텐츠에 &quot;<a href="https://www.gatsbyjs.org/docs/react-hydration/" rel="noopener">하이드레이션</a>&quot;합니다. 이렇게 하면 페이지의 주요 콘텐츠가 클라이언트에서만이 아니라 서버에서 먼저 렌더링되도록 하여 LCP를 개선할 수 있지만 몇 가지 단점이 있습니다.</p>
+<ul>
+<li>서버와 클라이언트에서 동일한 JavaScript 렌더링 애플리케이션을 유지 관리하면 복잡성이 증가할 수 있습니다.</li>
+<li>서버에서 HTML 파일을 렌더링하기 위해 JavaScript를 실행하면 서버에서 정적 페이지를 제공하는 것과 비교하여 항상 서버 응답 시간(TTFB)이 늘어납니다.</li>
+<li>서버에서 렌더링된 페이지는 상호 작용할 수 있는 것처럼 보이지만 모든 클라이언트 측 JavaScript가 실행될 때까지 사용자 입력에 응답할 수 없습니다. 이로 인해 <a href="/tti/"><strong>Time to Interactive</strong></a>(상호 작용까지의 시간, TTI)는 점수가 낮아집니다.</li>
+</ul>
+<h3 id="-10">사전 렌더링 사용 <a class="w-headline-link" href="#-10">#</a></h3>
+<p>사전 렌더링은 서버 측 렌더링보다는 덜 복잡하면서도 LCP를 개선하는 방법을 제공하는 별도의 기술입니다. 사용자 인터페이스가 없는 브라우저인 헤드리스 브라우저는 빌드 시 모든 경로의 정적 HTML 파일을 생성하는 데 사용됩니다. 이러한 파일은 이후 애플리케이션에 필요한 JavaScript 번들과 함께 제공될 수 있습니다.</p>
+<p>사전 렌더링을 사용하면 TTI에는 여전히 부정적이지만, 서버 응답 시간은 요청된 후에만 각 페이지를 동적으로 렌더링하는 서버 측 렌더링 솔루션의 경우만큼 영향을 받지 않습니다.</p>
+<figure class="w-figure">
+  <img     alt="LCP 개선 예시: 사전 렌더링 이전/이후"          decoding="async"     height="139"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+    LCP 개선 예시: 사전 렌더링 이전/이후
+  </figcaption>
+</figure>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>다양한 서버 렌더링 아키텍처에 대해 자세히 알아보려면 <a href="https://developers.google.com/web/updates/2019/02/rendering-on-the-web" rel="noopener">웹에서 렌더링하기</a>를 참조하세요.</p>
+</div></aside>
+<h2 id="-11">개발자 도구 <a class="w-headline-link" href="#-11">#</a></h2>
+<p>LCP를 측정하고 디버그하는 데 사용할 수 있는 여러 가지 도구가 있습니다.</p>
+<ul>
+<li>
+<p><a href="https://developers.google.com/web/tools/lighthouse" rel="noopener">Lighthouse 6.0</a>은 실험실 설정에서 LCP를 측정할 수 있도록 지원합니다.</p>
+  <img     alt="Lighthouse 6.0"          decoding="async"     height="309"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=1600 1600w"          width="800"   />
+</li>
+<li>
+<p>Chrome DevTools의 <a href="https://developers.google.com/web/tools/chrome-devtools/evaluate-performance" rel="noopener">Performance</a> 패널에 있는 <strong>Timing</strong> 섹션에는 LCP 마커가 포함되어 있으며 <strong>Related Node</strong> 필드 위로 마우스를 가져가면 해당 LCP와 연결된 요소가 표시됩니다.</p>
+  <img     alt="Chrome DevTools의 LCP"          decoding="async"     height="509"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=1600 1600w"          width="800"   />
+</li>
+<li>
+<p><a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome User Experience Report</a> 는 원본 수준에서 집계된 실제 LCP 값을 제공합니다.</p>
+</li>
+</ul>
+<p><em>Philip Walton, Katie Hempenius, Kayce Basques, Ilya Grigorik의 리뷰에 감사드립니다.</em></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/performance/">성능</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/web-vitals/">Web Vitals</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          마지막 업데이트: <time>Aug 20, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/ko/blog/optimize-lcp/index.md"
+        >
+          기사 개선하기
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@hdjirdeh"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">공유</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            버그 신고
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            소스 보기
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">관련된 콘텐츠</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome 업데이트
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            웹 기초
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            사례 연구
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            팟캐스트
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            쇼
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">연결</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          전체 제품
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="ko"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          약관 및 개인정보 보호
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          커뮤니티 가이드라인
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

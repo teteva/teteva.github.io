@@ -1,0 +1,825 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=26865dbbaa8c5">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=e110ee4e4d402">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>User-Agent Client Hints によるユーザーのプライバシーと開発者体験の改善</title>
+<meta name="description" content="" />
+
+<link rel="canonical" href="https://web.dev/i18n/ja/user-agent-client-hints/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/user-agent-client-hints/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/user-agent-client-hints/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/user-agent-client-hints/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/user-agent-client-hints/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/user-agent-client-hints/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/user-agent-client-hints/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/user-agent-client-hints/" />
+<meta itemprop="name" content="User-Agent Client Hints によるユーザーのプライバシーと開発者体験の改善" />
+<meta itemprop="description" content="" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/hgxRNa56Vb9o3QRwIrm9.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="ja_JP" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/ja/user-agent-client-hints/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="User-Agent Client Hints によるユーザーのプライバシーと開発者体験の改善" />
+<meta property="og:description" content="" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/hgxRNa56Vb9o3QRwIrm9.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="誰がそこにいたのかを特定するヒントになる、雪の上に残された様々な種類の足跡。" />
+<meta property="tag" content="privacy" />
+<meta property="tag" content="security" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="User-Agent Client Hints によるユーザーのプライバシーと開発者体験の改善" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/hgxRNa56Vb9o3QRwIrm9.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=65774cd79a70c', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=17fb032005fe4', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          学習する
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        測定する
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        ブログ
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        概要
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">閉じる</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="誰がそこにいたのかを特定するヒントになる、雪の上に残された様々な種類の足跡。"     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="このページ内">
+    <div class="course-toc__heading font-google-sans weight-medium">このページ内</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><span class="toc__span">背景</span><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#user-agent">User-Agent 文字列の状態</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#user-agent-client-hints">新しい User-Agent Client Hints のご紹介</a></li><li class="toc__listitem"><a class="toc__anchor" href="#chromium-84-user-agent-client-hints">Chromium 84 以降の User-Agent Client Hints</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#user-agent-2">User-Agent レスポンスとリクエスト ヘッダー</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-2">やり取りの例</a></li><li class="toc__listitem"><a class="toc__anchor" href="#javascript-api">JavaScript API</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">デモ</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">ヒントの存続期間とリセット</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">ヒントの範囲とクロスオリジン リクエスト</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#user-agent-client-hints-2">User-Agent Client Hints を使用する場所</a></li><li class="toc__listitem"><a class="toc__anchor" href="#user-agent-3">User-Agent 文字列はどう変化しますか？</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="user-agent-client-hints">User-Agent Client Hints によるユーザーのプライバシーと開発者体験の改善</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            User-Agent Client Hints は Client Hints API に新しく追加された拡張機能であり、プライバシーの保護が担保された、人間工学に基づいた方法を通して開発者がユーザーの使用ブラウザーに関する情報にアクセスできるようにします。
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Jun 25, 2020</time>
+             — 更新済み <time>Feb 12, 2021</time> 
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/user-agent-client-hints/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/user-agent-client-hints/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/user-agent-client-hints/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/user-agent-client-hints/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/user-agent-client-hints/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/user-agent-client-hints/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/secure"
+          >安全とセキュリティ</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/rowan_m/"> <img     alt="Rowan Merewood"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/rowan_m/">Rowan Merewood</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/rowan_m">Twitter</a>
+               <a href="https://github.com/rowan-m">GitHub</a>
+               <a href="https://glitch.com/@rowan-m">Glitch</a>
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/yoavweiss/"> <img     alt="Yoav Weiss"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/yoavweiss/">Yoav Weiss</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/yoavweiss">Twitter</a>
+               <a href="https://github.com/yoavweiss">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="このページ内">
+      <summary>
+        このページ内
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><span class="toc__span">背景</span><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#user-agent">User-Agent 文字列の状態</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#user-agent-client-hints">新しい User-Agent Client Hints のご紹介</a></li><li class="toc__listitem"><a class="toc__anchor" href="#chromium-84-user-agent-client-hints">Chromium 84 以降の User-Agent Client Hints</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#user-agent-2">User-Agent レスポンスとリクエスト ヘッダー</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-2">やり取りの例</a></li><li class="toc__listitem"><a class="toc__anchor" href="#javascript-api">JavaScript API</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">デモ</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">ヒントの存続期間とリセット</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">ヒントの範囲とクロスオリジン リクエスト</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#user-agent-client-hints-2">User-Agent Client Hints を使用する場所</a></li><li class="toc__listitem"><a class="toc__anchor" href="#user-agent-3">User-Agent 文字列はどう変化しますか？</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <div class="youtube">  <lite-youtube    videoid="f0YY0o2OAKA"      >  </lite-youtube></div>
+<p>Client Hints を使用することにより、開発者はユーザーの使用デバイスや使用条件に関する情報を User-Agent (UA) 文字列から解析するのではなく、積極的にリクエストすることができるようになります。この代替手法の提供は、最終的に User-Agent 文字列の粒度を低下させるための第一歩となります。</p>
+<p>User-Agent 文字列の解析に依存している既存の機能を更新し、その代替手法として User-Agent Client Hints を使用する方法について説明します。</p>
+<div role="banner" class="banner bg-state-bad-bg color-core-text">
+    <div class="banner__content flow">
+      すでに User-Agent Client Hints をご利用の場合には、今後の変更にご注意ください。ヘッダーのフォーマットは変更され、<code>Accept-CH</code> トークンが返されるヘッダーに正確に一致するようになります。これまでサイトは <code>Sec-CH-UA-Platform</code> ヘッダーを受信するために <code>Accept-CH: UA-Platform</code> を送信していましたが、現在は <code>Accept-CH: Sec-CH-UA-Platform</code> を送信する必要があります。すでに User-Agent Client Hints を実装している場合には、この変更内容が安定版の Chromium で完全にロールアウトされるまでは、両方のフォーマットを送信するようにしてください。詳細については、「<a href="https://groups.google.com/a/chromium.org/g/blink-dev/c/t-S9nnos9qU/m/pUFJb00jBAAJ">削除の意図: User-Agent Client Hint ACCEPT-CH トークンの名前の変更</a>」を参照してください。
+    </div>
+    </div>
+<h2 id="">背景 <a class="w-headline-link" href="#">#</a></h2>
+<p>Web ブラウザーがリクエストを行う場合、そのリクエストにはブラウザーとその環境に関する情報が含まれています。これを基にサーバーは分析を行い、レスポンスをカスタマイズすることができるようになります。この仕組みは 1996 年に定義されたもので (RFC 1945 for HTTP/1.0)、その中には <a href="https://tools.ietf.org/html/rfc1945#section-10.15" rel="noopener">User-Agent 文字列の初期の定義</a>が含まれています。そこには、次のような例が記載されています。</p>
+<web-copy-code><pre class="language-text"><code class="language-text">User-Agent: CERN-LineMode/2.15 libwww/2.17b3</code></pre>
+</web-copy-code><p>このヘッダーは、製品 (例: ブラウザーやライブラリ) とコメント (例: バージョン) を重要度が高い順に指定することを目的としています。</p>
+<h3 id="user-agent">User-Agent 文字列の状態 <a class="w-headline-link" href="#user-agent">#</a></h3>
+<p>この文字列は、過去<em>数十年</em>に渡ってリクエストを実行するクライアントに関する様々な追加情報を蓄積してきました (下位互換性を担保するために粗悪な情報も含まれています)。Chrome の現在の User-Agent 文字列を見てみると、それがよく分かります。</p>
+<web-copy-code><pre class="language-text"><code class="language-text">Mozilla/5.0 (Linux; Android 10; Pixel 3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4076.0 Mobile Safari/537.36</code></pre>
+</web-copy-code><p>上記の文字列には、ユーザーの OS とバージョン、デバイスのモデル、ブラウザーのブランドと完全なバージョン表記など、使用するブラウザーがモバイル ブラウザーであることを推測するために十分な情報が含まれており、また、歴史的な理由から他のブラウザーの参照情報も含まれています。</p>
+<p>これらのパラメーターと利用可能な値の多彩な組み合わせは、User-Agent 文字列が個々のユーザーを一意に識別できるほどの情報を持っていることを意味します。自分のブラウザーを <a href="https://amiunique.org/" rel="noopener">AmIUnique</a> でテストしてみると、<strong>ご利用の</strong> User-Agent 文字列が<strong>あなた</strong>をどの程度正確に識別しているのかが分かります。結果的に得られる &quot;類似度&quot; が低ければ低いほど、あなたのリクエストがユニークであり、サーバーが密かにあなたを追跡することが容易になっていることを意味しています。</p>
+<p>User-Agent 文字列は、数多くの合法的な<a href="https://github.com/WICG/ua-client-hints/blob/main/README.md#use-cases" rel="noopener">ユース ケース</a>を実現可能にし、開発者やサイトの所有者にとって重要な目的を果たしています。しかしながら、秘密の追跡手法からユーザーのプライバシーを保護することも重要であり、UA 情報をデフォルトで送信する仕様はその目標に反することになります。</p>
+<p>また、User-Agent 文字列に関しては、Web での互換性を高めていく必要性も残されています。User-Agent 文字列は構造化が成されていないため、その解析には無駄な複雑性が伴い、それがバグやサイトの互換性に関する問題の原因となっています。その結果として、ユーザーに対する不利益が生じているケースも多く見られています。こういった問題は、比較的マイナーなブラウザーを使用しているユーザーに対し、サイト側でそういった構成に対するテストを行うことができない可能性があるために偏って不利益を生じさせてしまいます。</p>
+<h2 id="user-agent-client-hints">新しい User-Agent Client Hints のご紹介 <a class="w-headline-link" href="#user-agent-client-hints">#</a></h2>
+<p><a href="https://github.com/WICG/ua-client-hints#explainer-reducing-user-agent-granularity" rel="noopener">User-Agent Client Hints</a> は、同一の情報へのアクセスを実現しながらも、プライバシーをより安全に保護することができる方法であり、ブラウザーは最終的に User-Agent 文字列のすべてのブロードキャストの既定値を削減することができるようになります。<a href="https://tools.ietf.org/html/draft-ietf-httpbis-client-hints" rel="noopener">Client Hints</a> は、サーバーがブラウザーにクライアントに関する一連のデータ (ヒント) をリクエストし、ブラウザーが独自のポリシーやユーザー構成を適用して返されるデータを決定するようなモデルを強制します。つまり、<strong>すべて</strong>の User-Agent 情報をデフォルトで公開するのではなく、明示的かつ監査可能な方法でアクセスが管理されるようになったのです。また、開発者にとっても API がシンプルになる (正規表現を使用する必要がなくなるなど) というメリットがあります。</p>
+<p>現在の Client Hints には、主にブラウザーの表示や接続に関連する機能の情報が記載されています。詳細については「<a href="https://developers.google.com/web/updates/2015/09/automating-resource-selection-with-client-hints" rel="noopener">Client Hints によるリソース選択の自動化</a>」でご確認いただくことが可能ですが、ここでもこの手順について簡単にご説明させていただきます。</p>
+<p>サーバーは、ヘッダーを介して特定の Client Hint をリクエストします。</p>
+<p>⬇️<em>サーバーからのレスポンス</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Accept-CH: Viewport-Width, Width</code></pre>
+</web-copy-code><p>また、メタ タグは次のようになります。</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">http-equiv</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accept-CH<span class="token punctuation">"</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Viewport-Width, Width<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>ブラウザーは、後続するリクエストで次のヘッダーを送り返す選択をすることができるようになります。</p>
+<p>⬆️<em>後続するリクエスト</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Viewport-Width: 460<br>Width: 230</code></pre>
+</web-copy-code><p>サーバーは、たとえば適切な解像度の画像の提供など、レスポンスの内容を変化させることができるようになります。</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>初回のリクエストでの Client Hints の有効化については継続的な議論が行われていますが、この方法を選択する前に<a href="/responsive-web-design-basics">レスポンシブ デザイン</a>やプログレッシブ エンハンスメントなどの方法を検討する必要があります。</p>
+</div></aside>
+<p>User-Agent Client Hints は、<code>Accept-CH</code> サーバー レスポンス ヘッダーを介して指定可能な <code>Sec-CH-UA</code> プレフィックスを使用してプロパティの範囲を拡張することができます。詳細については、「<a href="https://github.com/WICG/ua-client-hints/blob/main/README.md" rel="noopener">説明書</a>」から学習を開始し、「<a href="https://wicg.github.io/ua-client-hints/" rel="noopener">提案の詳細</a>」を参照して理解を深めてください。</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Client Hints は<strong>安全な接続を介してのみ送信が可能</strong>となるため、<a href="/why-https-matters">サイトの HTTPS への移行</a>が完了していることをご確認ください。</p>
+</div></aside>
+<p>新しいヒントは Chromium 84 より利用可能となっています。それでは、その仕組みを見てみましょう。</p>
+<h2 id="chromium-84-user-agent-client-hints">Chromium 84 以降の User-Agent Client Hints <a class="w-headline-link" href="#chromium-84-user-agent-client-hints">#</a></h2>
+<p>User-Agent Client Hints は、<a href="https://bugs.chromium.org/p/chromium/issues/detail?id=1091285" rel="noopener">互換性の問題</a>が解決されるとともに Chrome の安定版において徐々に有効化されていきます。テストを実施するために機能を強制的にオンにするには、以下に従ってください。</p>
+<ul>
+<li>Chrome 84 の<strong>ベータ版</strong>または同等のものを使用する。</li>
+<li><code>about://flags/#enable-experimental-web-platform-features</code> フラグを有効にする。</li>
+</ul>
+<p>デフォルトでは、ブラウザーのブランド、重要なバージョン/メジャー バージョン、クライアントがモバイル デバイスであるかどうかを示すインジケーターが返されます。</p>
+<p>⬆️<em>すべてのリクエスト</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Sec-CH-UA: "Chromium";v="84", "Google Chrome";v="84"<br>Sec-CH-UA-Mobile: ?0</code></pre>
+</web-copy-code><aside class="aside flow bg-state-bad-bg color-state-bad-text">
+<p class="cluster color-state-bad-text">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error sign">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm0-10v6h2V7h-2z" />
+</svg></span>
+<strong>注意</strong></p>
+<div class=" flow">
+<p>これらのプロパティは単一の値に比べてより複雑であるため、リストやブール値の表現については<a href="https://httpwg.org/http-extensions/draft-ietf-httpbis-header-structure.html" rel="noopener">構造化されたヘッダー</a>が使用されています。</p>
+</div></aside>
+<h3 id="user-agent-2">User-Agent レスポンスとリクエスト ヘッダー <a class="w-headline-link" href="#user-agent-2">#</a></h3>
+<style>
+.table-wrapper th:nth-of-type(1), .table-wrapper th:nth-of-type(2) {
+    width: 28ch;
+}
+
+.table-wrapper td {
+  padding: 4px 8px 4px 0;
+}
+</style>
+<div class="w-table-wrapper">
+<table>
+<thead>
+<tr>
+<th>⬇️レスポンスの <code>Accept-CH</code><br>⬆️リクエスト ヘッダー</th>
+<th>⬆️リクエスト<br>値の例</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Sec-CH-UA</code></td>
+<td><code>&quot;Chromium&quot;;v=&quot;84&quot;,</code><br><code>&quot;Google Chrome&quot;;v=&quot;84&quot;</code></td>
+<td>ブラウザーのブランドと、その重要なバージョンのリスト。</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Mobile</code></td>
+<td><code>?1</code></td>
+<td>ブラウザーがモバイル デバイス上で実行されているか (true の場合: <code>?1</code>)、またはそうでないか (false の場合: <code>?0</code>) を示すブール値。</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Full-Version</code></td>
+<td><code>&quot;84.0.4143.2&quot;</code></td>
+<td>ブラウザの完全版。</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Platform</code></td>
+<td><code>&quot;Android&quot;</code></td>
+<td>デバイスのプラットフォーム (通常はオペレーティング システム (OS) を表示)。</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Platform-Version</code></td>
+<td><code>&quot;10&quot;</code></td>
+<td>プラットフォームまたは OS のバージョン。</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Arch</code></td>
+<td><code>&quot;arm&quot;</code></td>
+<td>デバイスの基礎的なアーキテクチャ。ページの表示には関係がない可能性もありますが、サイトで正確なフォーマットをデフォルトでダウンロードできるようにすることが必要になる可能性もあります。</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Model</code></td>
+<td><code>&quot;Pixel 3&quot;</code></td>
+<td>デバイスのモデル。</td>
+</tr>
+</tbody>
+</table>
+</div><aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>問題の原因</strong></p>
+<div class=" flow">
+<p>プライバシーや互換性を考慮し、値を空白にしたり、返さなかったり、さまざまに変化する値とともに追加されたりする場合があります。これは、<a href="https://wicg.github.io/ua-client-hints/#grease" rel="noopener">GREASE</a> と呼ばれています。</p>
+</div></aside>
+<h3 id="-2">やり取りの例 <a class="w-headline-link" href="#-2">#</a></h3>
+<p>やり取りの例は、次のようになります。</p>
+<p>⬆️<em>ブラウザーからの初回リクエスト</em><br>ブラウザーはサイトに <code>/downloads</code> ページをリクエストしており、デフォルトの基本的な User-Agent を送信します。</p>
+<web-copy-code><pre class="language-text"><code class="language-text">GET /downloads HTTP/1.1<br>Host: example.site<br><br>Sec-CH-UA: "Chromium";v="84", "Google Chrome";v="84"<br>Sec-CH-UA-Mobile: ?0</code></pre>
+</web-copy-code><p>⬇️<em>サーバーからのレスポンス</em><br>サーバーはページを送り返し、さらにブラウザーの完全なバージョン表記とプラットフォームをリクエストします。</p>
+<web-copy-code><pre class="language-text"><code class="language-text">HTTP/1.1 200 OK<br>Accept-CH: Sec-CH-UA-Full-Version, Sec-CH-UA-Platform</code></pre>
+</web-copy-code><p>⬆️<em>後続するリクエスト</em><br>ブラウザーはサーバーに追加情報へのアクセスを許可し、その後のすべてのレスポンスで追加のヒントを送り返します。</p>
+<web-copy-code><pre class="language-text"><code class="language-text">GET /downloads/app1 HTTP/1.1<br>Host: example.site<br><br>Sec-CH-UA: "Chromium";v="84", "Google Chrome";v="84"<br>Sec-CH-UA-Mobile: ?0<br>Sec-CH-UA-Full-Version: "84.0.4143.2"<br>Sec-CH-UA-Platform: "Android"</code></pre>
+</web-copy-code><h3 id="javascript-api">JavaScript API <a class="w-headline-link" href="#javascript-api">#</a></h3>
+<p>ヘッダーを利用する方法以外にも、JavaScript の <code>navigator.userAgentData</code> を使用して User-Agent にアクセスすることも可能です。デフォルトの <code>Sec-CH-UA</code> ヘッダーおよび <code>Sec-CH-UA-Mobile</code> ヘッダーの情報には、以下のようにそれぞれ <code>brands</code> および <code>mobile</code> プロパティを介してアクセスすることができます。</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token comment">// ブランド データを出力</span><br>console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>navigator<span class="token punctuation">.</span>userAgentData<span class="token punctuation">.</span>brands<span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// 出力内容</span><br><span class="token punctuation">[</span><br>  <span class="token punctuation">{</span><br>    brand<span class="token operator">:</span> <span class="token string">'Chromium'</span><span class="token punctuation">,</span><br>    version<span class="token operator">:</span> <span class="token string">'84'</span><span class="token punctuation">,</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token punctuation">{</span><br>    brand<span class="token operator">:</span> <span class="token string">'Google Chrome'</span><span class="token punctuation">,</span><br>    version<span class="token operator">:</span> <span class="token string">'84'</span><span class="token punctuation">,</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br><span class="token comment">// モバイル インジケーターを出力</span><br>console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>navigator<span class="token punctuation">.</span>userAgentData<span class="token punctuation">.</span>mobile<span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// 出力内容</span><br><span class="token boolean">false</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>追加の値には、<code>getHighEntropyValues()</code> 呼び出しを介してアクセスすることができます。&quot;High Entropy&quot; (高エントロピー) という用語は<a href="https://en.wikipedia.org/wiki/Entropy_(information_theory)" rel="noopener">情報エントロピー</a>にちなんでおり、言い換えるならば、これらの値がユーザーのブラウザーに関する情報をどの程度明らかにできるかという観点から見た情報量のことを意味しています。追加ヘッダーのリクエストと同様に、(返す値がある場合に) どのような値が返されるかはブラウザー次第です。</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token comment">// 完全な User-Agent データを出力</span><br>navigator<br>  <span class="token punctuation">.</span>userAgentData<span class="token punctuation">.</span><span class="token function">getHighEntropyValues</span><span class="token punctuation">(</span><br>    <span class="token punctuation">[</span><span class="token string">"architecture"</span><span class="token punctuation">,</span> <span class="token string">"model"</span><span class="token punctuation">,</span> <span class="token string">"platform"</span><span class="token punctuation">,</span> <span class="token string">"platformVersion"</span><span class="token punctuation">,</span><br>     <span class="token string">"uaFullVersion"</span><span class="token punctuation">]</span><span class="token punctuation">)</span><br>  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">ua</span> <span class="token operator">=></span> <span class="token punctuation">{</span> console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>ua<span class="token punctuation">)</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// 出力内容</span><br><span class="token punctuation">{</span><br>  <span class="token string">"architecture"</span><span class="token operator">:</span> <span class="token string">"x86"</span><span class="token punctuation">,</span><br>  <span class="token string">"model"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span><br>  <span class="token string">"platform"</span><span class="token operator">:</span> <span class="token string">"Linux"</span><span class="token punctuation">,</span><br>  <span class="token string">"platformVersion"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span><br>  <span class="token string">"uaFullVersion"</span><span class="token operator">:</span> <span class="token string">"84.0.4143.2"</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><h3 id="-3">デモ <a class="w-headline-link" href="#-3">#</a></h3>
+<p>「<a href="https://user-agent-client-hints.glitch.me" rel="noopener">user-agent-client-hints.glitch.me</a>」では、ヘッダーと JavaScript API の両方をご自身のデバイスで試してみることができます。</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Chrome 84 のベータ版または同等のブラウザーを使用しており、<code>about://flags/#enable-experimental-web-platform-features</code> が有効になっていることをご確認ください。</p>
+</div></aside>
+<h3 id="-4">ヒントの存続期間とリセット <a class="w-headline-link" href="#-4">#</a></h3>
+<p><code>Accept-CH</code> ヘッダーを介して指定されたヒントは、ブラウザーのセッションの継続期間中、または別のヒントが指定されるまでの間送信されます。</p>
+<p>つまり、サーバーが送信を行うと、次のようになります。</p>
+<p>⬇️<em>レスポンス</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Accept-CH: Sec-CH-UA-Full-Version</code></pre>
+</web-copy-code><p>その後ブラウザーは、ブラウザーを閉じるまでの間、そのサイトに対するすべてのリクエストで <code>Sec-CH-UA-Full-Version</code> ヘッダーを送信します。</p>
+<p>⬆️<em>後続するリクエスト</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Sec-CH-UA-Full-Version: "84.0.4143.2"</code></pre>
+</web-copy-code><p>しかしながら、別の <code>Accept-CH</code> ヘッダーを受信した場合には、ブラウザーが送信している現在のヒントを<strong>完全に置き換えます</strong>。</p>
+<p>⬇️<em>レスポンス</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Accept-CH: Sec-CH-UA-Platform</code></pre>
+</web-copy-code><p>⬆️<em>後続するリクエスト</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Sec-CH-UA-Platform: "Android"</code></pre>
+</web-copy-code><p>前にリクエストされた <code>Sec-CH-UA-Full-Version</code> は、<strong>送信されません</strong>。</p>
+<p><code>Accept-CH</code> ヘッダーがこのページに必要なヒントの完全なセットを指定しているものとして考えるのがよいでしょう。つまり、次にブラウザーはそのページのすべてのサブリソースについて指定されたヒントを送信することを意味します。ヒントは次のナビゲーションまで持続しますが、サイトはそれが送信されるものとして想定してはいけません。</p>
+<aside class="aside flow bg-state-good-bg color-state-good-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg></span>
+<strong>成功</strong></p>
+<div class=" flow">
+<p>この情報がなかったとしても有意義なユーザー エクスペリエンスを提供できるよう、常に準備するようにしてください。この情報はユーザー エクスペリエンスを向上させるために存在するものであり、定義するものではありません。それゆえに、&quot;回答&quot; や &quot;要求&quot; ではなく &quot;ヒント&quot; と呼ばれているのです。</p>
+</div></aside>
+<p>また、レスポンスで空白の <code>Accept-CH</code> を送信することにより、ブラウザーから送信されるすべてのヒントを効果的に消去する方法にこれを利用することもできます。ユーザーが設定をリセットしたり、サイトからサインアウトしたりする必要がある場合には、この手法の採用をご検討ください。</p>
+<p>このパターンは、<code>&lt;meta http-equiv=&quot;Accept-CH&quot; …&gt;</code> タグを介したヒントの動作にも一致します。リクエストされたヒントはそのページで開始されたリクエストでのみ送信され、後続するナビゲーションでは送信されません。</p>
+<h3 id="-5">ヒントの範囲とクロスオリジン リクエスト <a class="w-headline-link" href="#-5">#</a></h3>
+<p>デフォルトでは、Client Hints は同一オリジン リクエストでのみ送信されます。つまり、<code>https://example.com</code> が特定のヒントをリクエストしたとしても、最適化を実施するリソースが <code>https://downloads.example.com</code> にある場合には、ヒントを受信することは<strong>できません</strong>。</p>
+<p>クロスオリジン リクエストでヒントを許可するためには、それぞれのヒントとオリジンを <code>Feature-Policy</code> ヘッダーで指定する必要があります。これを User-Agent Client Hints に適用するには、ヒントを小文字にし、<code>sec-</code> プレフィックスを削除する必要があります。たとえば、次のようになります。</p>
+<p>⬇️*<code>example.com</code>からのレスポンス*</p>
+<web-copy-code><pre class="language-text"><code class="language-text">Accept-CH: Sec-CH-UA-Platform, DPR<br>Feature-Policy: ch-ua-platform downloads.example.com;<br>                ch-dpr cdn.provider img.example.com</code></pre>
+</web-copy-code><p>⬆️*<code>downloads.example.com</code>へのリクエスト*</p>
+<web-copy-code><pre class="language-text"><code class="language-text">Sec-CH-UA-Platform: "Android"</code></pre>
+</web-copy-code><p>⬆️*<code>cdn.provider</code> または <code>img.example.com</code>へのリクエスト*</p>
+<web-copy-code><pre class="language-text"><code class="language-text">DPR: 2</code></pre>
+</web-copy-code><h2 id="user-agent-client-hints-2">User-Agent Client Hints を使用する場所 <a class="w-headline-link" href="#user-agent-client-hints-2">#</a></h2>
+<p>簡単に説明をすると、User-Agent ヘッダーを解析したり、同じ情報にアクセスする JavaScript 呼び出し (例: <code>navigator.userAgent</code>、<code>navigator.appVersion</code>、<code>navigator.platform</code>) のいずれかを使用したりしている任意のインスタンスをリファクタリングし、代わりに User-Agent Client Hints を使用する必要があります。</p>
+<p>さらに一歩進む場合には、User-Agent 情報の使用そのものを再検討し、可能な限り別の方法で置き換えていく必要があります。多くの場合、プログレッシブ エンハンスメント、機能検出、<a href="/responsive-web-design-basics">レスポンシブ デザイン</a>を利用することによって同じ目的を達成することが可能です。User-Agent データに依存する場合に考えられる基本的な問題としては、検査対象のプロパティと、そのプロパティが可能にする動作との間のマッピングを常に維持しなければいけなくなるという点が挙げられます。これは、包括的に検出を行い、最新の状態を維持するためにメンテナンスに関連するオーバーヘッドが生じてしまうことを意味します。</p>
+<p>これらの注意点を踏まえた上で、User-Agent Client Hints のリポジトリではサイトでの利用に役立つ「<a href="https://github.com/WICG/ua-client-hints#use-cases" rel="noopener">ユース ケース</a>」をいくつか紹介しています。</p>
+<h2 id="user-agent-3">User-Agent 文字列はどう変化しますか？ <a class="w-headline-link" href="#user-agent-3">#</a></h2>
+<p>この計画は、既存のサイトに過度の混乱をもたらさないようにしながら、既存の User-Agent 文字列が公開する識別情報の量を削減することにより、Web 上で秘密の追跡が行われる可能性を最小限に抑えることを目的としています。User-Agent Client Hints を現段階で導入しておけば、User-Agent 文字列に変更が加えられる前に新しい機能について理解を深めたり、実験を行ったりすることが可能になります。</p>
+<p><a href="https://groups.google.com/a/chromium.org/d/msg/blink-dev/-2JIRNMWJ7s/u-YzXjZ8BAAJ" rel="noopener">最終的には</a>、User-Agent 文字列の情報は削減され、従来の形式を維持しながらデフォルトのヒントと同一の高レベルのブラウザー情報および重要なバージョン情報のみが提供されるようになります。Chromium では、新しい User Agent Client Hints の機能をエコシステムが十分に評価するための期間を確保するために、この変更の実施は少なくとも 2021 年にまで延期されています。</p>
+<p>Chrome 93 の <code>about://flags/#reduce-user-agent</code> フラグを有効にすることで、このバージョンの User-Agent 文字列をテストすることができます (注: このフラグは、Chrome 84 から 92 のバージョンでは <code>about://flags/#freeze-user-agent</code> という名前でした)。このバージョンでは互換性の理由から過去のエントリを含む文字列が返されますが、詳細部分はサニタイズされています。たとえば、次のようになっています。</p>
+<web-copy-code><pre class="language-text"><code class="language-text">Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.0.0 Mobile Safari/537.36</code></pre>
+</web-copy-code><p><em>写真の提供: <a href="https://unsplash.com/photos/m9qMoh-scfE?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" rel="noopener">Unsplash</a> の <a href="https://unsplash.com/@szolkin?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" rel="noopener">Sergey Zolkin</a></em></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/privacy/">プライバシー</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/security/">セキュリティ</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          最終更新: <time>Feb 12, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/ja/blog/user-agent-client-hints/index.md"
+        >
+          記事を改善する
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@rowan_m | @yoavweiss"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">共有する</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            バグを報告する
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            ソースを表示する
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">関連性のあるコンテンツ</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome のアップデート
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            ケーススタディ
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            ポッドキャスト
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            ショー
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">接続する</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          すべての製品
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="ja"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          利用規約とプライバシーポリシー
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          コミュニティガイドライン
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

@@ -1,0 +1,695 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=d3a379518f6c4">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=197d24ae40bac">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>How to file a good browser bug</title>
+<meta name="description" content="Telling browser vendors about issues you find in their browser, on a specific device or platform is an integral part of making the web platform better! " />
+
+<link rel="canonical" href="https://web.dev/how-to-file-a-good-bug/" />
+
+<meta itemprop="name" content="How to file a good browser bug" />
+<meta itemprop="description" content="Telling browser vendors about issues you find in their browser, on a specific device or platform is an integral part of making the web platform better! " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/how-to-file-a-good-bug/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="How to file a good browser bug" />
+<meta property="og:description" content="Telling browser vendors about issues you find in their browser, on a specific device or platform is an integral part of making the web platform better! " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="How to file a good browser bug" />
+<meta name="twitter:description" content="Telling browser vendors about issues you find in their browser, on a specific device or platform is an integral part of making the web platform better! " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=b81bd2e58bd4e', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=bd189e38fc71d', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#verify-it-is-a-bug">Verify it is a bug</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#what's-the-correct-behavior">What's the correct behavior?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#does-it-work-in-a-different-browser">Does it work in a different browser?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#did-it-break-in-a-recent-release">Did it break in a recent release?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#are-others-seeing-the-same-problem">Are others seeing the same problem?</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#has-it-been-reported-before">Has it been reported before?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#report-the-bug">Report the bug</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#minified-test-case">Create a minimized test case</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#filing-your-issue">Filing your issue</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#provide-a-clear-description-and-the-steps-required-to-reproduce-the-issue">Provide a clear description and the steps required to reproduce the issue</a></li><li class="toc__listitem"><a class="toc__anchor" href="#include-details-of-the-environment">Include details of the environment</a></li><li class="toc__listitem"><a class="toc__anchor" href="#submit-the-bug">Submit the bug</a></li></ul></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="how-to-file-a-good-browser-bug">How to file a good browser bug</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            <p>Telling browser vendors about issues you find in their browser
+is an integral part of making the web platform better!</p>
+
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Jun 15, 2020</time>
+             — Updated <time>Jun 15, 2020</time> 
+          </div>
+        
+
+        
+        
+
+        
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/robertnyman/"> <img     alt="Robert Nyman"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/fbCJc4uifsZ4d5KolJ7j.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/fbCJc4uifsZ4d5KolJ7j.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/fbCJc4uifsZ4d5KolJ7j.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/fbCJc4uifsZ4d5KolJ7j.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/fbCJc4uifsZ4d5KolJ7j.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/fbCJc4uifsZ4d5KolJ7j.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/robertnyman/">Robert Nyman</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/robertnyman">Twitter</a>
+               <a href="https://github.com/robnyman">GitHub</a>
+               
+               <a href="https://robertnyman.com/">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/petelepage/"> <img     alt="Pete LePage"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/petelepage/">Pete LePage</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/petele">Twitter</a>
+               <a href="https://github.com/petele">GitHub</a>
+               <a href="https://glitch.com/@petele">Glitch</a>
+               <a href="https://petelepage.com">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#verify-it-is-a-bug">Verify it is a bug</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#what's-the-correct-behavior">What's the correct behavior?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#does-it-work-in-a-different-browser">Does it work in a different browser?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#did-it-break-in-a-recent-release">Did it break in a recent release?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#are-others-seeing-the-same-problem">Are others seeing the same problem?</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#has-it-been-reported-before">Has it been reported before?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#report-the-bug">Report the bug</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#minified-test-case">Create a minimized test case</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#filing-your-issue">Filing your issue</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#provide-a-clear-description-and-the-steps-required-to-reproduce-the-issue">Provide a clear description and the steps required to reproduce the issue</a></li><li class="toc__listitem"><a class="toc__anchor" href="#include-details-of-the-environment">Include details of the environment</a></li><li class="toc__listitem"><a class="toc__anchor" href="#submit-the-bug">Submit the bug</a></li></ul></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <p>Filing a good bug isn't hard, but takes a little work. The goal is to make it
+easy to find what's broken, reach the root cause and, most importantly, find a
+way to fix it. Bugs that make fast progress tend to be easy to reproduce with a
+clear expected behavior.</p>
+<h2 id="verify-it-is-a-bug">Verify it is a bug <a class="w-headline-link" href="#verify-it-is-a-bug">#</a></h2>
+<p>The first step is to figure out what the &quot;correct&quot; behavior should be.</p>
+<h3 id="what's-the-correct-behavior">What's the correct behavior? <a class="w-headline-link" href="#what's-the-correct-behavior">#</a></h3>
+<p>Check the relevant API docs on <a href="https://developer.mozilla.org/" rel="noopener">MDN</a>, or try to
+find related specs. This information can help you decide which API is actually
+broken, where it's broken, and what the expected behavior is.</p>
+<h3 id="does-it-work-in-a-different-browser">Does it work in a different browser? <a class="w-headline-link" href="#does-it-work-in-a-different-browser">#</a></h3>
+<p>Behavior that differs between browsers is generally prioritized higher as an
+interoperability issue, especially when the browser containing the bug is the
+odd one out. Try to test on the latest versions of Chrome, Firefox, Safari and
+Edge, possibly using a tool like <a href="https://www.browserstack.com/" rel="noopener">BrowserStack</a>.</p>
+<p>If possible, check that the page isn't intentionally behaving differently due to
+user agent sniffing. In Chrome DevTools, try <a href="https://developers.google.com/web/tools/chrome-devtools/device-mode/override-user-agent" rel="noopener">setting the <code>User-Agent</code> string
+to another browser</a>.</p>
+<h3 id="did-it-break-in-a-recent-release">Did it break in a recent release? <a class="w-headline-link" href="#did-it-break-in-a-recent-release">#</a></h3>
+<p>Did this work as expected in the past, but broke in a recent browser release?
+Such &quot;regressions&quot; can be acted upon much quicker, especially if you supply a
+version number where it worked and a version where it failed. Tools like
+<a href="https://www.browserstack.com/" rel="noopener">BrowserStack</a> can make it easy to check old
+browser versions and the <a href="https://www.chromium.org/developers/bisect-builds-py" rel="noopener">bisect-builds tool</a>
+(for Chromium) allows searching for the change very efficiently.</p>
+<p>If an issue is a regression and can be reproduced, the root cause can usually be
+found and fixed quickly.</p>
+<h3 id="are-others-seeing-the-same-problem">Are others seeing the same problem? <a class="w-headline-link" href="#are-others-seeing-the-same-problem">#</a></h3>
+<p>If you're experiencing problems, there's a good chance other developers are too.
+First, try searching for the bug on <a href="http://stackoverflow.com/" rel="noopener">Stack Overflow</a>.
+This might help you translate an abstract problem into a specific broken API,
+and it might help you find a short term workaround until the bug is fixed.</p>
+<h2 id="has-it-been-reported-before">Has it been reported before? <a class="w-headline-link" href="#has-it-been-reported-before">#</a></h2>
+<p>Once you have an idea of what the bug is, it's time to check to see if the bug
+has already been reported by searching the browser bug database.</p>
+<ul>
+<li>Chromium-based browsers: <a href="https://crbug.com/" rel="noopener">https://crbug.com</a></li>
+<li>Firefox: <a href="https://bugzilla.mozilla.org/" rel="noopener">https://bugzilla.mozilla.org/</a></li>
+<li>Safari &amp; WebKit-based browsers: <a href="https://bugs.webkit.org/" rel="noopener">https://bugs.webkit.org/</a></li>
+</ul>
+<p>If you find an existing bug that describes the problem, add your support
+by starring, favoriting, or commenting on the bug. And, on many sites,
+you can add yourself to the CC list and get updates when the bug changes.</p>
+<p>If you decide to comment on the bug, include information about how the bug
+affects your website. Avoid adding &quot;+1&quot; style comments, as bug trackers
+typically send emails for every comment.</p>
+<h2 id="report-the-bug">Report the bug <a class="w-headline-link" href="#report-the-bug">#</a></h2>
+<p>If the bug hasn't been reported before, it's time to tell the browser vendor
+about it.</p>
+<h3 id="minified-test-case">Create a minimized test case <a class="w-headline-link" href="#minified-test-case">#</a></h3>
+<p>Mozilla has a great article on
+<a href="https://developer.mozilla.org/docs/Mozilla/QA/Reducing_testcases" rel="noopener">how to create a minimized test case</a>. To make a
+long story short, while a description of the problem is a great start, nothing
+beats providing a linked demo in the bug that shows the
+problem. To maximize the chance of fast progress the example should contain
+the minimum possible code needed to demonstrate the problem. A minimal code
+sample is the number one thing you can do to increase the odds of your
+bug getting fixed.</p>
+<p>Here are a few tips for minimizing a test case:</p>
+<ul>
+<li>Download the web page, add
+<a href="https://developer.mozilla.org/docs/Web/HTML/Element/base" rel="noopener"><code>&lt;base href=&quot;https://original.url&quot;&gt;</code></a>
+and verify that the bug exists locally. This may require a live HTTPS server if the
+URL uses HTTPS.</li>
+<li>Test the local files on the latest builds of as many browsers as you can.</li>
+<li>Try to condense everything into 1 file.</li>
+<li>Remove code (starting with things you know to be unnecessary) until the bug
+goes away.</li>
+<li>Use version control so that you can save your work and undo things that go
+wrong.</li>
+</ul>
+<h4 id="hosting-a-minified-test-case">Hosting a minified test case <a class="w-headline-link" href="#hosting-a-minified-test-case">#</a></h4>
+<p>If you're looking for a good place to host your minified test case,
+there are several good places available:</p>
+<ul>
+<li><a href="https://glitch.com" rel="noopener">Glitch</a></li>
+<li><a href="https://jsbin.com" rel="noopener">JSBin</a></li>
+<li><a href="https://jsfiddle.net" rel="noopener">JSFiddle</a></li>
+<li><a href="https://codepen.io" rel="noopener">CodePen</a></li>
+</ul>
+<p>Be aware that several of those sites display content in an iframe, which
+may cause features or bugs to behave differently.</p>
+<h2 id="filing-your-issue">Filing your issue <a class="w-headline-link" href="#filing-your-issue">#</a></h2>
+<p>Once you've got your minimized test case, you're ready to file that bug.
+Head over to the right bug tracking site, and create a new issue.</p>
+<ul>
+<li>Chromium-based browsers - <a href="https://crbug.com/new" rel="noopener">https://crbug.com/new</a></li>
+<li>Firefox - <a href="https://bugzilla.mozilla.org/" rel="noopener">https://bugzilla.mozilla.org/</a></li>
+<li>Safari &amp; WebKit-based browsers - <a href="https://bugs.webkit.org/" rel="noopener">https://bugs.webkit.org/</a></li>
+</ul>
+<h3 id="provide-a-clear-description-and-the-steps-required-to-reproduce-the-issue">Provide a clear description and the steps required to reproduce the issue <a class="w-headline-link" href="#provide-a-clear-description-and-the-steps-required-to-reproduce-the-issue">#</a></h3>
+<p>First, provide a clear description to help engineers quickly understand what
+the problem is and help to triage the issue.</p>
+<web-copy-code><pre class="language-text"><code class="language-text">When installing a PWA using the `beforeinstallprompt.prompt()`, the<br>`appinstalled` event fires before the call to `prompt()` resolves.</code></pre>
+</web-copy-code><p>Next, provide the detailed steps required to reproduce the issue.
+This is where your <a href="#minified-test-case">minified test case</a> comes in.</p>
+<web-copy-code><pre class="language-text"><code class="language-text">What steps will reproduce the problem?<br>1. Go to https://basic-pwa.glitch.me/, open DevTools and look at the<br>   console tab.<br>2. Click the Install button in the page, you might need to interact with<br>   the page a bit before it becomes enabled.<br>3. Click Install on the browser modal install confirmation.</code></pre>
+</web-copy-code><p>And finally, describe the <em>actual</em>, and <em>expected</em> result.</p>
+<web-copy-code><pre class="language-text"><code class="language-text">What is the actual result? In the console:<br>0. INSTALL: Available (logged when `beforeinstallprompt` event fired)<br>1. INSTALL: Success (logged when `appinstalled` event fired)<br>2. INSTALL_PROMPT_RESPONSE: {outcome: "accepted", platform: "web"}<br>   (logged when beforeinstallprompt.prompt()` resolves)<br><br>What is the expected result? In the console:<br>0. INSTALL: Available (logged when `beforeinstallprompt` event fired)<br>1. INSTALL_PROMPT_RESPONSE: {outcome: "accepted", platform: "web"}<br>   (logged when beforeinstallprompt.prompt()` resolves)<br>2. INSTALL: Success (logged when `appinstalled` event fired)</code></pre>
+</web-copy-code><p>For more information, check out <a href="https://developer.mozilla.org/docs/Mozilla/QA/Bug_writing_guidelines" rel="noopener">Bug report writing guidelines</a>
+on MDN.</p>
+<h4 id="bonus:-add-a-screenshot-or-screencast-of-the-issue">Bonus: Add a screenshot or screencast of the issue <a class="w-headline-link" href="#bonus:-add-a-screenshot-or-screencast-of-the-issue">#</a></h4>
+<p>Though not required, in some cases, it can be helpful to add a screenshot,
+or screencast of the issue. This is especially helpful in cases where bugs
+may require some odd steps to reproduce. Being able to see what happens in
+a screencast, or on a screenshot can frequently be helpful.</p>
+<h3 id="include-details-of-the-environment">Include details of the environment <a class="w-headline-link" href="#include-details-of-the-environment">#</a></h3>
+<p>Some bugs are reproducible only on certain operating systems, or only on
+specific kinds of displays (for example, low-dpi or high-dpi). Be sure to
+include the details of any test environments you used.</p>
+<h3 id="submit-the-bug">Submit the bug <a class="w-headline-link" href="#submit-the-bug">#</a></h3>
+<p>Finally, submit the bug. Then, remember to keep an eye on your email for any
+responses to the bug. Typically during investigation and when fixing the bug,
+engineers may have additional questions, or if they have difficulty
+reproducing the issue, they may reach out.</p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Jun 15, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/blog/how-to-file-a-good-bug/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@robertnyman | @petele"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

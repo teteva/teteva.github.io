@@ -1,0 +1,661 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=726a9cdeb8ea">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Setting performance budgets with webpack</title>
+<meta name="description" content="Learn how to set performance budgets and keep your bundlesize in check with webpack. " />
+
+<link rel="canonical" href="https://web.dev/codelab-setting-performance-budgets-with-webpack/" />
+
+<meta itemprop="name" content="Setting performance budgets with webpack" />
+<meta itemprop="description" content="Learn how to set performance budgets and keep your bundlesize in check with webpack. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/codelab-setting-performance-budgets-with-webpack/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Setting performance budgets with webpack" />
+<meta property="og:description" content="Learn how to set performance budgets and keep your bundlesize in check with webpack. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="performance" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Setting performance budgets with webpack" />
+<meta name="twitter:description" content="Learn how to set performance budgets and keep your bundlesize in check with webpack. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=f1cee16511066', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=1f3f433936fed', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+    
+<div class="codelab-landing-page">
+  
+    
+    
+    
+  
+  <web-codelab class="web-codelab" glitch="webpack-performance-budgets"  >
+    <div class="web-codelab__instructions">
+      
+      <article class="prose legacy-rollout">
+        <header class="flow gap-bottom-size-3">
+
+          <h1 id="setting-performance-budgets-with-webpack">Setting performance budgets with webpack</h1>
+          
+
+          
+            <div class="flow-space-size-1 color-mid-text text-size-0">
+              <time>Jan 31, 2019</time>
+              
+            </div>
+          
+
+          
+
+          
+            <div class="cluster flow-space-size-2">
+              
+                <div class="w-author">
+  <a href="/authors/mihajlija/"><img     alt="Milica Mihajlija"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/mihajlija/">Milica Mihajlija</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/bibydigital"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/mihajlija">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://mihajlija.github.io/">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+              
+            </div>
+          
+        </header>
+
+        
+
+        <p><a href="https://developers.google.com/web/fundamentals/performance/webpack/" rel="noopener">Webpack</a>
+combines all your imported files and packages them into one or more output
+files known as bundles. Bundling is neat, but as your app grows your bundles
+will grow too. You need to monitor bundle sizes to ensure that they don't grow
+too large and affect how long your application takes to load. Webpack supports
+setting <a href="/performance-budgets-101">performance budgets</a>
+based on <strong>asset size</strong> and it can keep an eye on bundle sizes for you.</p>
+<p>To see it in action, here's an app that counts the days left until New Year's.
+It's built with <a href="https://reactjs.org/" rel="noopener">React</a> and <a href="https://momentjs.com/" rel="noopener">moment.js</a>.
+(Just like real-world apps that increasingly rely on frameworks and libraries. 😉)</p>
+<img     alt="An app that counts the days left until New Year&#x27;s day"          decoding="async"     height="459"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/xG1cKnEmDUJk6Dd4892x.png?auto=format&w=1600 1600w"          width="800"   />
+<h2 id="measure">Measure <a class="w-headline-link" href="#measure">#</a></h2>
+<p>This codelab already contains the app bundled with webpack.</p>
+<ol>
+<li>Click <strong>Remix to Edit</strong> to make the project editable.</li>
+<li>Click <strong>Tools</strong>.</li>
+<li>Click <strong>Logs</strong>.</li>
+<li>Click <strong>Console</strong>.</li>
+<li>To get a color-coded list of assets and their sizes, type <code>webpack</code> in the console.</li>
+</ol>
+<web-copy-code><pre class="language-bash"><code class="language-bash">webpack</code></pre>
+</web-copy-code><p>The main bundle is highlighted in yellow because it's larger than 244 KiB (250
+KB).</p>
+<div class="w-aside w-aside--note">
+<p>Webpack uses the unit &quot;KiB&quot;, which you might not have
+seen before. 1 &quot;KiB&quot; and 1 &quot;KB&quot; are fairly close in size: 1 KiB is 1024 bytes,
+while 1 KB is 1000 bytes.</p>
+</div>
+<figure class="w-figure">
+  <img     alt="Webpack output showing bundle size of 323 KiB"     class="w-screenshot w-screenshot--filled"     decoding="async"     height="59"          loading="lazy"     sizes="(min-width: 640px) 640px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/MpeaVZE4nJHOAAnlQ8Sz.png?auto=format&w=1280 1280w"          width="640"   />
+  <figcaption class="w-figcaption">
+    Webpack warning you about bulky JS bundle ⚠️
+  </figcaption>
+</figure>
+<p>These warnings are enabled by default in <a href="https://webpack.js.org/concepts/mode/" rel="noopener">production mode</a>
+and the default threshold is <strong>244 KiB uncompressed</strong>, for both assets and
+<a href="https://webpack.js.org/concepts/entry-points/" rel="noopener">entry points</a>
+(the combination of all assets used during the initial load of a page).</p>
+<figure class="w-figure">
+  <img     alt="Webpack warning that the asset exceeds the recommended size limit"     class="w-screenshot w-screenshot--filled"     decoding="async"     height="108"          loading="lazy"     sizes="(min-width: 642px) 642px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/tXgrsOqdJAzf6LTelr0v.png?auto=format&w=1284 1284w"          width="642"   />
+  <figcaption class="w-figcaption">
+    Webpack warning you about bulky JS bundle ⚠️
+  </figcaption>
+</figure>
+<p>Webpack will not only warn you, but it will also give you a recommendation on
+how to downsize your bundles. You can learn more about the recommended techniques on
+<a href="https://developers.google.com/web/fundamentals/performance/webpack/use-long-term-caching#lazy-loading" rel="noopener">Web Fundamentals</a>.</p>
+<figure class="w-figure">
+  <img     alt="Webpack performance optimization recommendation"     class="w-screenshot w-screenshot--filled"     decoding="async"     height="96"          loading="lazy"     sizes="(min-width: 641px) 641px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/pygtt0At7nmByNKm38hr.png?auto=format&w=1282 1282w"          width="641"   />
+  <figcaption class="w-figcaption">Webpack performance optimization recommendation 💁</figcaption>
+</figure>
+<h2 id="set-a-custom-performance-budget">Set a custom performance budget <a class="w-headline-link" href="#set-a-custom-performance-budget">#</a></h2>
+<p>An appropriate performance budget will depend on the nature of your project.
+It's always best to <a href="/your-first-performance-budget">do your own research</a>.
+A <a href="/your-first-performance-budget#budget-for-quantity-based-metrics">good rule</a>
+of thumb is to deliver under 170 KB of compressed/minified
+<a href="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/" rel="noopener">critical-path</a>
+resources.</p>
+<div class="w-aside w-aside--note">
+<p>Critical-path resources are the minimal set of resources required
+for the browser to display the first screen's worth of content.</p>
+</div>
+<p>For this simple demo, try being even more conservative and set the budget to
+100 KB (97.7 KiB). In <code>webpack.config.js</code>, add the following:</p>
+<web-copy-code><pre class="language-js"><code class="language-js">module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span><br>  <span class="token comment">//...</span><br>  performance<span class="token operator">:</span> <span class="token punctuation">{</span><br>    maxAssetSize<span class="token operator">:</span> <span class="token number">100000</span><span class="token punctuation">,</span><br>    maxEntrypointSize<span class="token operator">:</span> <span class="token number">100000</span><span class="token punctuation">,</span><br>    hints<span class="token operator">:</span> <span class="token string">"warning"</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>The new performance budget is set in <strong>bytes</strong>:</p>
+<ul>
+<li>100000 bytes for individual assets (maxAssetSize)</li>
+<li>100000 bytes for the entry-point (maxEntrypointSize)</li>
+</ul>
+<p>In this case, there's only one bundle which also acts as the entry point.</p>
+<p>Possible values for <strong>hints</strong> are:</p>
+<ol>
+<li><strong><code>warning</code></strong> (default): Displays a yellow warning message, but the build
+passes. It's best to use this in development environments.</li>
+<li><strong><code>error</code></strong>: Displays a red error message, but the build still passes. This
+setting is recommended for production builds.</li>
+<li><strong><code>false</code></strong>: No warnings or errors are shown.</li>
+</ol>
+<figure class="w-figure">
+  <img     alt="Webpack performance error in red font"          decoding="async"     height="107"          loading="lazy"     sizes="(min-width: 606px) 606px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/ZFP0SZfO4zzD0lyD29Vk.png?auto=format&w=1212 1212w"          width="606"   />
+  <figcaption class="w-figcaption">Webpack performance hint "error" 🚨</figcaption>
+</figure>
+<h2 id="optimize">Optimize <a class="w-headline-link" href="#optimize">#</a></h2>
+<p>The purpose of a performance budget is to warn you about performance issues
+before they become too difficult to fix. There is always more than one way to
+build an app and some techniques will make for faster load times. (A lot of
+them are documented right here in <a href="/fast#optimize-your-javascript">Optimizing your JavaScript</a>. 🤓)</p>
+<p>Frameworks and libraries make developers' lives easier, but end users don't
+really care how apps are built, only that they're functional and fast. If you
+find yourself going over the performance budget, it's time to think about
+possible optimizations.</p>
+<p>In the real world, large client-side frameworks are usually hard to swap out,
+so it's important to use them wisely. With a bit of research, you can often
+find smaller alternatives to popular libraries that do the job just as well
+(<a href="https://date-fns.org/" rel="noopener">date-fns</a> is a good alternative for <a href="https://momentjs.com/" rel="noopener">moment.js</a>).
+Sometimes it makes more sense to not use a framework or library at all if it
+has a significant performance impact.</p>
+<p>Removing unused code a good way to optimize apps that include large third-party
+libraries. The <a href="/remove-unused-code">Remove unused code guide</a> explains this
+process in detail and here's a quick way to rewrite the countdown code without using moment.js.</p>
+<p>In <strong>app/components/Countdown.jsx</strong> remove:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><del class="highlight-line highlight-line-remove"><span class="token keyword">const</span> today <span class="token operator">=</span> <span class="token function">moment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></del><br><del class="highlight-line highlight-line-remove"><span class="token keyword">const</span> yearEnd <span class="token operator">=</span> <span class="token function">moment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">endOf</span><span class="token punctuation">(</span><span class="token string">'year'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></del><br><del class="highlight-line highlight-line-remove"><span class="token keyword">const</span> daysLeft <span class="token operator">=</span> yearEnd<span class="token punctuation">.</span><span class="token function">diff</span><span class="token punctuation">(</span>today<span class="token punctuation">,</span> <span class="token string">'days'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></del></code></pre>
+</web-copy-code><p>And delete this line:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><del class="highlight-line highlight-line-remove"><span class="token keyword">const</span> moment <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'moment'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></del></code></pre>
+</web-copy-code><p>It takes a bit of math, but you can implement the same countdown with vanilla
+JavaScript:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">const</span> today <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">const</span> year <span class="token operator">=</span> today<span class="token punctuation">.</span><span class="token function">getFullYear</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">const</span> yearEnd <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span>year<span class="token punctuation">,</span><span class="token number">11</span><span class="token punctuation">,</span><span class="token number">31</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//months are zero indexed in JS</span><br><span class="token keyword">const</span> timeDiff <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token function">abs</span><span class="token punctuation">(</span>yearEnd<span class="token punctuation">.</span><span class="token function">getTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span> today<span class="token punctuation">.</span><span class="token function">getTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">const</span> daysLeft <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token function">ceil</span><span class="token punctuation">(</span>timeDiff <span class="token operator">/</span> <span class="token punctuation">(</span><span class="token number">1000</span> <span class="token operator">*</span> <span class="token number">3600</span> <span class="token operator">*</span> <span class="token number">24</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>Now remove <code>moment.js</code> from <code>package.json</code> and run webpack in the console
+again to build the optimized bundle.</p>
+<p>Ta-da! You have shaved off 223 KiB (230KB) and the app is under budget.🎉</p>
+<img     alt="Webpack bundle size output after optimization is 97.7 KiB"     class="w-screenshot w-screenshot--filled"     decoding="async"     height="58"          loading="lazy"     sizes="(min-width: 473px) 473px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/A6TIDToLthjRrHvxluND.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/A6TIDToLthjRrHvxluND.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/A6TIDToLthjRrHvxluND.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/A6TIDToLthjRrHvxluND.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/A6TIDToLthjRrHvxluND.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/A6TIDToLthjRrHvxluND.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/A6TIDToLthjRrHvxluND.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/A6TIDToLthjRrHvxluND.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/A6TIDToLthjRrHvxluND.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/A6TIDToLthjRrHvxluND.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/A6TIDToLthjRrHvxluND.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/A6TIDToLthjRrHvxluND.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/A6TIDToLthjRrHvxluND.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/A6TIDToLthjRrHvxluND.png?auto=format&w=946 946w"          width="473"   />
+<h2 id="monitor">Monitor <a class="w-headline-link" href="#monitor">#</a></h2>
+<p>Setting up a performance budget in webpack takes just a couple of lines of code
+and it will warn you if you ever (accidentally) add a big dependency. The
+saying goes &quot;out of sight, out of mind&quot; but webpack can make sure that you are
+aware of performance implications at all times.</p>
+
+
+        <div class="text-size-0 color-mid-text">
+          <span>
+            
+            Last updated: <time>Jan 31, 2019</time>
+            
+          </span>
+          —
+          <a
+            href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/fast/codelab-setting-performance-budgets-with-webpack/index.md"
+          >
+            Improve article
+          </a>
+        </div>
+
+        
+          
+          
+        
+
+        
+          <div class="flow-space-size-2">
+            <a href="/incorporate-performance-budgets-into-your-build-tools" class="button" data-type="secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+              <span>Return to article</span>
+            </a>
+          </div>
+        
+      </article>
+    </div>
+  </web-codelab>
+</div>
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

@@ -1,0 +1,825 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=3e3e285f458af">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=97cb48b71c79e">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>User-Agent Client Hints로 사용자 개인정보 보호 및 개발자 경험 개선</title>
+<meta name="description" content="" />
+
+<link rel="canonical" href="https://web.dev/i18n/ko/user-agent-client-hints/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/user-agent-client-hints/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/user-agent-client-hints/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/user-agent-client-hints/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/user-agent-client-hints/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/user-agent-client-hints/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/user-agent-client-hints/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/user-agent-client-hints/" />
+<meta itemprop="name" content="User-Agent Client Hints로 사용자 개인정보 보호 및 개발자 경험 개선" />
+<meta itemprop="description" content="" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/hgxRNa56Vb9o3QRwIrm9.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/ko/user-agent-client-hints/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="User-Agent Client Hints로 사용자 개인정보 보호 및 개발자 경험 개선" />
+<meta property="og:description" content="" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/hgxRNa56Vb9o3QRwIrm9.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="눈 속의 다양한 발자국. 누가 거기에 있었는지에 대한 힌트." />
+<meta property="tag" content="privacy" />
+<meta property="tag" content="security" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="User-Agent Client Hints로 사용자 개인정보 보호 및 개발자 경험 개선" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/hgxRNa56Vb9o3QRwIrm9.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=19d12960483aa', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=235f155a8a67', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          배우기
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        측정
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        블로그
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        정보
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">닫기</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="눈 속의 다양한 발자국. 누가 거기에 있었는지에 대한 힌트."     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/xlg4t3uiTp0L5TBThFHQ.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="이 페이지에서">
+    <div class="course-toc__heading font-google-sans weight-medium">이 페이지에서</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><span class="toc__span">배경</span><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-2">사용자 에이전트 문자열의 상태</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#user-agent-client-hints">새로운 User-Agent Client Hints 도입</a></li><li class="toc__listitem"><a class="toc__anchor" href="#chromium-84-user-agent-client-hints">Chromium 84의 User-Agent Client Hints</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-3">사용자 에이전트 응답 및 요청 헤더</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">예제 교환</a></li><li class="toc__listitem"><a class="toc__anchor" href="#javascript-api">JavaScript API</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">데모</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-6">힌트 수명 및 재설정</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-7">힌트 범위 및 교차 출처 요청</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#user-agent-client-hints-2">User-Agent Client Hints는 어디에서 사용합니까?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#user-agent">User-Agent 문자열은 어떻게 됩니까?</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="user-agent-client-hints">User-Agent Client Hints로 사용자 개인정보 보호 및 개발자 경험 개선</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            User-Agent Client Hints는 Client Hints API의 새로운 확장으로, 개발자가 개인정보를 보호하고 인체 공학적인 방식으로 사용자 브라우저에 대한 정보에 액세스할 수 있도록 합니다.
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Jun 25, 2020</time>
+             — 업데이트됨 <time>Feb 12, 2021</time> 
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/user-agent-client-hints/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/user-agent-client-hints/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/user-agent-client-hints/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/user-agent-client-hints/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/user-agent-client-hints/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/user-agent-client-hints/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/secure"
+          >안전한 보안 환경</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/rowan_m/"> <img     alt="Rowan Merewood"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/TASwqsVceW68MrM7bjt8.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/rowan_m/">Rowan Merewood</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/rowan_m">Twitter</a>
+               <a href="https://github.com/rowan-m">GitHub</a>
+               <a href="https://glitch.com/@rowan-m">Glitch</a>
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/yoavweiss/"> <img     alt="Yoav Weiss"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/FOIxDKJfuHssXMNzezIt.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/yoavweiss/">Yoav Weiss</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/yoavweiss">Twitter</a>
+               <a href="https://github.com/yoavweiss">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="이 페이지에서">
+      <summary>
+        이 페이지에서
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><span class="toc__span">배경</span><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-2">사용자 에이전트 문자열의 상태</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#user-agent-client-hints">새로운 User-Agent Client Hints 도입</a></li><li class="toc__listitem"><a class="toc__anchor" href="#chromium-84-user-agent-client-hints">Chromium 84의 User-Agent Client Hints</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-3">사용자 에이전트 응답 및 요청 헤더</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">예제 교환</a></li><li class="toc__listitem"><a class="toc__anchor" href="#javascript-api">JavaScript API</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">데모</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-6">힌트 수명 및 재설정</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-7">힌트 범위 및 교차 출처 요청</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#user-agent-client-hints-2">User-Agent Client Hints는 어디에서 사용합니까?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#user-agent">User-Agent 문자열은 어떻게 됩니까?</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <div class="youtube">  <lite-youtube    videoid="f0YY0o2OAKA"      >  </lite-youtube></div>
+<p>클라이언트 힌트를 사용하여 개발자는 사용자 에이전트(UA) 문자열에서 구문 분석할 필요 없이 사용자의 장치 또는 조건에 대한 정보를 능동적으로 요청할 수 있습니다. 이 대체 경로를 제공하는 것은 결국 사용자 에이전트의 문자열 세분성을 줄이는 첫 번째 단계입니다.</p>
+<p>User-Agent Client Hints를 대신 사용하기 위해 User-Agent 문자열 구문 분석에 의존하는 기존 기능을 업데이트하는 방법을 알아보세요.</p>
+<div role="banner" class="banner bg-state-bad-bg color-core-text">
+    <div class="banner__content flow">
+       이미 User-Agent Client Hints를 사용하고 있다면 향후 적용될 변경 사항에 주의하세요. <code>Accept-CH</code> 토큰이 반환된 헤더와 정확히 일치하도록 헤더 형식이 변경됩니다. 이전에는 사이트가 <code>Sec-CH-UA-Platform</code> 헤더를 수신하기 위해 <code>Accept-CH: UA-Platform</code>을 보낼 수 있었고 이제는 해당 사이트에서 <code>Accept-CH: Sec-CH-UA-Platform</code>을 보내야 합니다. User-Agent Client Hints를 이미 구현했다면 안정적인 Chromium에서 변경 사항이 완전히 배포될 때까지 두 형식을 모두 전송하세요. 업데이트에 대한 <a href="https://groups.google.com/a/chromium.org/g/blink-dev/c/t-S9nnos9qU/m/pUFJb00jBAAJ">제거 의도: User-Agent Client Hint ACCEPT-CH 토큰 이름 바꾸기</a>를 참조하세요. 
+    </div>
+    </div>
+<h2 id="">배경 <a class="w-headline-link" href="#">#</a></h2>
+<p>웹 브라우저가 요청을 보낼 때 서버가 분석을 사용하고 응답을 사용자 지정할 수 있도록 여기에 브라우저와 해당 환경에 대한 정보가 포함됩니다. 이러한 사항은 1996년에 정의되었습니다(HTTP/1.0의 경우 RFC 1945). 여기에서 다음과 같은 예를 포함하는 <a href="https://tools.ietf.org/html/rfc1945#section-10.15" rel="noopener">User-Agent 문자열에 대한 원래 정의</a>를 찾을 수 있습니다.</p>
+<web-copy-code><pre class="language-text"><code class="language-text">User-Agent: CERN-LineMode/2.15 libwww/2.17b3</code></pre>
+</web-copy-code><p>이 헤더는 제품(예: 브라우저 또는 라이브러리) 및 주석(예: 버전)을 중요한 순서대로 지정하기 위한 것이었습니다.</p>
+<h3 id="-2">사용자 에이전트 문자열의 상태 <a class="w-headline-link" href="#-2">#</a></h3>
+<p>그 사이 <em>수십 년 동안</em> 이 문자열은 요청을 하는 클라이언트에 대한 다양한 추가 세부 정보를 축적했습니다(역호환성으로 인한 불필요한 잔존물도 포함). Chrome의 현재 User-Agent 문자열을 보면 다음과 같은 사실을 알 수 있습니다.</p>
+<web-copy-code><pre class="language-text"><code class="language-text">Mozilla/5.0 (Linux; Android 10; Pixel 3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4076.0 Mobile Safari/537.36</code></pre>
+</web-copy-code><p>위의 문자열에는 사용자의 운영 체제 및 버전, 장치 모델, 브라우저의 브랜드 및 정식 버전에 대한 정보 등 모바일 브라우저를 추론하기에 충분한 단서들 뿐만 아니라 기록 목적으로 유지되는 다른 다양한 브라우저 참조 정보도 포함됩니다.</p>
+<p>가능한 값이 워낙 다양한 데다가 이러한 매개변수가 조합되면 User-Agent 문자열에 개별 사용자를 고유하게 식별할 수 있는 충분한 정보가 포함될 수 있습니다. <a href="https://amiunique.org/" rel="noopener">AmIUnique</a>에서 자신의 브라우저를 테스트해 보면 <strong>자신</strong>의 User-Agent 문자열이 <strong>자신</strong>을 얼마나 가깝게 식별하는지 알 수 있습니다. 결과적인 &quot;유사성 비율&quot;이 낮을수록, 그리고 요청이 더 고유할수록 서버가 은밀하게 사용자를 추적하기가 더 쉽습니다.</p>
+<p>User-Agent 문자열은 많은 합법적인 <a href="https://github.com/WICG/ua-client-hints/blob/main/README.md#use-cases" rel="noopener">사용 사례</a>를 가능하게 하며 개발자와 사이트 소유자에게 중요한 목적을 제공합니다. 그러나 은밀한 추적 방법으로부터 사용자의 개인정보를 보호하는 것도 중요하며 기본적으로 UA 정보를 보내는 것은 이러한 목표에 어긋납니다.</p>
+<p>User-Agent 문자열과 관련하여 웹 호환성을 개선할 필요도 있습니다. 구조화되어 있지 않으므로 이를 구문 분석하면 불필요한 복잡성이 생겨나 사용자에게 피해를 주는 버그 및 사이트 호환성 문제의 원인이 됩니다. 이러한 문제는 덜 일반적인 브라우저의 사용자에게도 피해를 주는데, 사이트가 해당 구성에 대해 테스트되지 못했을 수도 있기 때문입니다.</p>
+<h2 id="user-agent-client-hints">새로운 User-Agent Client Hints 도입 <a class="w-headline-link" href="#user-agent-client-hints">#</a></h2>
+<p><a href="https://github.com/WICG/ua-client-hints#explainer-reducing-user-agent-granularity" rel="noopener">User-Agent Client Hints</a>는 개인정보를 더 안전하게 지키는 방식으로 동일한 정보에 대한 액세스를 제공하므로 브라우저가 결국 모든 것을 브로드캐스트하는 User-Agent 문자열의 기본 동작을 줄일 수 있습니다. <a href="https://tools.ietf.org/html/draft-ietf-httpbis-client-hints" rel="noopener">Client Hints</a>는 서버가 브라우저에 클라이언트에 대한 데이터 집합(힌트)을 요청해야 하고 브라우저가 자체 정책 또는 사용자 구성을 적용하여 반환되는 데이터를 결정하는 모델을 실행합니다. 즉, 기본적으로 <strong>모든</strong> User-Agent 정보를 노출하는 대신 액세스가 이제 명시적이고 감사 가능한 방식으로 관리됩니다. 개발자는 또한 더 이상 정규 표현식이 필요 없는 더 간단한 API의 이점을 누릴 수 있습니다!</p>
+<p>현재 Client Hints 세트는 주로 브라우저의 표시 및 연결 기능을 설명합니다. <a href="https://developers.google.com/web/updates/2015/09/automating-resource-selection-with-client-hints" rel="noopener">Client Hints를 사용하여 리소스 선택 자동화</a>에서 자세한 내용을 알아볼 수 있지만 여기에는 프로세스만 간단히 되짚어봅니다.</p>
+<p>서버는 헤더를 통해 특정한 Client Hints를 요청합니다.</p>
+<p>⬇️ <em>서버의 응답</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Accept-CH: Viewport-Width, Width</code></pre>
+</web-copy-code><p>또는 메타 태그:</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">http-equiv</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Accept-CH<span class="token punctuation">"</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Viewport-Width, Width<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>그런 다음 브라우저는 후속 요청에서 다음 헤더를 다시 보내도록 선택할 수 있습니다.</p>
+<p>⬆️ <em>후속 요청</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Viewport-Width: 460<br>Width: 230</code></pre>
+</web-copy-code><p>서버는 예를 들어 적절한 해상도로 이미지를 제공하여 응답을 변경할 수 있습니다.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>초기 요청에서 Client Hints를 활성화하는 방법에 대한 논의가 진행 중이지만 이 경로를 따르기 전에 <a href="/responsive-web-design-basics">반응형 설계</a> 또는 점진적 개선을 고려해야 합니다.</p>
+</div></aside>
+<p>User-Agent Client Hints는 <code>Accept-CH</code> 서버 응답 헤더를 통해 지정할 수 있는 <code>Sec-CH-UA</code> 접두사로 속성 범위를 확장합니다. 자세히 알아보기 위해 <a href="https://github.com/WICG/ua-client-hints/blob/main/README.md" rel="noopener">소개 내용</a>으로 시작하고, 이어서 <a href="https://wicg.github.io/ua-client-hints/" rel="noopener">전체 제안</a>을 살펴봅니다.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Client Hints는 <strong>보안 연결을 통해서만 전송</strong>되므로 <a href="/why-https-matters">사이트를 HTTPS로 마이그레이션</a>했는지 확인하세요.</p>
+</div></aside>
+<p>새로운 힌트 세트는 Chromium 84부터 사용할 수 있으므로 이 모든 것이 어떻게 작동하는지 살펴보겠습니다.</p>
+<h2 id="chromium-84-user-agent-client-hints">Chromium 84의 User-Agent Client Hints <a class="w-headline-link" href="#chromium-84-user-agent-client-hints">#</a></h2>
+<p>User-Agent Client Hint는 <a href="https://bugs.chromium.org/p/chromium/issues/detail?id=1091285" rel="noopener">호환성 문제</a>가 해결됨에 따라 Chrome Stable에서 점진적으로 지원될 것입니다. 테스트를 위해 기능을 강제 실행하려면:</p>
+<ul>
+<li>Chrome 84 <strong>베타</strong> 또는 이에 상응하는 버전을 사용하세요.</li>
+<li><code>about://flags/#enable-experimental-web-platform-features</code> 플래그를 활성화합니다.</li>
+</ul>
+<p>기본적으로, 브라우저는 브라우저 브랜드, 주/부 버전 및 클라이언트가 모바일 장치인지 여부를 나타내는 표시자를 반환합니다.</p>
+<p>⬆️ <em>모든 요청</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Sec-CH-UA: "Chromium";v="84", "Google Chrome";v="84"<br>Sec-CH-UA-Mobile: ?0</code></pre>
+</web-copy-code><aside class="aside flow bg-state-bad-bg color-state-bad-text">
+<p class="cluster color-state-bad-text">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error sign">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm0-10v6h2V7h-2z" />
+</svg></span>
+<strong>주의</strong></p>
+<div class=" flow">
+<p>이러한 속성은 단일 값 이상으로 복잡하므로 목록과 부울을 나타내기 위해 <a href="https://httpwg.org/http-extensions/draft-ietf-httpbis-header-structure.html" rel="noopener">구조화된 헤더</a>가 사용됩니다.</p>
+</div></aside>
+<h3 id="-3">사용자 에이전트 응답 및 요청 헤더 <a class="w-headline-link" href="#-3">#</a></h3>
+<style>
+.table-wrapper th:nth-of-type(1), .table-wrapper th:nth-of-type(2) {
+    width: 28ch;
+}
+
+.table-wrapper td {
+  padding: 4px 8px 4px 0;
+}
+</style>
+<div class="w-table-wrapper">
+<table>
+<thead>
+<tr>
+<th>⬇️ 응답 <code>Accept-CH</code><br> ⬆️ 요청 헤더</th>
+<th>⬆️ 요청<br> 예시 값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Sec-CH-UA</code></td>
+<td><code>&quot;Chromium&quot;;v=&quot;84&quot;,</code><br><code>&quot;Google Chrome&quot;;v=&quot;84&quot;</code></td>
+<td>브라우저 브랜드 및 주요 버전 목록</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Mobile</code></td>
+<td><code>?1</code></td>
+<td>브라우저가 모바일 장치에 있는지(true인 경우 <code>?1</code>) 그렇지 않은지(false의 경우 <code>?0</code>)를 나타내는 부울</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Full-Version</code></td>
+<td><code>&quot;84.0.4143.2&quot;</code></td>
+<td>브라우저의 전체 버전</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Platform</code></td>
+<td><code>&quot;Android&quot;</code></td>
+<td>장치 플랫폼, 일반적으로 운영 체제(OS)</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Platform-Version</code></td>
+<td><code>&quot;10&quot;</code></td>
+<td>플랫폼 또는 OS의 버전</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Arch</code></td>
+<td><code>&quot;arm&quot;</code></td>
+<td>장치의 기본 아키텍처입니다. 페이지 표시와 관련이 없을 수 있지만 사이트에서 기본적으로 올바른 형식으로 다운로드를 제공하려고 할 수 있습니다.</td>
+</tr>
+<tr>
+<td><code>Sec-CH-UA-Model</code></td>
+<td><code>&quot;Pixel 3&quot;</code></td>
+<td>장치 모델</td>
+</tr>
+</tbody>
+</table>
+</div><aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>갓차</strong></p>
+<div class=" flow">
+<p>개인정보 보호와 호환성을 고려한다면 값은 비어 있거나 반환되지 않거나 다양한 값으로 채워질 수 있습니다. 이것을 <a href="https://wicg.github.io/ua-client-hints/#grease" rel="noopener">GREASE</a>라고 합니다.</p>
+</div></aside>
+<h3 id="-4">예제 교환 <a class="w-headline-link" href="#-4">#</a></h3>
+<p>예제 교환은 다음과 같습니다.</p>
+<p>⬆️ <em>브라우저의 초기 요청</em><br> 브라우저는 사이트로부터 <code>/downloads</code> 페이지를 요청하고 기본으로 지정된 기본 User-Agent를 보냅니다.</p>
+<web-copy-code><pre class="language-text"><code class="language-text">GET /downloads HTTP/1.1<br>Host: example.site<br><br>Sec-CH-UA: "Chromium";v="84", "Google Chrome";v="84"<br>Sec-CH-UA-Mobile: ?0</code></pre>
+</web-copy-code><p>⬇️ <em>서버의 응답</em><br> 서버는 페이지를 다시 보내고 추가로 전체 브라우저 버전과 플랫폼을 요청합니다.</p>
+<web-copy-code><pre class="language-text"><code class="language-text">HTTP/1.1 200 OK<br>Accept-CH: Sec-CH-UA-Full-Version, Sec-CH-UA-Platform</code></pre>
+</web-copy-code><p>⬆️ <em>후속 요청</em><br> 브라우저는 서버에 추가 정보에 대한 액세스 권한을 부여하고 이후의 모든 응답에서 추가 힌트를 다시 보냅니다.</p>
+<web-copy-code><pre class="language-text"><code class="language-text">GET /downloads/app1 HTTP/1.1<br>Host: example.site<br><br>Sec-CH-UA: "Chromium";v="84", "Google Chrome";v="84"<br>Sec-CH-UA-Mobile: ?0<br>Sec-CH-UA-Full-Version: "84.0.4143.2"<br>Sec-CH-UA-Platform: "Android"</code></pre>
+</web-copy-code><h3 id="javascript-api">JavaScript API <a class="w-headline-link" href="#javascript-api">#</a></h3>
+<p>헤더와 함께 User-Agent는 <code>navigator.userAgentData</code>를 통해 JavaScript에서 액세스할 수도 있습니다. 기본 <code>Sec-CH-UA</code> 및 <code>Sec-CH-UA-Mobile</code> 헤더 정보는 각각 <code>brands</code> 및 <code>mobile</code> 속성을 통해 액세스할 수 있습니다.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token comment">// Log the brand data</span><br>console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>navigator<span class="token punctuation">.</span>userAgentData<span class="token punctuation">.</span>brands<span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// output</span><br><span class="token punctuation">[</span><br>  <span class="token punctuation">{</span><br>    brand<span class="token operator">:</span> <span class="token string">'Chromium'</span><span class="token punctuation">,</span><br>    version<span class="token operator">:</span> <span class="token string">'84'</span><span class="token punctuation">,</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token punctuation">{</span><br>    brand<span class="token operator">:</span> <span class="token string">'Google Chrome'</span><span class="token punctuation">,</span><br>    version<span class="token operator">:</span> <span class="token string">'84'</span><span class="token punctuation">,</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br><span class="token punctuation">]</span><span class="token punctuation">;</span><br><br><span class="token comment">// Log the mobile indicator</span><br>console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>navigator<span class="token punctuation">.</span>userAgentData<span class="token punctuation">.</span>mobile<span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// output</span><br><span class="token boolean">false</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>추가 값은 <code>getHighEntropyValues()</code> 호출을 통해 액세스됩니다. &quot;높은 엔트로피&quot;라는 용어는 <a href="https://en.wikipedia.org/wiki/Entropy_(information_theory)" rel="noopener">정보 엔트로피</a>를 말합니다. 즉, 이러한 값이 사용자의 브라우저에 대해 드러내는 정보의 양을 나타냅니다. 추가 헤더를 요청할 때와 마찬가지로 반환되는 값은 브라우저에 달려 있습니다.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token comment">// Log the full user-agent data</span><br>navigator<br>  <span class="token punctuation">.</span>userAgentData<span class="token punctuation">.</span><span class="token function">getHighEntropyValues</span><span class="token punctuation">(</span><br>    <span class="token punctuation">[</span><span class="token string">"architecture"</span><span class="token punctuation">,</span> <span class="token string">"model"</span><span class="token punctuation">,</span> <span class="token string">"platform"</span><span class="token punctuation">,</span> <span class="token string">"platformVersion"</span><span class="token punctuation">,</span><br>     <span class="token string">"uaFullVersion"</span><span class="token punctuation">]</span><span class="token punctuation">)</span><br>  <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token parameter">ua</span> <span class="token operator">=></span> <span class="token punctuation">{</span> console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>ua<span class="token punctuation">)</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// output</span><br><span class="token punctuation">{</span><br>  <span class="token string">"architecture"</span><span class="token operator">:</span> <span class="token string">"x86"</span><span class="token punctuation">,</span><br>  <span class="token string">"model"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span><br>  <span class="token string">"platform"</span><span class="token operator">:</span> <span class="token string">"Linux"</span><span class="token punctuation">,</span><br>  <span class="token string">"platformVersion"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span><br>  <span class="token string">"uaFullVersion"</span><span class="token operator">:</span> <span class="token string">"84.0.4143.2"</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><h3 id="-5">데모 <a class="w-headline-link" href="#-5">#</a></h3>
+<p><a href="https://user-agent-client-hints.glitch.me" rel="noopener">user-agent-client-hints.glitch.me</a>에서 자신의 기기에 대해 헤더와 JavaScript API를 모두 사용해 볼 수 있습니다.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p><code>about://flags/#enable-experimental-web-platform-features</code>가 활성화된 Chrome 84 베타 또는 이에 상응하는 버전을 사용 중인지 확인하세요.</p>
+</div></aside>
+<h3 id="-6">힌트 수명 및 재설정 <a class="w-headline-link" href="#-6">#</a></h3>
+<p><code>Accept-CH</code> 헤더를 통해 지정된 힌트는 브라우저 세션 기간 동안 또는 다른 힌트 세트가 지정될 때까지 전송됩니다.</p>
+<p>이는 서버가 다음을 보내는 경우,</p>
+<p>⬇️ <em>응답</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Accept-CH: Sec-CH-UA-Full-Version</code></pre>
+</web-copy-code><p>브라우저가 닫힐 때까지 해당 사이트에 대한 모든 요청에 대해 브라우저가 <code>Sec-CH-UA-Full-Version</code> 헤더를 보낸다는 것을 의미합니다.</p>
+<p>⬆️ <em>후속 요청</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Sec-CH-UA-Full-Version: "84.0.4143.2"</code></pre>
+</web-copy-code><p>그러나 또 다른 <code>Accept-CH</code> 헤더가 수신되면 이 헤더가 브라우저가 보내는 현재 힌트를 <strong>완전히 대체</strong>합니다.</p>
+<p>⬇️ <em>응답</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Accept-CH: Sec-CH-UA-Platform</code></pre>
+</web-copy-code><p>⬆️ <em>후속 요청</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Sec-CH-UA-Platform: "Android"</code></pre>
+</web-copy-code><p>이전에 요청한 <code>Sec-CH-UA-Full-Version</code>은 <strong>전송되지 않습니다</strong>.</p>
+<p><code>Accept-CH</code> 헤더를 해당 페이지에 대해 원하는 전체 힌트 세트를 지정하는 것으로 생각하는 것이 가장 좋습니다. 즉, 브라우저는 해당 페이지의 모든 하위 리소스에 대해 지정된 힌트를 보냅니다. 힌트는 다음 탐색까지 지속되지만 사이트는 힌트가 전달될 것이라고 가정하거나 의존해서는 안 됩니다.</p>
+<aside class="aside flow bg-state-good-bg color-state-good-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg></span>
+<strong>성공</strong></p>
+<div class=" flow">
+<p>이 정보 없이도 항상 의미 있는 경험을 제공할 수 있도록 하세요. 이는 사용자 경험을 정의하는 것이 아니라 향상시키기 위한 것입니다. 그래서 &quot;답변&quot;이나 &quot;요구사항&quot;이 아니라 &quot;힌트&quot;라고 불리는 것입니다!</p>
+</div></aside>
+<p>응답에서 빈 <code>Accept-CH</code>를 보내 브라우저에서 보내는 모든 힌트를 효과적으로 지우는 데도 이를 사용할 수 있습니다. 사용자가 환경 설정을 재설정하거나 사이트에서 로그아웃하는 모든 위치에 이를 추가하는 것이 좋습니다.</p>
+<p>이 패턴은 힌트가 <code>&lt;meta http-equiv=&quot;Accept-CH&quot; …&gt;</code> 태그를 통해 작동하는 방식과도 일치합니다. 요청된 힌트는 페이지에서 시작된 요청에 대해서만 전송되며 후속 탐색에는 전송되지 않습니다.</p>
+<h3 id="-7">힌트 범위 및 교차 출처 요청 <a class="w-headline-link" href="#-7">#</a></h3>
+<p>기본적으로, Client Hints는 동일한 출처 요청에 대해서만 전송됩니다. 즉, <code>https://example.com</code>에서 특정한 힌트를 요청하지만 최적화하려는 리소스는 <code>https://downloads.example.com</code>에 있는 경우, 어떤 힌트도 받을 수 <strong>없습니다.</strong></p>
+<p>교차 출처 요청에서 힌트를 이용할 수 있게 하려면 <code>Feature-Policy</code> 헤더로 각 힌트와 출처를 지정해야 합니다. 이것을 User-Agent Client Hint에 적용하려면 힌트를 소문자로 처리하고 <code>sec-</code> 접두사를 제거해야 합니다. 예를 들면 다음과 같습니다.</p>
+<p>⬇️ <em><code>example.com</code>에서 응답</em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">Accept-CH: Sec-CH-UA-Platform, DPR<br>Feature-Policy: ch-ua-platform downloads.example.com;<br>                ch-dpr cdn.provider img.example.com</code></pre>
+</web-copy-code><p>⬆️ *<code>downloads.example.com</code>*에 요청</p>
+<web-copy-code><pre class="language-text"><code class="language-text">Sec-CH-UA-Platform: "Android"</code></pre>
+</web-copy-code><p>⬆️ <em>Requests to <code>cdn.provider</code> 또는 <code>img.example.com</code></em></p>
+<web-copy-code><pre class="language-text"><code class="language-text">DPR: 2</code></pre>
+</web-copy-code><h2 id="user-agent-client-hints-2">User-Agent Client Hints는 어디에서 사용합니까? <a class="w-headline-link" href="#user-agent-client-hints-2">#</a></h2>
+<p>간략하게 대답하자면, User-Agent Client Hints를 대신 사용하기 위해 User-Agent 헤더를 구문 분석하거나 동일한 정보(예: <code>navigator.userAgent</code>, <code>navigator.appVersion</code> 또는 <code>navigator.platform</code>)에 액세스하는 JavaScript 호출을 사용하는 모든 인스턴스를 리팩토링해야 한다는 것입니다.</p>
+<p>여기서 한 단계 더 나아가, 사용자 에이전트 정보의 사용을 재검토하고 가능하면 이를 다른 방법으로 대체해야 합니다. 점진적 향상, 기능 감지 또는 <a href="/responsive-web-design-basics">반응형 설계</a>를 사용하여 동일한 목표를 달성할 수 있는 경우가 많습니다. 사용자 에이전트 데이터에 의존할 때의 기본적인 문제는 검사하는 속성과 속성이 활성화하는 동작 간의 매핑을 항상 유지 관리해야 한다는 것입니다. 포괄적 감지가 이루어지고 최신 상태를 유지하도록 하는 데는 많은 관리 부담이 따릅니다.</p>
+<p>이러한 주의 사항을 염두에 두고 <a href="https://github.com/WICG/ua-client-hints#use-cases" rel="noopener">User-Agent Client Hints 저장소에는 사이트에 대한 몇 가지 유효한 사용 사례가 나열</a>되어 있습니다.</p>
+<h2 id="user-agent">User-Agent 문자열은 어떻게 됩니까? <a class="w-headline-link" href="#user-agent">#</a></h2>
+<p>기존 사이트에 과도한 중단을 일으키지 않으면서 기존 User-Agent 문자열에 의해 노출되는 식별 정보의 양을 줄여 웹에서 은밀하게 추적할 수 있는 가능성을 최소화한다는 것이 계획입니다. User-Agent Client Hints를 도입하면 이제 User-Agent 문자열에 변경 사항이 적용되기 전에 새로운 기능을 이해하고 실험할 수 있습니다.</p>
+<p><a href="https://groups.google.com/a/chromium.org/d/msg/blink-dev/-2JIRNMWJ7s/u-YzXjZ8BAAJ" rel="noopener">결국</a>, 기본 힌트에 따라 동일한 상위 수준 브라우저 및 중요한 버전 정보만 제공하면서 레거시 형식을 유지하도록 User-Agent 문자열의 정보가 축소됩니다. Chromium에서는 생태계가 새로운 User Agent Client Hints 기능을 평가할 추가 시간을 주기 위해 이러한 변경이 최소 2021년까지 연기되었습니다.</p>
+<p>Chrome 93에서 <code>about://flags/#reduce-user-agent</code> 플래그를 활성화하여 이 버전을 테스트할 수 있습니다(참고: 이 플래그는 Chrome 84 -92 버전에서 <code>about://flags/#freeze-user-agent</code>로 명명됨). 이렇게 하면 호환성을 위해 기록 항목이 포함된 문자열이 반환되지만 세부 사항은 삭제됩니다. 예를 들면 다음과 같습니다.</p>
+<web-copy-code><pre class="language-text"><code class="language-text">Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.0.0 Mobile Safari/537.36</code></pre>
+</web-copy-code><p><em>사진 제공: <a href="https://unsplash.com/photos/m9qMoh-scfE?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" rel="noopener">Unsplash</a>에서 <a href="https://unsplash.com/@szolkin?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" rel="noopener">Sergey Zolkin</a></em></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/privacy/">개인정보보호</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/security/">보안</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          마지막 업데이트: <time>Feb 12, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/ko/blog/user-agent-client-hints/index.md"
+        >
+          기사 개선하기
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@rowan_m | @yoavweiss"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">공유</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            버그 신고
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            소스 보기
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">관련된 콘텐츠</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome 업데이트
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            웹 기초
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            사례 연구
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            팟캐스트
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            쇼
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">연결</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          전체 제품
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="ko"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          약관 및 개인정보 보호
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          커뮤니티 가이드라인
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

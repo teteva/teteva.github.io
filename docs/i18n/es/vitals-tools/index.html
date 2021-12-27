@@ -1,0 +1,723 @@
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=6bf25f709b1a">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=3dd99153f2d91">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Herramientas para medir Core Web Vitals</title>
+<meta name="description" content="Lea sobre la recién anunciada compatibilidad de las medidas de Core Web Vitals con herramientas populares para desarrolladores web como Lighthouse, PageSpeed Insights, Chrome UX Report y muchas otras." />
+
+<link rel="canonical" href="https://web.dev/i18n/es/vitals-tools/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/vitals-tools/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/vitals-tools/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/vitals-tools/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/vitals-tools/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/vitals-tools/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/vitals-tools/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/vitals-tools/" />
+<meta itemprop="name" content="Herramientas para medir Core Web Vitals" />
+<meta itemprop="description" content="Lea sobre la recién anunciada compatibilidad de las medidas de Core Web Vitals con herramientas populares para desarrolladores web como Lighthouse, PageSpeed Insights, Chrome UX Report y muchas otras." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/KxBRBQe5CRZpCxNYyW2H.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="es_ALL" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/es/vitals-tools/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Herramientas para medir Core Web Vitals" />
+<meta property="og:description" content="Lea sobre la recién anunciada compatibilidad de las medidas de Core Web Vitals con herramientas populares para desarrolladores web como Lighthouse, PageSpeed Insights, Chrome UX Report y muchas otras." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/KxBRBQe5CRZpCxNYyW2H.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="Logotipo de Chrome User Experience, logotipo de PageSpeed Insights, logotipo de Lighthouse, logotipo de Search Console, logotipo de Chrome DevTools, logotipo de la extensión Web Vitals." />
+<meta property="tag" content="web-vitals" />
+<meta property="tag" content="performance" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Herramientas para medir Core Web Vitals" />
+<meta name="twitter:description" content="Lea sobre la recién anunciada compatibilidad de las medidas de Core Web Vitals con herramientas populares para desarrolladores web como Lighthouse, PageSpeed Insights, Chrome UX Report y muchas otras." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/KxBRBQe5CRZpCxNYyW2H.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=248678e55b3bb', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=ba8d1f47a5f4a', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Aprender
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Medir
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Cerrar</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="Logotipo de Chrome User Experience, logotipo de PageSpeed Insights, logotipo de Lighthouse, logotipo de Search Console, logotipo de Chrome DevTools, logotipo de la extensión Web Vitals."     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/wNtXgv1OE2OETdiSzi8l.png?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="herramientas-para-medir-core-web-vitals">Herramientas para medir Core Web Vitals</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            Sus herramientas de desarrollo favoritas ahora pueden medir los Core Web Vitals.
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>May 28, 2020</time>
+            
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/vitals-tools/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/vitals-tools/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/vitals-tools/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/vitals-tools/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/vitals-tools/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/vitals-tools/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/addyosmani/"> <img     alt="Addy Osmani"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/addyosmani/">Addy Osmani</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/addyosmani">Twitter</a>
+               <a href="https://github.com/addyosmani">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/egsweeny/"> <img     alt="Elizabeth Sweeny"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/IyB0bE6NGAvhRJkD6wRz.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/IyB0bE6NGAvhRJkD6wRz.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/IyB0bE6NGAvhRJkD6wRz.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/IyB0bE6NGAvhRJkD6wRz.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/IyB0bE6NGAvhRJkD6wRz.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/IyB0bE6NGAvhRJkD6wRz.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/egsweeny/">Elizabeth Sweeny</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/egsweeny">Twitter</a>
+               <a href="https://github.com/egsweeny">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+
+
+      <p>La iniciativa <a href="/vitals/">Web Vitals</a> recientemente anunciada proporciona una orientación unificada sobre las señales de calidad que son esenciales para que todos los sitios brinden una excelente experiencia de usuario en la web. Nos complace anunciar que <strong>todas las herramientas populares de Google para desarrolladores web ahora son compatibles con las medidas de Core Web Vitals</strong>, lo que le ayudará a diagnosticar y solucionar más fácilmente los problemas de la experiencia del usuario. Esto incluye <a href="https://github.com/GoogleChrome/lighthouse" rel="noopener">Lighthouse</a>, <a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">PageSpeed Insights</a>, <a href="https://developers.google.com/web/tools/chrome-devtools" rel="noopener">Chrome DevTools</a>, <a href="https://search.google.com/search-console/about" rel="noopener">Search Console</a>, <a href="/measure/">la herramienta de medición de web.dev</a>, la <a href="https://chrome.google.com/webstore/detail/web-vitals/ahfhijdlegdabablpippeagghigmibma" rel="noopener">extensión de Chrome Web Vitals</a>  y una nueva (!)<a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">API de Chrome UX Report</a>.</p>
+<p>Ahora que la Búsqueda de Google incluye Core Web Vitals como base para evaluar la <a href="https://webmasters.googleblog.com/2020/05/evaluating-page-experience.html" rel="noopener">experiencia de la página</a>, es importante que estas métricas estén disponibles y sean tan procesables como sea posible.</p>
+<figure class="w-figure"><img     alt="Resumen de Chrome y herramientas de búsqueda compatibles con las métricas de Core Web Vitals"     class="w-screenshot"     decoding="async"     height="509"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/V00vjrHmwzljYo04f3d3.png?auto=format&w=1600 1600w"          width="800"   /></figure>
+<aside class="aside flow color-secondary-box-text bg-secondary-box-bg">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Highlighter pen" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M10.22 9.49l-5.91 6c-.77.8-.7 2.05.08 2.85L.77 22h5.68l.74-.75c.78.81 1.95.86 2.73.05l5.96-6.05-5.66-5.76zm12.46-4l-2.82-2.87c-.78-.8-2.07-.84-2.84-.04l-5.75 5.85 5.66 5.75 5.69-5.78c.77-.81.83-2.11.06-2.91z" />
+</svg></span>
+<strong>Término clave</strong></p>
+<div class=" flow">
+<p>Las <strong>herramientas de laboratorio</strong> brindan una visión sobre cómo un <em>usuario potencial</em> probablemente experimentará su sitio web y ofrecen resultados reproducibles para la depuración. Las herramientas de <strong>campo</strong> brindan una visión sobre cómo sus <em>usuarios reales</em> experimentan su sitio web. Este tipo de medición a menudo se denomina Monitoreo de Usuarios Reales (RUM). Cada <a href="/how-to-measure-speed/#lab-data-vs-field-data">herramienta de laboratorio o de campo</a> ofrece un valor distinto para optimizar su experiencia de usuario.</p>
+</div></aside>
+<p>Para empezar a optimizar la experiencia del usuario con Core Web Vitals, pruebe el siguiente flujo de trabajo:</p>
+<ul>
+<li>Utilice el nuevo Core Web Vitals Report de Search Console para identificar los grupos de páginas que requieren atención (según los datos de campo).</li>
+<li>Una vez que haya identificado las páginas que necesitan trabajo, utiliza PageSpeed Insights •	Una vez que haya identificado las páginas que necesitan atención, utilice PageSpeed Insights (impulsado por Lighthouse y Chrome UX Report) para diagnosticar problemas de laboratorio y de campo en una página. PageSpeed Insights (PSI) está disponible por medio de Search Console o puede introducir una URL directamente en PSI.</li>
+<li>¿Está listo para optimizar su sitio localmente en el laboratorio? Utilice Lighthouse y Chrome DevTools para medir Core Web Vitals y obtenga una orientación práctica sobre qué corregir exactamente. La extensión de Chrome Web Vitals puede brindarle una visión en tiempo real de las métricas en el escritorio.</li>
+<li>¿Necesita un panel de control personalizado de Core Web Vitals? Utilice el panel de control actualizado de CrUX o la nueva API de Chrome UX Report para los datos de campo o la API de PageSpeed Insights para los datos de laboratorio.</li>
+<li>¿Busca orientación? web.dev/measure puede medir su página y mostrarle un conjunto priorizado de normas y laboratorios de código para la optimización, utilizando datos de PSI.</li>
+<li>Por último, utilice Lighthouse CI en las solicitudes de extracción para asegurarse de que no haya regresiones en Core Web Vitals antes de implementar un cambio en la producción.</li>
+</ul>
+<p>Con esa introducción, ¡profundicemos en las actualizaciones específicas para cada herramienta!</p>
+<h3 id="lighthouse">Lighthouse <a class="w-headline-link" href="#lighthouse">#</a></h3>
+<p>Lighthouse es una herramienta automatizada de auditoría de sitios web que ayuda a que los desarrolladores diagnostiquen problemas e identifiquen oportunidades para mejorar la experiencia del usuario de sus sitios. Mide varias dimensiones de la calidad de la experiencia del usuario en un entorno de laboratorio, incluyendo el rendimiento y la accesibilidad. La última versión de Lighthouse (<a href="/lighthouse-whats-new-6.0/">6.0</a>, lanzada a mediados de mayo del 2020) incluye auditorías adicionales, nuevas métricas y una puntuación de rendimiento integrada recientemente.</p>
+<figure class="w-figure"><img     alt="Lighthouse 6.0 muestra las métricas más recientes de Core Web Vitals"     class="w-screenshot"     decoding="async"     height="527"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/4j72CWywp2D88Xti8zBf.png?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>Lighthouse 6.0 introduce tres nuevas métricas en el informe. Dos de estas nuevas métricas, <a href="/lcp/">Largest Contentful Paint : Despliegue del contenido más extenso</a> (LCP) y el <a href="/cls/">Cumulative Layout Shift: Cambio Acumulativo del diseño</a> (CLS), son implementaciones del laboratorio Core Web Vitals y brindan información de diagnóstico importante para optimizar la experiencia del usuario. Dada su importancia para evaluar la experiencia del usuario, las nuevas métricas no solo se miden e incluyen en el reporte, sino que también se tienen en cuenta para calcular la puntuación de rendimiento.</p>
+<p>La tercera nueva métrica incluida en Lighthouse, el <a href="/tbt/">Total Blocking Time: Tiempo total de bloqueo</a> (TBT), se correlaciona bien con la métrica de campo <a href="/fid/">First Input Delay: Demora de la primera entrada</a> (FID), otra métrica de Core Web Vitals. Si sigue las recomendaciones proporcionadas en el informe Lighthouse y optimiza sus resultados, podrá ofrecer la mejor experiencia posible a sus usuarios.</p>
+<p>Todos los productos que potencian Lighthouse se actualizan para reflejar la última versión, incluyendo <a href="https://github.com/GoogleChrome/lighthouse-ci" rel="noopener">Lighthouse CI</a>, que le permitirán medir fácilmente sus Core Web Vitals en solicitudes de extracción antes de que se fusionen e implementen.</p>
+<figure class="w-figure"><img     alt="Lighthouse CI muestra una visualización de diferencias con Largest Contentful Paint"     class="w-screenshot"     decoding="async"     height="498"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/aOm5ZAIUbspjcyRMIXbn.png?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>Para obtener más información sobre las últimas actualizaciones de Lighthouse, consulte nuestra publicación del blog <a href="/lighthouse-whats-new-6.0/">Novedades de Lighthouse 6.0.</a></p>
+<h3 id="pagespeed-insights">PageSpeed Insights <a class="w-headline-link" href="#pagespeed-insights">#</a></h3>
+<p><a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">PageSpeed Insights</a> (PSI) reporta sobre el rendimiento de laboratorio y de campo de una página en dispositivos móviles y equipos de escritorio. La herramienta proporciona una visión general de cómo los usuarios del mundo real experimentan la página (impulsada por Chrome UX Report) y un conjunto de recomendaciones prácticas sobre cómo el propietario de un sitio puede mejorar la experiencia de la página (proporcionada por Lighthouse).</p>
+<p>PageSpeed Insights y la <a href="https://developers.google.com/speed/docs/insights/v5/get-started" rel="noopener">API de PageSpeed Insights</a> también se actualizaron para usar Lighthouse 6.0 y ahora son compatibles con las medidas de Core Web Vitals en las secciones del reporte de laboratorio y de campo. Las Core Web Vitals se anotan con una cinta azul como se muestra a continuación.</p>
+<figure class="w-figure"><img     alt="PageSpeed Insights con los datos de Core Web Vitals mostrados en el campo y en el laboratorio"     class="w-screenshot"     decoding="async"     height="873"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/l1posckVsR7JeVGnk6Jv.png?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>Si bien <a href="https://search.google.com/search-console/" rel="noopener">Search Console</a> ofrece a los propietarios de sitios una gran visión general de los grupos de páginas que necesitan atención, PSI ayuda a identificar oportunidades por página para mejorar la experiencia de la página. En PSI, podrá ver claramente si su página cumple o no con los umbrales para una buena experiencia en todos los Core Web Vitals en la parte superior del reporte, se indica si <strong>acredita la evaluación Core Web Vitals</strong> o <strong>no acredita la evaluación Core Web Vitals</strong>.</p>
+<h3 id="crux">CrUX <a class="w-headline-link" href="#crux">#</a></h3>
+<p><a href="https://developers.google.com/web/tools/chrome-user-experience-report/" rel="noopener">Chrome UX Report</a> (CrUX) es un conjunto de datos públicos sobre la experiencia real del usuario en millones de sitios web. Mide las versiones de campo de todas las Core Web Vitals. A diferencia de los datos de laboratorio, los datos de CrUX provienen de <a href="https://developers.google.com/web/tools/chrome-user-experience-report/#methodology" rel="noopener">usuarios que han optado por participar</a> en el campo. Con estos datos, los desarrolladores pueden comprender la distribución de las experiencias de los usuarios del mundo real en sus propios sitios web o incluso en los de la competencia. Incluso si no tiene RUM en su sitio, CrUX puede proporcionar una manera rápida y fácil de evaluar sus Core Web Vitals. El <a href="https://developers.google.com/web/tools/chrome-user-experience-report/bigquery/getting-started" rel="noopener">conjunto de datos de CrUX en BigQuery</a> incluye datos de rendimiento detallados para todos los Core Web Vitals y está disponible en instantáneas mensuales a nivel de origen.</p>
+<p>La única manera de saber realmente cómo funciona su sitio para los usuarios es medir su rendimiento en el campo mientras esos usuarios lo cargan e interactúan con él. Este tipo de medición se conoce comúnmente como Monitoreo de usuarios reales, o RUM por sus siglas en inglés. Incluso si no tiene RUM en su sitio, CrUX puede proporcionar una manera rápida y fácil de evaluar sus Core Web Vitals.</p>
+<p><strong>Introducción a la API de CrUX</strong></p>
+<p>Hoy nos complace anunciar la <a href="http://developers.google.com/web/tools/chrome-user-experience-report/api/reference/" rel="noopener">API de CrUX</a>, una forma rápida y gratuita de integrar fácilmente sus flujos de trabajo de desarrollo con la medida de calidad a nivel de origen y de URL para las siguientes métricas de campo:</p>
+<ul>
+<li>Largest Contentful Paint</li>
+<li>Cumulative Layout Shift</li>
+<li>First Input Delay</li>
+<li>First Contentful Paint</li>
+</ul>
+<p>Los desarrolladores pueden consultar un origen o una URL y segmentar los resultados por diferentes factores de forma. La API se actualiza diariamente y resume los datos de los 28 días anteriores (a diferencia del conjunto de datos de BigQuery, que se agrega mensualmente). La API también tiene las mismas cuotas públicas reducidas que ponemos en nuestra otra API, la API de PageSpeed Insights (25,000 solicitudes al día).</p>
+<p>A continuación se muestra una <a href="https://developers.google.com/web/tools/chrome-user-experience-report/api/guides/getting-started" rel="noopener">demostración</a> que utiliza la API de CrUX para visualizar las métricas de Core Web Vitals con distribuciones <strong>buenas</strong>, <strong>que necesitan mejoras</strong> y <strong>deficientes</strong>:</p>
+<figure class="w-figure"><img     alt="Demostración de la API Informe de experiencia del usuario de Chrome que muestra las métricas de Core Web Vitals"     class="w-screenshot w-screenshot--filled"     decoding="async"     height="523"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/ye3CMKfacSItYA2lqItP.png?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>En versiones futuras, planeamos expandir la API para permitir el acceso a dimensiones y métricas adicionales del conjunto de datos de CrUX.</p>
+<p><strong>Panel de control de CrUX renovado</strong></p>
+<p>El <a href="http://g.co/chromeuxdash" rel="noopener">panel de control de CrUX</a> recientemente rediseñado le permite rastrear fácilmente el rendimiento de un origen a lo largo del tiempo, y ahora puede utilizarlo para monitorear las distribuciones de todas las métricas de Core Web Vitals. Para comenzar con el panel, consulte nuestro <a href="/chrome-ux-report-data-studio-dashboard/">tutorial</a> en web.dev.</p>
+<figure class="w-figure"><img     alt="Panel de Informes de experiencia del usuario de Chrome que muestra las métricas de Core Web Vitals en una nueva página de destino"     class="w-screenshot w-screenshot--filled"     decoding="async"     height="497"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/OjbICyhI21RNfGXrFP1x.png?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>Introducimos una nueva página de inicio de Core Web Vitals para que sea aún más fácil ver el rendimiento de su sitio de un vistazo. Agradecemos sus comentarios sobre todas las herramientas de CrUX, para compartir sus opiniones y preguntas, póngase en contacto con nosotros en la cuenta de Twitter <a href="https://groups.google.com/a/chromium.org/g/chrome-ux-report" rel="noopener">@ChromeUXReport</a> o en el <a href="https://groups.google.com/a/chromium.org/g/chrome-ux-report" rel="noopener">Grupo de Google</a>.</p>
+<h3 id="panel-de-rendimiento-de-chrome-devtools">Panel de rendimiento de Chrome DevTools <a class="w-headline-link" href="#panel-de-rendimiento-de-chrome-devtools">#</a></h3>
+<p><strong>Depurar eventos de cambio de diseño en la sección Experiencia</strong></p>
+<p>El <strong>rendimiento</strong> del panel Chrome DevTools tiene una nueva <strong><a href="https://developers.google.com/web/updates/2020/05/devtools#cls" rel="noopener">sección de Experiencia</a></strong> que puede ayudarle a detectar cambios de diseño inesperados. Esto es útil para encontrar y solucionar problemas de inestabilidad visual en su página que contribuyen al Cumulative Layout Shift.</p>
+<figure class="w-figure"><img     alt="Cumulative Layout Shift mostrado con registros rojos en el panel Rendimiento"     class="w-screenshot w-screenshot--filled"     decoding="async"     height="517"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/VMbZAgKCi5V6FiQyu631.png?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>Seleccione un cambio de diseño para ver sus detalles en la pestaña <strong>Resumen</strong>. Para visualizar dónde se produjo el cambio per se, coloque el cursor sobre los campos  <strong>Moved from</strong> y <strong>Moved to</strong>.</p>
+<p><strong>Depuración para la disponibilidad de la interacción con Total Blocking Time en el pie de página</strong></p>
+<p>La métrica Total Blocking Time (TBT) se puede medir en herramientas de laboratorio y es un excelente proxy para  First Input Delay. TBT mide la cantidad total de tiempo entre <a href="/fcp/">First Contentful Paint (FCP)</a> y <a href="/tti/">Time to Interactive (TTI)</a> donde el subproceso principal estuvo bloqueado durante el tiempo suficiente para evitar la respuesta de entrada. Las optimizaciones de rendimiento que mejoran el TBT en el laboratorio deberían mejorar el FID en el campo.</p>
+<figure class="w-figure"><img     alt="Total Blocking Time displayed se muestra en el pie de página del panel de rendimiento de DevTools"     class="w-screenshot"     decoding="async"     height="517"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/WufuLpvrZfgbRn70C74V.png?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>TBT se muestra ahora en el pie de página del panel de <strong>rendimiento</strong> de Chrome DevTools cuando se mide el rendimiento de la página:</p>
+<ol>
+<li>
+<p>Press `Control+Shift+J` (or `Command+Option+J` on Mac) to open DevTools.</p>
+</li>
+<li>
+<p>Click the <strong>Performance</strong> tab.</p>
+</li>
+<li>
+<p>Haga clic en <strong>Grabar</strong> .</p>
+</li>
+<li>
+<p>Vuelva a cargar la página manualmente.</p>
+</li>
+<li>
+<p>Espere a que se cargue la página y luego detenga la grabación.</p>
+</li>
+</ol>
+<p>Para obtener más información, consulte <a href="https://developers.google.com/web/updates/2020/05/devtools#cls" rel="noopener">Novedades de DevTools (Chrome 84)</a> .</p>
+<h3 id="search-console">Search Console <a class="w-headline-link" href="#search-console">#</a></h3>
+<p>El nuevo <a href="https://support.google.com/webmasters/answer/9205520" rel="noopener">Core Web Vitals Report</a> en Search Console le ayuda a identificar grupos de páginas de su sitio que requieren atención, según los datos del mundo real (de campo) de CrUX. El rendimiento de las URL se agrupa por estado, tipo de métrica y grupo de URL (grupos de páginas web similares).</p>
+<figure class="w-figure"><img     alt="Nuevo Core Web Vitals Report de Search Console"     class="w-screenshot"     decoding="async"     height="1000"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/BjTUt0xdWXD9hrLsbhLK.png?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>El reporte se basa en las tres métricas de Core Web Vitals: LCP, FID y CLS.  Si una URL no tiene una cantidad mínima de datos para reportar estas métricas, se omite del reporte. Pruebe el nuevo reporte para obtener una visión global del rendimiento de su origen.</p>
+<p>Una vez que identifique un tipo de página que tenga problemas relacionados con Core Web Vitals, puede utilizar PageSpeed Insights para conocer sugerencias de optimización específicas para páginas representativas.</p>
+<h4 id="web.dev">web.dev <a class="w-headline-link" href="#web.dev">#</a></h4>
+<p><a href="/measure/">web.dev/measure</a> le permite medir el rendimiento de su página a lo largo del tiempo, al brindar una lista priorizada de normas y codelabs sobre cómo mejorar. Su medición es impulsada por PageSpeed Insights. La herramienta de medición ahora también es compatible con las métricas de Core Web Vitals, como se muestra a continuación:</p>
+<figure class="w-figure"><img     alt="Mida las métricas de Core Web Vitals a lo largo del tiempo y obtenga orientación priorizada con la herramienta de medición de web.dev"     class="w-screenshot"     decoding="async"     height="459"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/ryoV1T1PhxUmo9zdCsDe.png?auto=format&w=1600 1600w"          width="800"   /></figure>
+<h3 id="extension-web-vitals">Extensión Web Vitals <a class="w-headline-link" href="#extension-web-vitals">#</a></h3>
+<p>La extensión Web Vitals mide las tres métricas de Core Web Vitals en tiempo real para Google Chrome (de escritorio). Esto es útil para detectar problemas en una fase temprana del flujo de trabajo de desarrollo y como herramienta de diagnóstico para evaluar el rendimiento de Core Web Vitals mientras se navega por la web.</p>
+<p>¡La extensión ya está disponible para su instalación desde <a href="https://chrome.google.com/webstore/detail/web-vitals/ahfhijdlegdabablpippeagghigmibma?hl=en" rel="noopener">Chrome Web Store</a>! Esperamos que le sea de utilidad. Agradecemos cualquier contribución para mejorarlo, así como los comentarios sobre el repositorio de <a href="https://github.com/GoogleChrome/web-vitals-extension/" rel="noopener">GitHub</a> del proyecto.</p>
+<figure class="w-figure"><img     alt="Core Web Vitals se muestra en tiempo real con la extensión de Chrome Web Vitals"     class="w-screenshot"     decoding="async"     height="459"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/woROdEmNV4jlHDPryjBQ.png?auto=format&w=1600 1600w"          width="800"   /></figure>
+<h4 id="aspectos-mas-destacados">Aspectos más destacados <a class="w-headline-link" href="#aspectos-mas-destacados">#</a></h4>
+<p>¡Eso es un envoltorio! ¿Qué puede hacer a continuación?:</p>
+<ul>
+<li>Utilice <strong>Lighthouse</strong> en DevTools para optimizar su experiencia de usuario y asegurarse de que se está preparando para el éxito con Core Web Vitals en el campo.</li>
+<li>Utilice <strong>PageSpeed Insights</strong> para comparar el rendimiento de Core Web Vitals en el laboratorio y en el campo.</li>
+<li>Pruebe la nueva <strong>API de Chrome User Experience Report</strong> para acceder fácilmente a los resultados de su origen y su URL con respecto a Core Web Vitals durante los últimos 28 días.</li>
+<li>Utilice la sección y el pie de página de <strong>Experiencia</strong> en el panel de <strong>Rendimiento</strong> de DevTools para profundizar y depurar contra Core Web Vitals específicos.</li>
+<li>Utilice <strong>el Core Web Vitals Report de Search Console</strong> para obtener un resumen del rendimiento de sus orígenes en el campo.</li>
+<li>Utilice la <strong>extensión Web Vitals</strong> para realizar un seguimiento del rendimiento de una página con respecto a Core Web Vitals en tiempo real.</li>
+</ul>
+<dl>
+<dt>Hablaremos más sobre nuestras herramientas Core Web Vitals en <a href="/live/">web.dev Live</a> en junio. ¡Regístrese para recibir información sobre el evento!</dt>
+<dd>por Elizabeth y Addy, Conserjería de WebPerf</dd>
+</dl>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/web-vitals/">Web Vitals</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/performance/">Rendimiento</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Última actualización: <time>May 28, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/es/blog/vitals-tools/index.md"
+        >
+          Mejorar el artículo
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@addyosmani | @egsweeny"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Compartir</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Presentar un error
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Ver fuente
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contenido relevante</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome Actualizaciones
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Conectar</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          Todos los productos
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="es"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Condiciones y privacidad
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Principios de la Comunidad
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

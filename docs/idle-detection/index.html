@@ -1,0 +1,750 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=cf7ef8cbbdfa9">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=ddb500317ce5">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Detect inactive users with the Idle Detection API</title>
+<meta name="description" content="The Idle Detection API notifies developers when a user is idle, indicating such things as lack of interaction with the keyboard, mouse, screen, activation of a screensaver, locking of the screen, or moving to a different screen. A developer-defined threshold triggers the notification. " />
+
+<link rel="canonical" href="https://web.dev/idle-detection/" />
+
+<meta itemprop="name" content="Detect inactive users with the Idle Detection API" />
+<meta itemprop="description" content="The Idle Detection API notifies developers when a user is idle, indicating such things as lack of interaction with the keyboard, mouse, screen, activation of a screensaver, locking of the screen, or moving to a different screen. A developer-defined threshold triggers the notification. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/idle-detection/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Detect inactive users with the Idle Detection API" />
+<meta property="og:description" content="The Idle Detection API notifies developers when a user is idle, indicating such things as lack of interaction with the keyboard, mouse, screen, activation of a screensaver, locking of the screen, or moving to a different screen. A developer-defined threshold triggers the notification. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="Abandoned computer on a bed with someone's leg next to it." />
+<meta property="tag" content="capabilities" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Detect inactive users with the Idle Detection API" />
+<meta name="twitter:description" content="The Idle Detection API notifies developers when a user is idle, indicating such things as lack of interaction with the keyboard, mouse, screen, activation of a screensaver, locking of the screen, or moving to a different screen. A developer-defined threshold triggers the notification. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=2b493473058bb', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=565e934145b8e', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="Abandoned computer on a bed with someone&#x27;s leg next to it."     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/FXoKxeVCmPgEStieWKm2.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#what">What is the Idle Detection API?</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#use-cases">Suggested use cases for the Idle Detection API</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#status">Current status</a></li><li class="toc__listitem"><a class="toc__anchor" href="#use">How to use the Idle Detection API</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#feature-detection">Feature detection</a></li><li class="toc__listitem"><a class="toc__anchor" href="#idle-detection-api-concepts">Idle Detection API concepts</a></li><li class="toc__listitem"><a class="toc__anchor" href="#using-the-idle-detection-api">Using the Idle Detection API</a></li><li class="toc__listitem"><a class="toc__anchor" href="#devtools-support">DevTools support</a></li><li class="toc__listitem"><a class="toc__anchor" href="#puppeteer-support">Puppeteer support</a></li><li class="toc__listitem"><a class="toc__anchor" href="#demo">Demo</a></li><li class="toc__listitem"><a class="toc__anchor" href="#polyfilling">Polyfilling</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#security-and-permissions">Security and permissions</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#user-control-and-privacy">User control and privacy</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#feedback">Feedback</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#tell-us-about-the-api-design">Tell us about the API design</a></li><li class="toc__listitem"><a class="toc__anchor" href="#report-a-problem-with-the-implementation">Report a problem with the implementation</a></li><li class="toc__listitem"><a class="toc__anchor" href="#show-support-for-the-api">Show support for the API</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#helpful">Helpful links</a></li><li class="toc__listitem"><a class="toc__anchor" href="#acknowledgements">Acknowledgements</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="detect-inactive-users-with-the-idle-detection-api">Detect inactive users with the Idle Detection API</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            Use the Idle Detection API to find out when the user isn't actively using their device.
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>May 18, 2020</time>
+             — Updated <time>Aug 25, 2021</time> 
+          </div>
+        
+
+        
+        
+
+        
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/thomassteiner/"> <img     alt="Thomas Steiner"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/thomassteiner/">Thomas Steiner</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/tomayac">Twitter</a>
+               <a href="https://github.com/tomayac">GitHub</a>
+               <a href="https://glitch.com/@tomayac">Glitch</a>
+               <a href="https://blog.tomayac.com/">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#what">What is the Idle Detection API?</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#use-cases">Suggested use cases for the Idle Detection API</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#status">Current status</a></li><li class="toc__listitem"><a class="toc__anchor" href="#use">How to use the Idle Detection API</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#feature-detection">Feature detection</a></li><li class="toc__listitem"><a class="toc__anchor" href="#idle-detection-api-concepts">Idle Detection API concepts</a></li><li class="toc__listitem"><a class="toc__anchor" href="#using-the-idle-detection-api">Using the Idle Detection API</a></li><li class="toc__listitem"><a class="toc__anchor" href="#devtools-support">DevTools support</a></li><li class="toc__listitem"><a class="toc__anchor" href="#puppeteer-support">Puppeteer support</a></li><li class="toc__listitem"><a class="toc__anchor" href="#demo">Demo</a></li><li class="toc__listitem"><a class="toc__anchor" href="#polyfilling">Polyfilling</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#security-and-permissions">Security and permissions</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#user-control-and-privacy">User control and privacy</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#feedback">Feedback</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#tell-us-about-the-api-design">Tell us about the API design</a></li><li class="toc__listitem"><a class="toc__anchor" href="#report-a-problem-with-the-implementation">Report a problem with the implementation</a></li><li class="toc__listitem"><a class="toc__anchor" href="#show-support-for-the-api">Show support for the API</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#helpful">Helpful links</a></li><li class="toc__listitem"><a class="toc__anchor" href="#acknowledgements">Acknowledgements</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <h2 id="what">What is the Idle Detection API? <a class="w-headline-link" href="#what">#</a></h2>
+<p>The Idle Detection API notifies developers when a user is idle, indicating such things as lack of
+interaction with the keyboard, mouse, screen, activation of a screensaver, locking of the screen,
+or moving to a different screen. A developer-defined threshold triggers the notification.</p>
+<h3 id="use-cases">Suggested use cases for the Idle Detection API <a class="w-headline-link" href="#use-cases">#</a></h3>
+<p>Examples of sites that may use this API include:</p>
+<ul>
+<li>Chat applications or online social networking sites can use this API to let the user know if
+their contacts are currently reachable.</li>
+<li>Publicly exposed kiosk apps, for example in museums, can use this API to return to the &quot;home&quot;
+view if no one interacts with the kiosk anymore.</li>
+<li>Apps that require expensive calculations, for example to draw charts,
+can limit these calculations to moments when the user interacts with their device.</li>
+</ul>
+<h2 id="status">Current status <a class="w-headline-link" href="#status">#</a></h2>
+<div>
+<div class="w-table-wrapper">
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Create explainer</td>
+<td><a href="https://github.com/wicg/idle-detection/blob/master/README.md" rel="noopener">Complete</a></td>
+</tr>
+<tr>
+<td>2. Create initial draft of specification</td>
+<td><a href="https://wicg.github.io/idle-detection" rel="noopener">Complete</a></td>
+</tr>
+<tr>
+<td>3. Gather feedback &amp; iterate on design</td>
+<td><a href="#feedback">In progress</a></td>
+</tr>
+<tr>
+<td>4. Origin trial</td>
+<td>Completed</td>
+</tr>
+<tr>
+<td>5. <strong>Launch</strong></td>
+<td><strong>Chromium 94</strong></td>
+</tr>
+</tbody>
+</table>
+</div></div>
+<h2 id="use">How to use the Idle Detection API <a class="w-headline-link" href="#use">#</a></h2>
+<h3 id="feature-detection">Feature detection <a class="w-headline-link" href="#feature-detection">#</a></h3>
+<p>To check if the Idle Detection API is supported, use:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'IdleDetector'</span> <span class="token keyword">in</span> window<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token comment">// Idle Detector API supported</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><h3 id="idle-detection-api-concepts">Idle Detection API concepts <a class="w-headline-link" href="#idle-detection-api-concepts">#</a></h3>
+<p>The Idle Detection API assumes that there is some level of engagement between the user,
+the user agent (that is, the browser), and the operating system of the device in use.
+This is represented in two dimensions:</p>
+<ul>
+<li><strong>The user idle state:</strong>
+<code>active</code> or <code>idle</code>: the user has or has not
+interacted with the user agent for some period of time.</li>
+<li><strong>The screen idle state:</strong>
+<code>locked</code> or <code>unlocked</code>: the system has an active screen lock (like a screensaver) preventing
+interaction with the user agent.</li>
+</ul>
+<p>Distinguishing <code>active</code> from <code>idle</code> requires heuristics that may differ across user, user agent,
+and operating system. It should also be a reasonably coarse threshold
+(see <a href="#security-and-permissions">Security and Permissions</a>).</p>
+<p>The model intentionally does not formally distinguish between interaction with particular content
+(that is, the webpage in a tab using the API), the user agent as a whole, or the operating system;
+this definition is left to the user agent.</p>
+<h3 id="using-the-idle-detection-api">Using the Idle Detection API <a class="w-headline-link" href="#using-the-idle-detection-api">#</a></h3>
+<p>The first step when using the Idle Detection API is
+to ensure the <code>'idle-detection'</code> permission is granted.
+If the permission is not granted, you need to
+request it via <code>IdleDetector.requestPermission()</code>.
+Note that calling this method requires a user gesture.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token comment">// Make sure 'idle-detection' permission is granted.</span><br><span class="token keyword">const</span> state <span class="token operator">=</span> <span class="token keyword">await</span> IdleDetector<span class="token punctuation">.</span><span class="token function">requestPermission</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">if</span> <span class="token punctuation">(</span>state <span class="token operator">!==</span> <span class="token string">'granted'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token comment">// Need to request permission first.</span><br>  <span class="token keyword">return</span> console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Idle detection permission not granted.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Initially, idle detection was gated behind the
+notifications permission.
+While many, but not all, use cases of this API
+involve notifications, the Idle Detection spec editors have decided to gate it
+behind a dedicated idle detection permission.</p>
+</div></aside>
+<p>The second step is then to instantiate the <code>IdleDetector</code>.
+The minimum <code>threshold</code> is 60,000 milliseconds (1 minute).
+You can finally start the idle detection by calling the
+<code>IdleDetector</code>'s <code>start()</code> method.
+It takes an object with the desired idle <code>threshold</code> in milliseconds
+and an optional <code>signal</code> with an
+<a href="https://developer.mozilla.org/docs/Web/API/AbortSignal" rel="noopener"><code>AbortSignal</code></a>
+to abort idle detection as parameters.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">try</span> <span class="token punctuation">{</span><br>  <span class="token keyword">const</span> controller <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">AbortController</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token keyword">const</span> signal <span class="token operator">=</span> controller<span class="token punctuation">.</span>signal<span class="token punctuation">;</span><br><br>  <span class="token keyword">const</span> idleDetector <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">IdleDetector</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  idleDetector<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'change'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>    <span class="token keyword">const</span> userState <span class="token operator">=</span> idleDetector<span class="token punctuation">.</span>userState<span class="token punctuation">;</span><br>    <span class="token keyword">const</span> screenState <span class="token operator">=</span> idleDetector<span class="token punctuation">.</span>screenState<span class="token punctuation">;</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Idle change: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>userState<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">, </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>screenState<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">.</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>  <span class="token keyword">await</span> idleDetector<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">{</span><br>    threshold<span class="token operator">:</span> <span class="token number">60000</span><span class="token punctuation">,</span><br>    signal<span class="token punctuation">,</span><br>  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'IdleDetector is active.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span>err<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token comment">// Deal with initialization errors like permission denied,</span><br>  <span class="token comment">// running outside of top-level frame, etc.</span><br>  console<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span>err<span class="token punctuation">.</span>name<span class="token punctuation">,</span> err<span class="token punctuation">.</span>message<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>You can abort the idle detection by calling the
+<a href="https://developer.mozilla.org/docs/Web/API/AbortController" rel="noopener"><code>AbortController</code></a>'s
+<a href="https://developer.mozilla.org/docs/Web/API/AbortController/abort" rel="noopener"><code>abort()</code></a>
+method.</p>
+<web-copy-code><pre class="language-js"><code class="language-js">controller<span class="token punctuation">.</span><span class="token function">abort</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'IdleDetector is stopped.'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><h3 id="devtools-support">DevTools support <a class="w-headline-link" href="#devtools-support">#</a></h3>
+<p>Starting in Chromium 94, you can emulate idle events in DevTools without actually being idle.
+In DevTools, open the <strong>Sensors</strong> tab and look for <strong>Emulate Idle Detector state</strong>.
+You can see the various options in the video below.</p>
+<figure class="w-figure">
+  <video      autoplay            class="w-screenshot"      controls                        loop      muted      playsinline                      >      <source src="https://storage.googleapis.com/web-dev-uploads/video/tcFciHGuF3MxnTr1y5ue01OGLBn2/2OEuuTRnBdDoxARFejNN.mp4" type="video/mp4" />    </video>
+  <figcaption class="w-figcaption">
+    Idle Detector state emulation in DevTools.
+  </figcaption>
+</figure>
+<h3 id="puppeteer-support">Puppeteer support <a class="w-headline-link" href="#puppeteer-support">#</a></h3>
+<p>As of Puppeteer version 5.3.1, you can
+<a href="https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pageemulateidlestateoverrides" rel="noopener">emulate the various idle states</a>
+to programmatically test how your web app's behavior changes.</p>
+<h3 id="demo">Demo <a class="w-headline-link" href="#demo">#</a></h3>
+<p>You can see the Idle Detection API in action with the <a href="https://idle-detection.glitch.me/" rel="noopener">Ephemeral Canvas demo</a> that erases its
+contents after 60 seconds of inactivity. You could imagine this being deployed in a department
+store for kids to doodle on.</p>
+<img     alt="Ephemeral Canvas demo"          decoding="async"     height="953"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/n0ysuaHUCcrRRf4b7pU0.png?auto=format&w=1600 1600w"          width="800"   />
+<h3 id="polyfilling">Polyfilling <a class="w-headline-link" href="#polyfilling">#</a></h3>
+<p>Some aspects of the Idle Detection API are polyfillable
+and idle detection libraries like <a href="https://github.com/dropbox/idle.ts" rel="noopener">idle.ts</a> exist,
+but these approaches are constrained to a web app's own content area:
+The library running in the context of the web app
+needs to expensively poll for input events or listen to visibility changes.
+More restrictively, though, libraries cannot tell today when a user goes idle
+outside of its content area (e.g., when a user is on a different tab
+or logged out of their computer altogether).</p>
+<h2 id="security-and-permissions">Security and permissions <a class="w-headline-link" href="#security-and-permissions">#</a></h2>
+<p>The Chrome team has designed and implemented the Idle Detection API using the core principles
+defined in <a href="https://chromium.googlesource.com/chromium/src/+/lkgr/docs/security/permissions-for-powerful-web-platform-features.md" rel="noopener">Controlling Access to Powerful Web Platform Features</a>,
+including user control, transparency, and ergonomics.
+The ability to use this API is controlled by the
+<a href="https://w3c.github.io/permissions/#permission-registry" rel="noopener"><code>'idle-detection'</code> permission</a>.
+In order to use the API, an app also must be running in a
+<a href="https://www.w3.org/TR/secure-contexts/#examples-top-level" rel="noopener">top-level secure context</a>.</p>
+<h3 id="user-control-and-privacy">User control and privacy <a class="w-headline-link" href="#user-control-and-privacy">#</a></h3>
+<p>We always want to prevent malicious actors from misusing new APIs. Seemingly independent websites,
+but that in fact are controlled by the same entity, might obtain user idle information and
+correlate the data to identify unique users across origins. To mitigate these sort of attacks,
+the Idle Detection API limits the granularity of the reported idle events.</p>
+<h2 id="feedback">Feedback <a class="w-headline-link" href="#feedback">#</a></h2>
+<p>The Chrome team wants to hear about your experiences with the Idle Detection API.</p>
+<h3 id="tell-us-about-the-api-design">Tell us about the API design <a class="w-headline-link" href="#tell-us-about-the-api-design">#</a></h3>
+<p>Is there something about the API that doesn't work like you expected? Or are there missing methods
+or properties that you need to implement your idea?
+Have a question or comment on the security model?
+File a spec issue on the corresponding <a href="https://github.com/samuelgoto/idle-detection/issues" rel="noopener">GitHub repo</a>,
+or add your thoughts to an existing issue.</p>
+<h3 id="report-a-problem-with-the-implementation">Report a problem with the implementation <a class="w-headline-link" href="#report-a-problem-with-the-implementation">#</a></h3>
+<p>Did you find a bug with Chrome's implementation? Or is the implementation different from the spec?
+File a bug at <a href="https://new.crbug.com" rel="noopener">new.crbug.com</a>. Be sure to include as much detail as you can,
+simple instructions for reproducing, and enter <code>Blink&gt;Input</code> in the <strong>Components</strong> box.
+<a href="https://glitch.com/" rel="noopener">Glitch</a> works great for sharing quick and easy repros.</p>
+<h3 id="show-support-for-the-api">Show support for the API <a class="w-headline-link" href="#show-support-for-the-api">#</a></h3>
+<p>Are you planning to use the Idle Detection API? Your public support helps the Chrome team to
+prioritize features and shows other browser vendors how critical it is to support them.</p>
+<ul>
+<li>Share how you plan to use it on the <a href="https://discourse.wicg.io/t/idle-detection-api/2959" rel="noopener">WICG Discourse thread</a>.</li>
+<li>Send a tweet to <a href="https://twitter.com/ChromiumDev" rel="noopener">@ChromiumDev</a> using the hashtag
+<a href="https://twitter.com/search?q=%23IdleDetection&amp;src=typed_query&amp;f=live" rel="noopener"><code>#IdleDetection</code></a>
+and let us know where and how you're using it.</li>
+</ul>
+<h2 id="helpful">Helpful links <a class="w-headline-link" href="#helpful">#</a></h2>
+<ul>
+<li><a href="https://github.com/wicg/idle-detection/blob/master/README.md" rel="noopener">Public explainer</a></li>
+<li><a href="https://wicg.github.io/idle-detection" rel="noopener">Draft specification</a></li>
+<li><a href="https://idle-detection.glitch.me/" rel="noopener">Idle Detection API Demo</a> | <a href="https://glitch.com/edit/#!/idle-detection" rel="noopener">Idle Detection API Demo source</a></li>
+<li><a href="https://crbug.com/878979" rel="noopener">Tracking bug</a></li>
+<li><a href="https://chromestatus.com/feature/4590256452009984" rel="noopener">ChromeStatus.com entry</a></li>
+<li>Blink Component: <a href="https://chromestatus.com/features#component%3ABlink%3EInput" rel="noopener"><code>Blink&gt;Input</code></a></li>
+</ul>
+<h2 id="acknowledgements">Acknowledgements <a class="w-headline-link" href="#acknowledgements">#</a></h2>
+<p>The Idle Detection API was implemented by <a href="https://twitter.com/samuelgoto" rel="noopener">Sam Goto</a>.
+DevTools support was added by <a href="https://www.linkedin.com/in/sadym/" rel="noopener">Maksim Sadym</a>.
+Thanks to <a href="https://github.com/jpmedley" rel="noopener">Joe Medley</a>,
+<a href="https://github.com/kaycebasques" rel="noopener">Kayce Basques</a>, and
+<a href="https://github.com/reillyeon" rel="noopener">Reilly Grant</a> for their reviews of this article.
+The hero image is by <a href="https://unsplash.com/@_ferh97" rel="noopener">Fernando Hernandez</a> on
+<a href="https://unsplash.com/photos/8Facxtxqojc" rel="noopener">Unsplash</a>.</p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/capabilities/">Capabilities</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Aug 25, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/blog/idle-detection/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@tomayac"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

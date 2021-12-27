@@ -1,0 +1,880 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=ed13d155681f4">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=fca543d5868c1">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>リファラーとリファラーポリシーのベストプラクティス</title>
+<meta name="description" content="strict-origin-when-cross-origin のリファラーポリシーを設定をご検討ください。データのクロスオリジンが漏洩するリスクを軽減しながら、リファラーの有用性の多くを保持します。 " />
+
+<link rel="canonical" href="https://web.dev/i18n/ja/referrer-best-practices/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/referrer-best-practices/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/referrer-best-practices/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/referrer-best-practices/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/referrer-best-practices/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/referrer-best-practices/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/referrer-best-practices/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/referrer-best-practices/" />
+<meta itemprop="name" content="リファラーとリファラーポリシーのベストプラクティス" />
+<meta itemprop="description" content="strict-origin-when-cross-origin のリファラーポリシーを設定をご検討ください。データのクロスオリジンが漏洩するリスクを軽減しながら、リファラーの有用性の多くを保持します。 " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="ja_JP" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/ja/referrer-best-practices/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="リファラーとリファラーポリシーのベストプラクティス" />
+<meta property="og:description" content="strict-origin-when-cross-origin のリファラーポリシーを設定をご検討ください。データのクロスオリジンが漏洩するリスクを軽減しながら、リファラーの有用性の多くを保持します。 " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="security" />
+<meta property="tag" content="privacy" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="リファラーとリファラーポリシーのベストプラクティス" />
+<meta name="twitter:description" content="strict-origin-when-cross-origin のリファラーポリシーを設定をご検討ください。データのクロスオリジンが漏洩するリスクを軽減しながら、リファラーの有用性の多くを保持します。 " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=5b41e295eef1e', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=397ed93d34573', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          学習する
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        測定する
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        ブログ
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        概要
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">閉じる</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt=""     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="このページ内">
+    <div class="course-toc__heading font-google-sans weight-medium">このページ内</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#101">リファラーとリファラーポリシー 101</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-2">利用可能なポリシーは？それぞれの違う点は？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">ブラウザのデフォルトのリファラーポリシー</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">リファラーポリシーの設定：ベストプラクティス</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">リファラーポリシーを確認するにはどうすればよいですか？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#web">Web サイトにはどのポリシーを設定する必要がありますか？</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-6">なぜ「明示的に」設定するのか？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#strict-origin-when-cross-origin-()">なぜstrict-origin-when-cross-origin (またはより厳密なポリシー) を使うのですか？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#strict-origin-when-cross-origin-()-2">strict-origin-when-cross-origin (またはより厳密なポリシー) がすべてのユースケースに対応できない場合はどうしますか？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-7">例：要素レベルのポリシー</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-8">例：リクエストレベルのポリシー</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-9">他には何を考慮すべきですか？</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-10">送信されてくるリクエストのリファラーの使用：ベストプラクティス</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#url">サイトの機能が送信されてくるリクエストのリファラー URL を使用している場合はどうすればよいですか？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#(csrf)">クロスサイトリクエストフォージェリ (CSRF) 保護</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-12">ロギング</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-13">支払い</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-15">結論</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-16">リソース</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="">リファラーとリファラーポリシーのベストプラクティス</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            リファラーポリシーを設定し、送信されてくるリクエストにリファラーを使用するためのベストプラクティス。
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Jul 30, 2020</time>
+             — 更新済み <time>Sep 23, 2020</time> 
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/referrer-best-practices/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/referrer-best-practices/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/referrer-best-practices/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/referrer-best-practices/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/referrer-best-practices/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/referrer-best-practices/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/secure"
+          >安全とセキュリティ</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/maudn/"> <img     alt="Maud Nalpas"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/maudn/">Maud Nalpas</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/maudnals">Twitter</a>
+               <a href="https://github.com/maudnals">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="このページ内">
+      <summary>
+        このページ内
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#101">リファラーとリファラーポリシー 101</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-2">利用可能なポリシーは？それぞれの違う点は？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">ブラウザのデフォルトのリファラーポリシー</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">リファラーポリシーの設定：ベストプラクティス</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">リファラーポリシーを確認するにはどうすればよいですか？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#web">Web サイトにはどのポリシーを設定する必要がありますか？</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-6">なぜ「明示的に」設定するのか？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#strict-origin-when-cross-origin-()">なぜstrict-origin-when-cross-origin (またはより厳密なポリシー) を使うのですか？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#strict-origin-when-cross-origin-()-2">strict-origin-when-cross-origin (またはより厳密なポリシー) がすべてのユースケースに対応できない場合はどうしますか？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-7">例：要素レベルのポリシー</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-8">例：リクエストレベルのポリシー</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-9">他には何を考慮すべきですか？</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-10">送信されてくるリクエストのリファラーの使用：ベストプラクティス</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#url">サイトの機能が送信されてくるリクエストのリファラー URL を使用している場合はどうすればよいですか？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#(csrf)">クロスサイトリクエストフォージェリ (CSRF) 保護</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-12">ロギング</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-13">支払い</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-15">結論</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-16">リソース</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <h2 id="">概要 <a class="w-headline-link" href="#">#</a></h2>
+<ul>
+<li>予期しないクロスオリジン情報の漏洩は、Web ユーザーのプライバシーに支障をきたします。保護リファラーポリシーが便利です。</li>
+<li><code>strict-origin-when-cross-origin</code>リファラーポリシーを設定することをご検討ください。データのクロスオリジンを漏洩するリスクを軽減しながら、リファラーの有用性の多くを保持します。</li>
+<li>クロスサイトリクエストフォージェリ (CSRF) 保護にリファラーを使用しないでください。 <a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#token-based-mitigation" rel="noopener">代わりに CSRF トークン</a>を使用し、セキュリティの追加レイヤーとして他のヘッダーを使用します。</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>始める前に：</p>
+<ul>
+<li>「サイト」と「オリジン」の違いがわからない場合は、 <a href="/same-site-same-origin/">「同一サイト」と「同一オリジン」について</a>をご確認ください。</li>
+<li>元々仕様にスペルミスがあり、 <code>Referer</code> ヘッダーの「R」が抜けています。JavaScript と DOM の<code>Referrer-Policy</code> ヘッダーと<code>referrer</code> のスペルは正しく表記されています。</li>
+</ul>
+</div></aside>
+<h2 id="101">リファラーとリファラーポリシー 101 <a class="w-headline-link" href="#101">#</a></h2>
+<p>HTTP リクエストには、リクエストの発信元または Web ページの URL を示す <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referer" rel="noopener"><code>Referer</code> ヘッダーが含まれる場合があります。</a> <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referrer-Policy" rel="noopener"><code>Referrer-Policy</code> ヘッダーは、</a><code>Referer</code> ヘッダーで使用できるデータを定義します。</p>
+<p>以下の例では、<code>Referer</code> ヘッダーには、リクエストの発信元となる <code>site-one</code> のページの完全な URL が含まれています。</p>
+<figure>
+  <img     alt="リファラーヘッダーを含む HTTP リクエスト。"          decoding="async"     height="573"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p><code>Referer</code> ヘッダーは、さまざまなタイプのリクエストに存在する可能性があります。</p>
+<ul>
+<li>ユーザーがリンクをクリックしたときのナビゲーションリクエスト</li>
+<li>ブラウザーが画像、iframe、スクリプト、およびページに必要なその他のリソースを要求するときのサブリソース要求。</li>
+</ul>
+<p><code>document.referrer</code> を使用して JavaScript 経由でアクセスすることも可能です。</p>
+<p><code>Referer</code> 値はインサイトを提供する可能性があります。たとえば、分析サービスはこの値を使用して、 <code>site-two.example</code> の訪問者のうち 50% は <code>social-network.example</code>から来たと判断することが考えられます。</p>
+<p>ただし、パスとクエリ文字列を含む完全な URL が<strong>オリジン間</strong>を<code>リファラー</code>として送信される場合、これは<strong>プライバシーの阻害</strong>となるほか、<strong>セキュリティリスク</strong>をもたらす可能性があります。以下の URL をご覧ください。</p>
+<figure>
+  <img     alt="パス付きの URL。さまざまなプライバシーとセキュリティのリスクにマッピングされています。"          decoding="async"     height="370"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>URL＃1 から ＃5 には個人情報が含まれており、場合によっては識別情報や機密情報も含まれます。これらがオリジン間でサイレントに漏洩されると、Web ユーザーのプライバシーが危険にさらされる可能性があります。</p>
+<p>URL＃6 は<a href="https://www.w3.org/TR/capability-urls/" rel="noopener">機能 URL</a> で、意図したユーザー以外の人物には渡したくないものです。これが発生した場合、悪意のある攻撃者がこのユーザーのアカウントを乗っ取る可能性があります。</p>
+<p><strong>サイトからのリクエストで利用できるリファラーデータを制限するには、リファラーポリシーを設定できます。</strong></p>
+<h2 id="-2">利用可能なポリシーは？それぞれの違う点は？ <a class="w-headline-link" href="#-2">#</a></h2>
+<p>8 つのポリシーから 1 つ選択できます。ポリシーに応じて、 <code>Referer</code> ヘッダー (および<code>document.referrer</code>) からは以下のデータを使用できる場合があります。</p>
+<ul>
+<li>データなし (<code>Referer</code> ヘッダーがない)</li>
+<li><a href="/same-site-same-origin/#origin">オリジン</a>のみ</li>
+<li>完全な URL：オリジン、パス、クエリ文字列</li>
+</ul>
+<figure>
+  <img     alt="Referer ヘッダーと document.referrer に含めることができるデータ。"          decoding="async"     height="255"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>一部のポリシーは、<strong>コンテキスト</strong>に応じて異なる動作をするように設計されています：クロスオリジンまたは同じオリジンのリクエスト、セキュリティ (リクエストの宛先がオリジンと同じくらい安全かどうか)、またはその両方。これは、自分のサイト内のリファラーの豊富さを維持しながら、オリジン間で共有される情報の量を制限したり、安全性の低いオリジンに制限したりするのに役立ちます。</p>
+<p>リファラ―ポリシーによってリファラ―ヘッダーと <code>document.referrer</code> の使用できる URL データがどのように制限されるかを以下にまとめています。</p>
+<figure>
+  <img     alt="セキュリティとクロスオリジンコンテキストに応じた、さまざまなリファラーポリシーとその動作。"          decoding="async"     height="537"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>MDN で、 <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referrer-Policy#Directives" rel="noopener">ポリシーと動作の例の完全なリスト</a>が提供されています。</p>
+<p>注意事項：</p>
+<ul>
+<li>スキーム (HTTPS と HTTP) を考慮に入れるすべてのポリシー (<code>strict-origin</code> 、 <code>no-referrer-when-downgrade</code> 、および <code>strict-origin-when-cross-origin</code>) は、HTTP オリジンから別の HTTP オリジンへのリクエストを HTTPS オリジンから別の HTTPS オリジンへのリクエストと同じように処理します (HTTP の安全性が低い場合も例外ではありません)。これらのポリシーについては、セキュリティの<strong>ダウングレード</strong>が発生するかどうか、つまり、リクエストによりデータが暗号化されたオリジンから暗号化されていないオリジンに公開されてしまうかどうかが重要だからです。 HTTP から HTTP へのリクエストは最初から最後まで暗号化されないため、ダウングレードは起こりません。逆に、HTTPS から HTTP リクエストへのリクエストでは、ダウングレードが起こります。</li>
+<li>リクエストの<strong>オリジンが同じ</strong>である場合は、スキーム (HTTPS または HTTP) が同じであるため、セキュリティのダウングレードは起こらないことを意味します。</li>
+</ul>
+<h2 id="-3">ブラウザのデフォルトのリファラーポリシー <a class="w-headline-link" href="#-3">#</a></h2>
+<p><em>2020 年 7 月現在</em></p>
+<p><strong>リファラーポリシーが設定されていない場合は、ブラウザーのデフォルトポリシーが使用されます。</strong></p>
+<div>
+  <table>
+    <thead>
+      <tr>
+        <th>ブラウザー</th>
+        <th>デフォルトの<code>Referrer-Policy</code>/動作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>クロム</td>
+        <td>
+<a href="https://developers.google.com/web/updates/2020/07/referrer-policy-new-chrome-default">バージョン85で</a><code>strict-origin-when-cross-origin</code>への切り替えを計画しています (以前は<code>no-referrer-when-downgrade</code>)</td>
+      </tr>
+      <tr>
+        <td>Firefox</td>
+        <td>
+          <ul>
+            <li>
+<code>strict-origin-when-cross-origin</code> （<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1589074">クローズドバグを参照してください</a>）</li>
+            <li>プライベートブラウジングおよびトラッカーの<code>strict-origin-when-cross-origin</code>
+</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>角</td>
+        <td>
+          <ul>
+            <li><code>no-referrer-when-downgrade</code></li>
+            <li>
+<code>strict-origin-when-cross-origin</code>での<a href="https://github.com/privacycg/proposals/issues/13">実験</a>
+</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>サファリ</td>
+        <td>
+<code>strict-origin-when-cross-origin</code>と同様です。詳細については、「<a href="https://webkit.org/blog/9661/preventing-tracking-prevention-tracking/">トラッキング防止トラッキングの防止</a>」を参照してください。</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<h2 id="-4">リファラーポリシーの設定：ベストプラクティス <a class="w-headline-link" href="#-4">#</a></h2>
+<aside class="aside flow bg-state-good-bg color-state-good-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg></span>
+<strong>目的</strong></p>
+<div class=" flow">
+<p><code>strict-origin-when-cross-origin</code> (またはそれ以上に厳密なポリシー) などのプライバシー強化ポリシーを明示的に設定します。</p>
+</div></aside>
+<p>サイトのリファラーポリシーを設定するには、さまざまな方法があります。</p>
+<ul>
+<li>HTTP ヘッダーとして設定する</li>
+<li><a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referrer-Policy#Integration_with_HTML" rel="noopener">HTML</a> 内で設定する</li>
+<li><a href="https://javascript.info/fetch-api#referrer-referrerpolicy" rel="noopener">リクエストごとに</a> JavaScript から設定する</li>
+</ul>
+<p>ページ、リクエスト、要素ごとに異なるポリシーを設定できます。</p>
+<p>HTTP ヘッダーとメタ要素はどちらもページレベルです。要素の有効なポリシーを決定する際の優先順位は次のとおりです。</p>
+<ol>
+<li>要素レベルのポリシー</li>
+<li>ページレベルのポリシー</li>
+<li>ブラウザーのデフォルト</li>
+</ol>
+<p><strong>例：</strong></p>
+<p><code>index.html</code> ：</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>referrer<span class="token punctuation">"</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>strict-origin-when-cross-origin<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>...<span class="token punctuation">"</span></span> <span class="token attr-name">referrerpolicy</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>no-referrer-when-downgrade<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>画像は<code>no-referrer-when-downgrade</code>ポリシーでリクエストされますが、このページからの他のすべてのサブリソースリクエストは、<code>strict-origin-when-cross-origin</code>ポリシーに従います。</p>
+<h2 id="-5">リファラーポリシーを確認するにはどうすればよいですか？ <a class="w-headline-link" href="#-5">#</a></h2>
+<p>特定のサイトまたはページが使用しているポリシーを判別するには、<a href="https://securityheaders.com/" rel="noopener">securityheaders.com</a> が便利です。</p>
+<p>Chrome、Edge、または Firefox の開発者ツールを使用して、特定のリクエストに使用されるリファラーポリシーを確認することもできます。この記事の執筆時点では、Safari に<code>Referrer-Policy</code>ヘッダーは表示されませんが、送信された<code>Referer</code> は表示されます。</p>
+<figure>
+  <img     alt="Chrome DevTools のネットワークパネルのスクリーンショット。リファラーとリファラーポリシーを示しています。"          decoding="async"     height="416"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption>
+    Chrome DevTools、リクエストが選択された<b>ネットワーク</b>パネル。
+  </figcaption>
+</figure>
+<h2 id="web">Web サイトにはどのポリシーを設定する必要がありますか？ <a class="w-headline-link" href="#web">#</a></h2>
+<p><code>strict-origin-when-cross-origin</code> （またはそれ以上）などのプライバシー強化ポリシーを明示的に設定します。</p>
+<h3 id="-6">なぜ「明示的に」設定するのか？ <a class="w-headline-link" href="#-6">#</a></h3>
+<p>リファラーポリシーが設定されていない場合は、ブラウザーのデフォルトポリシーが使用されます。実際、Web サイトはブラウザーのデフォルト設定に従うことがよくあります。しかし、これは理想的ではありません。理由は次のとおりです。</p>
+<ul>
+<li>ブラウザーのデフォルトポリシーは、ブラウザーとモード (プライベート/シークレット) に応じて、 <code>no-referrer-when-downgrade</code> 、 <code>strict-origin-when-cross-origin</code>のいずれか、またはさらに厳密なポリシーであるため、ブラウザーが異なると Web サイトの動作は予期できないものになります。</li>
+<li><code>strict-origin-when-cross-origin</code>などのより厳密なデフォルトと、クロスオリジンリクエストの<a href="https://github.com/privacycg/proposals/issues/13" rel="noopener">リファラートリミング</a>などのメカニズムを採用しています。ブラウザのデフォルトが変更される前にプライバシー強化ポリシーを明示的にオプトインすると、制御が可能になり、適切と思われるテストを実行できるようになります。</li>
+</ul>
+<h3 id="strict-origin-when-cross-origin-()">なぜ<code>strict-origin-when-cross-origin</code> (またはより厳密なポリシー) を使うのですか？ <a class="w-headline-link" href="#strict-origin-when-cross-origin-()">#</a></h3>
+<p>ポリシーは安全で、プライバシーの強化につながり、かつ便利なものが必要だからです。何が「便利」なのかは、リファラーに何を求めているかによって異なります。</p>
+<ul>
+<li><strong>安全</strong>：Web サイトが HTTPS を使用している場合 (<a href="/why-https-matters/">使用していない場合は優先します</a>)、HTTPS 以外の要求で Web サイトの URL がリークしないようにします。ネットワーク上の誰もがこれらを見ることができるので、これはあなたのユーザーを中途半端な攻撃にさらすことになります。<code>no-referrer-when-downgrade</code>、<code>strict-origin-when-cross-origin</code>、<code>no-referrer</code>、<code>strict-origin</code> ポリシーがこの問題を解決します。</li>
+<li><strong>プライバシー強化</strong>：クロスオリジンリクエストの場合、 <code>no-referrer-when-downgrade</code> が完全な URL を共有します。これはプライバシー強化ではありません。 <code>strict-origin-when-cross-origin</code> と <code>strict-origin</code> のみを共有し、 <code>no-referrer</code> は何も共有しません。したがって、プライバシーを強化するオプションとしては <code>strict-origin-when-cross-origin</code>、<code>strict-origin</code>、および <code>no-referrer</code> を使用することになります。</li>
+<li><strong>便利</strong>： <code>no-referrer</code> と <code>strict-origin</code> は、同じオリジンのリクエストであっても、完全な URL を共有することはありません。したがって、これが必要な場合は、<code>strict-origin-when-cross-origin</code> の方が適切なオプションであると言えます。</li>
+</ul>
+<p>つまり、**<code>strict-origin-when-cross-origin</code>**が通常賢明な選択肢となります。</p>
+<p><strong>例： <code>strict-origin-when-cross-origin</code>ポリシーの設定：</strong></p>
+<p><code>index.html</code> ：</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>referrer<span class="token punctuation">"</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>strict-origin-when-cross-origin<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>またはサーバー側、たとえば Express の場合：</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> helmet <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'helmet'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>app<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>helmet<span class="token punctuation">.</span><span class="token function">referrerPolicy</span><span class="token punctuation">(</span><span class="token punctuation">{</span>policy<span class="token operator">:</span> <span class="token string">'strict-origin-when-cross-origin'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><h3 id="strict-origin-when-cross-origin-()-2"><code>strict-origin-when-cross-origin</code> (またはより厳密なポリシー) がすべてのユースケースに対応できない場合はどうしますか？ <a class="w-headline-link" href="#strict-origin-when-cross-origin-()-2">#</a></h3>
+<p>この場合、<strong>プログレッシブアプローチを採用します。</strong><code>strict-origin-when-cross-origin</code>などの保護ポリシーを設定し、必要に応じて、特定のリクエストや HTML 要素に対してより寛容なポリシーを設定します。</p>
+<h3 id="-7">例：要素レベルのポリシー <a class="w-headline-link" href="#-7">#</a></h3>
+<p><code>index.html</code> ：</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="highlight-line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">  <span class="token comment">&lt;!-- document-level policy: strict-origin-when-cross-origin --></span></span><br><span class="highlight-line">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>referrer<span class="token punctuation">"</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>strict-origin-when-cross-origin<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></span><br><span class="highlight-line">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">      <span class="token comment">&lt;!-- policy on this &lt;a> element: no-referrer-when-downgrade --></span></span><br><mark class="highlight-line highlight-line-active">      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>…<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>…<span class="token punctuation">"</span></span> <span class="token attr-name">referrerpolicy</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>no-referrer-when-downgrade<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span></mark><br><span class="highlight-line">      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span></span><br><span class="highlight-line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span></span></code></pre>
+</web-copy-code><p>Safari/WebKit は、<a href="/same-site-same-origin/#same-site-cross-site">クロスサイト</a>リクエストの <code>document.referrer</code> または <code>Referer</code> ヘッダーに上限を設ける場合があることにご注意ください。「<a href="https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/" rel="noopener">詳細</a>」をご確認ください。</p>
+<h3 id="-8">例：リクエストレベルのポリシー <a class="w-headline-link" href="#-8">#</a></h3>
+<p><code>script.js</code> ：</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token function">fetch</span><span class="token punctuation">(</span>url<span class="token punctuation">,</span> <span class="token punctuation">{</span>referrerPolicy<span class="token operator">:</span> <span class="token string">'no-referrer-when-downgrade'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><h3 id="-9">他には何を考慮すべきですか？ <a class="w-headline-link" href="#-9">#</a></h3>
+<p>どのポリシーを使用するかは、Web サイトやユースケースにより異なります。これは、あなた自信やあなたのチーム、お勤め先の企業が決める事です。一部の URLに 識別データまたは機密データが含まれている場合は、保護ポリシーを設定します。</p>
+<aside class="aside flow bg-state-warn-bg color-core-text">
+<p class="cluster ">
+<span class="aside__icon box-block color-state-warn-text"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Warning sign" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M23 21L12 2 1 21h22zm-12-3v-2h2v2h-2zm0-4h2v-4h-2v4z" />
+</svg></span>
+<strong>警告</strong></p>
+<div class=" flow">
+<p>機密性が低いと思われるデータでも、ユーザーにとっては機密性が高いものである場合があります。または、単に不要なデータであったり、オリジン間でサイレントにリークするとは思われていないデータである場合もあります。</p>
+</div></aside>
+<h2 id="-10">送信されてくるリクエストのリファラーの使用：ベストプラクティス <a class="w-headline-link" href="#-10">#</a></h2>
+<h3 id="url">サイトの機能が送信されてくるリクエストのリファラー URL を使用している場合はどうすればよいですか？ <a class="w-headline-link" href="#url">#</a></h3>
+<h4 id="-11">ユーザーのデータを保護する <a class="w-headline-link" href="#-11">#</a></h4>
+<p><code>Referer</code>には、個人データや識別データが含まれている可能性があるため、適切に取り扱う必要があります。</p>
+<h4 id="referer">受信する<code>Referer</code>は変更される場合があることを覚えておきましょう。 <a class="w-headline-link" href="#referer">#</a></h4>
+<p>送られてくるクロスオリジンリクエストのリファラーを使用することには、制限がいくつかあります。</p>
+<ul>
+<li>リクエスト発信元の実装を一切制御できない場合には、受信する<code>Referer</code>ヘッダー (および<code>document.referrer</code>) について予想を立てることはできません。リクエスト発信元は、いつでも <code>no-referrer</code> ポリシー、または一般的にはより厳密なポリシーに切り替えることができます。つまり、<code>Referer</code> からは、それまでよりも少ない量のデータしか取得できなくなります。</li>
+<li>ブラウザには、デフォルトで Referrer-Policy <code>strict-origin-when-cross-origin</code> が使用されることを増えつつあります。これは、これらを送信するサイトにポリシーが設定されていない場合は、受信するクロスオリジンリクエストで (完全なリファラーURLではなく) オリジンのみを受信できることを意味します。</li>
+<li>ブラウザーは <code>Referer</code> の管理方法を変更する場合があります。たとえば、将来的には、ユーザーのプライバシーを保護するために、クロスオリジンサブリソースリクエストのオリジンへのリファラーを常にトリミングすることを決定することができます。</li>
+<li><code>Referer</code>ヘッダー (および<code>document.referrer</code>) には、必要以上のデータが含まれている場合があります。たとえば、リクエストがクロスオリジンであるかどうかだけを知りたいときに、完全な URL が含まれている場合があります。</li>
+</ul>
+<h4 id="referer-2"><code>Referer</code>代替 <a class="w-headline-link" href="#referer-2">#</a></h4>
+<p>次の場合は、代替案を検討する必要があります。</p>
+<ul>
+<li>サイトの重要な機能は、受信するクロスオリジンリクエストのリファラー URL を使用します。</li>
+<li>および/またはサイトがクロスオリジンリクエストで必要なリファラー URL の一部を受信しなくなった場合。これは、リクエストエミッタがポリシーを変更した場合、またはポリシーが設定されておらず、ブラウザのデフォルトのポリシーが変更された場合に発生します (<a href="https://developers.google.com/web/updates/2020/07/referrer-policy-new-chrome-default" rel="noopener">Chrome 85など</a>)。</li>
+</ul>
+<p>代替案を定義するには、最初にリファラーのどの部分を使用しているかを分析します。</p>
+<p><strong>オリジンのみが必要な場合 (<code>https://site-one.example</code>)：</strong></p>
+<ul>
+<li>ページへのトップレベルのアクセス権を持つスクリプトでリファラーを使用している場合は、<code>window.location.origin</code> が代わりとなります。</li>
+<li><a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Origin" rel="noopener"><code>Origin</code></a> や <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Sec-Fetch-Site" rel="noopener"><code>Sec-Fetch-Site</code></a> などのヘッダーを使用できる場合には、<code>Origin</code> を取得できたり、リクエストがクロスオリジンかどうかを説明できたりします。それがまさに必要となものである場合もあります。</li>
+</ul>
+<p><strong>URL の他の要素 (パス、クエリパラメータなど) が必要な場合：</strong></p>
+<ul>
+<li>リクエストパラメータはユースケースに対応している可能性があり、これによりリファラーを解析する手間が省けます。</li>
+<li>ページへのトップレベルのアクセス権を持つスクリプトでリファラーを使用している場合は、 <code>window.location.pathname</code>が代わりとなる可能性があります。 URL のパスセクションのみを抽出して引数として渡すため、URL パラメーター内の機密情報が渡されることはありません。</li>
+</ul>
+<p><strong>これらの代替手段を使用できない場合：</strong></p>
+<ul>
+<li>リクエストの発信元 (<code>site-one.example</code>) が必要とされている情報を何らかの構成で明示的に設定することを要件とするようにシステムを変更できるかどうかを確認します。 メリット: <code>site-one.example</code> のユーザーにとっては情報がより明示的になり、プライバシーも保護され、将来的にも効果を発揮します。デメリット: 管理者およびシステムのユーザーの作業が増える可能性があります。</li>
+<li>リクエストを発信するサイトが、要素ごとまたはリクエストごとのリファラーポリシーを <code>no-referrer-when-downgrade</code> に設定することに同意するかどうかを確認します。 <code>site-one.example</code> のユーザーのプライバシー保護が低下する可能性があり、すべてのブラウザーでサポートされるとは限りません。</li>
+</ul>
+<h3 id="(csrf)">クロスサイトリクエストフォージェリ (CSRF) 保護 <a class="w-headline-link" href="#(csrf)">#</a></h3>
+<p>リクエストの発信元は、<code>no-referrer</code>ポリシーを設定すれば、いつでもリファラーを送信しないようにすることができます。(悪意のあるアクターはリファラーに対してスプーフィングを実行できる可能性すらあります)。</p>
+<p><a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#token-based-mitigation" rel="noopener">CSRF トークン</a>を主な保護として使用します。保護を強化するには <a href="/samesite-cookie-recipes/#%22unsafe%22-requests-across-sites">SameSite</a> を使用し、<code>Referer</code> の代わりに <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Origin" rel="noopener"><code>Origin</code></a> (POST および CORS リクエストで利用可能) や (利用可能な場合は) <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Sec-Fetch-Site" rel="noopener"><code>Sec-Fetch-Site</code></a> などのヘッダーを使用します。</p>
+<h3 id="-12">ロギング <a class="w-headline-link" href="#-12">#</a></h3>
+<p><code>Referer</code> 含まれている可能性のあるユーザーの個人データまたは機密データを必ず保護してください。</p>
+<p>オリジンのみを使用している場合は、<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Origin" rel="noopener"><code>Origin</code></a> ヘッダーを代替として使用できるかどうかを確認してください。そうすることで、わざわざリファラーを解析せずに、デバッグに必要な情報をより簡単に得られる場合があります。</p>
+<h3 id="-13">支払い <a class="w-headline-link" href="#-13">#</a></h3>
+<p>支払いプロバイダーは、セキュリティチェックを行う際に、受信するリクエストの <code>Referer</code> ヘッダーを確認する場合がります。</p>
+<p>たとえば：</p>
+<ul>
+<li>ユーザーが <code>online-shop.example/cart/checkout</code> で<strong>購入</strong>ボタンをクリックします。</li>
+<li><code>online-shop.example</code> は、取引を管理するため <code>payment-provider.example</code> にリダイレクトします。</li>
+<li><code>payment-provider.example</code> は、このリクエストの <code>Referer</code> をマーチャントが設定した許可されている <code>Referer</code> 値のリストと照合します。リストのどのエントリとも一致しない場合、<code>payment-provider.example</code>はリクエストを拒否します。一致する場合、ユーザーは取引に進むことができます。</li>
+</ul>
+<h4 id="-14">支払いフローのセキュリティチェックのベストプラクティス <a class="w-headline-link" href="#-14">#</a></h4>
+<p><strong>まとめ: 支払いプロバイダーは、<code>Referer</code> をナイーブな攻撃に対する基本的なチェックとして使用できますが、他にも信頼性の高い検証方法を絶対に用意しておく必要があります。</strong></p>
+<p><code>Referer</code> ヘッダーだけを見ても、セキュリティチェックを判断できる信頼性の高い根拠にはなりません。リクエストする側のサイトは、正当なマーチャントであるかどうかは問わず、<code>no-referrer</code> ポリシーを設定できてしまうからです。それにより、支払いプロバイダーは <code>Referer</code> 情報を使用できなくなってしまいます。ただし、支払いプロバイダーは、<code>Referer</code> を見ることで、<code>no-referrer</code> ポリシーを設定していないナイーブな攻撃者なら特定できる可能性があります。したがって、<code>Referer</code> を最初の基本的なチェックとして使用しても構わないでしょう。そうする場合は以下に注意しましょう。</p>
+<ul>
+<li>**<code>Referer</code>が常に存在すると思ってはいけません。存在する場合は、それに少なくとも含まれるデータ (オリジン) だけをチェックします。**許可された <code>Referer</code> のリストを設定するときは、オリジンだけが含まれていること、パスは一切含まれていないことを確認します。例: <code>Referer</code> 値のリストを設定するときは、パスが含まれておらず、起点のみが含まれていることを確認してください。例: <code>Referer</code> が全く存在しないこと、または <code>Referer</code> 値 (リクエストする側のウェブサイトのオリジン) が存在することを期待することで、マーチャントが設定した <strong><code>Referrer-Policy</code> やマーチャントがポリシーを一切設定していない場合ならブラウザーの動作について何の憶測も立てていない</strong>ため、不測のエラーを防ぐことになるからです。サイトとブラウザーはともに、受信するリクエストの中身をオリジンだけ残して取り除くことができます。また、<code>Referer</code> を全く送信しないこともできます。</li>
+<li><code>Referer</code> が存在しない場合、またはリファラーが存在し、基本的な<code>Referer</code> 発信元チェックが成功した場合は、もう 1 つのより信頼性が高い検証方法を試します (以下を参照)。</li>
+</ul>
+<p><strong>より信頼性の高い検証方法とは何ですか？</strong></p>
+<p>信頼できる検証方法の 1 つとして、リクエスターに<strong>一意のキーを使ってリクエストパラメーターをハッシュ化させる</strong>という方法があります。支払いプロバイダーとして、<strong>同じハッシュを自分サイドで計算する</strong>ことにより、自分の計算結果と一致した場合にのみ、そのリクエストを受け入れるということができます。</p>
+<p><strong>リファラーポリシーを持たない HTTP マーチャントサイトが HTTPS プロバイダーにリダイレクトしたとき、<code>Referer</code> はどうなりますか？</strong></p>
+<p>ウェブサイトにポリシーが設定されていない場合、<a href="#default-referrer-policies-in-browsers">多くのブラウザー</a>ではデフォルトで <code>strict-origin-when-cross-origin</code> または <code>no-referrer-when-downgrade</code> が使用されるため、HTTPS を介した支払いプロバイダーへのリクエストには <code>Referer</code> が一切表示されません。また、<a href="https://developers.google.com/web/updates/2020/07/referrer-policy-new-chrome-default" rel="noopener">Chrome が新たに採用したデフォルトのポリシー</a>によって、この動作が変更されることもありません。</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Web サイトに HTTP を使用している場合は、 <a href="/why-https-matters/">HTTPS に移行します</a>。</p>
+</div></aside>
+<h2 id="-15">結論 <a class="w-headline-link" href="#-15">#</a></h2>
+<p>保護リファラーポリシーは、ユーザーのプライバシーを高める優れた方法です。</p>
+<p>ユーザーを保護するさまざまな手法の詳細については、web.dev の <a href="/secure/">Safe and secure</a> コレクションをご覧ください！</p>
+<p><em>Kaustubha Govind、David Van Cleve、Mike West、Sam Dutton、Rowan Merewood、Jxck、Kayce Basques をはじめとする、すべてのレビューアーの貢献とフィードバックに感謝いたします。</em></p>
+<h2 id="-16">リソース <a class="w-headline-link" href="#-16">#</a></h2>
+<ul>
+<li><a href="/same-site-same-origin/">「同一サイト」と「同一オリジン」を理解する</a></li>
+<li><a href="https://scotthelme.co.uk/a-new-security-header-referrer-policy/" rel="noopener">新しいセキュリティヘッダー：リファラーポリシー (2017)</a></li>
+<li>MDN の<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referrer-Policy" rel="noopener">リファラーポリシー</a></li>
+<li>MDN の<a href="https://developer.mozilla.org/docs/Web/Security/Referer_header:_privacy_and_security_concerns" rel="noopener">リファラーヘッダー：プライバシーとセキュリティの懸念</a></li>
+<li><a href="https://groups.google.com/a/chromium.org/d/msg/blink-dev/aBtuQUga1Tk/n4BLwof4DgAJ" rel="noopener">Chrome の変更：Blink Intent to Implement</a></li>
+<li><a href="https://groups.google.com/a/chromium.org/forum/#!topic/blink-dev/lqFuqwZDDR8" rel="noopener">Chrome の変更：Blink Intent to Ship</a></li>
+<li><a href="https://www.chromestatus.com/feature/6251880185331712" rel="noopener">Chrome の変更：ステータスエントリ</a></li>
+<li><a href="https://blog.chromium.org/2020/07/chrome-85-upload-streaming-human.html" rel="noopener">Chrome の変更：85 件のベータ版ブログ記事</a></li>
+<li><a href="https://github.com/privacycg/proposals/issues/13" rel="noopener">GitHub スレッドをトリミングするリファラ―：さまざまなブラウザーの機能</a></li>
+<li><a href="https://w3c.github.io/webappsec-referrer-policy/#referrer-policy-delivery" rel="noopener">リファラーポリシーの仕様</a></li>
+</ul>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/security/">セキュリティ</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/privacy/">プライバシー</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          最終更新: <time>Sep 23, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/ja/blog/referrer-best-practices/index.md"
+        >
+          記事を改善する
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@maudnals"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">共有する</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            バグを報告する
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            ソースを表示する
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">関連性のあるコンテンツ</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome のアップデート
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            ケーススタディ
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            ポッドキャスト
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            ショー
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">接続する</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          すべての製品
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="ja"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          利用規約とプライバシーポリシー
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          コミュニティガイドライン
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

@@ -1,0 +1,662 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=aa7366613f0f9">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=6baeb8137f4b2">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Bundling non-JavaScript resources</title>
+<meta name="description" content="Learn how to import and bundle various types of assets from JavaScript in a way that works both in browsers and bundlers." />
+
+<link rel="canonical" href="https://web.dev/bundling-non-js-resources/" />
+
+<meta itemprop="name" content="Bundling non-JavaScript resources" />
+<meta itemprop="description" content="Learn how to import and bundle various types of assets from JavaScript in a way that works both in browsers and bundlers." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/bundling-non-js-resources/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Bundling non-JavaScript resources" />
+<meta property="og:description" content="Learn how to import and bundle various types of assets from JavaScript in a way that works both in browsers and bundlers." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="Long rows of containers at a port." />
+<meta property="tag" content="webassembly" />
+<meta property="tag" content="modules" />
+<meta property="tag" content="javascript" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Bundling non-JavaScript resources" />
+<meta name="twitter:description" content="Learn how to import and bundle various types of assets from JavaScript in a way that works both in browsers and bundlers." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=e1c56a4031a98', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=f5b01cffb7174', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="Long rows of containers at a port."     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/YxAYawQMtf7CTsT58dXD.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#future-features">Future features</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#import.meta.resolve">import.meta.resolve</a></li><li class="toc__listitem"><a class="toc__anchor" href="#import-assertions">Import assertions</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#conclusion">Conclusion</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="bundling-non-javascript-resources">Bundling non-JavaScript resources</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            Learn how to import and bundle various types of assets from JavaScript.
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Sep 8, 2021</time>
+            
+          </div>
+        
+
+        
+        
+
+        
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/rreverser/"> <img     alt="Ingvar Stepanyan"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/Ma3ckXmLV7aj1rVgVT1I.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/Ma3ckXmLV7aj1rVgVT1I.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/Ma3ckXmLV7aj1rVgVT1I.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/Ma3ckXmLV7aj1rVgVT1I.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/Ma3ckXmLV7aj1rVgVT1I.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/Ma3ckXmLV7aj1rVgVT1I.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/rreverser/">Ingvar Stepanyan</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/RReverser">Twitter</a>
+               <a href="https://github.com/RReverser">GitHub</a>
+               
+               <a href="https://rreverser.com/">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#future-features">Future features</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#import.meta.resolve">import.meta.resolve</a></li><li class="toc__listitem"><a class="toc__anchor" href="#import-assertions">Import assertions</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#conclusion">Conclusion</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <p>Suppose you're working on a web app. In that case, it's likely that you have to deal not only with JavaScript modules, but also with all sorts of other resources—Web Workers (which are also JavaScript, but not part of the regular module graph), images, stylesheets, fonts, WebAssembly modules and others.</p>
+<p>It's possible to include references to some of those resources directly in the HTML, but often they're logically coupled to reusable components. For example, a stylesheet for a custom dropdown tied to its JavaScript part, icon images tied to a toolbar component, or WebAssembly module tied to its JavaScript glue. In those cases, it's more convenient to reference the resources directly from their JavaScript modules and load them dynamically when (or if) the corresponding component is loaded.</p>
+<img     alt="Graph visualising various types of asssets imported into JS."          decoding="async"     height="496"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format"     srcset="https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/9oK23mr86lhFOwKaoYZ4EySNFp02/QBZDTToXECua2ixAZf9U.png?auto=format&w=1600 1600w"          width="800"   />
+<p>However, most large projects have build systems that perform additional optimizations and reorganization of content—for example, bundling and minification. They can't execute the code and predict what the result of execution will be, nor can they traverse every possible string literal in JavaScript and make guesses about whether it's a resource URL or not. So how can you make them &quot;see&quot; those dynamic assets loaded by JavaScript components, and include them in the build?</p>
+<h3 id="custom-imports-in-bundlers">Custom imports in bundlers <a class="w-headline-link" href="#custom-imports-in-bundlers">#</a></h3>
+<p>One common approach is to reuse the static import syntax. In some bundlers it might auto-detect format by the file extension, while others allow plugins to use a custom URL scheme like in the following example:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token comment">// regular JavaScript import</span><br><span class="token keyword">import</span> <span class="token punctuation">{</span> loadImg <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'./utils.js'</span><span class="token punctuation">;</span><br><br><span class="token comment">// special "URL imports" for assets</span><br><span class="token keyword">import</span> imageUrl <span class="token keyword">from</span> <span class="token string">'asset-url:./image.png'</span><span class="token punctuation">;</span><br><span class="token keyword">import</span> wasmUrl <span class="token keyword">from</span> <span class="token string">'asset-url:./module.wasm'</span><span class="token punctuation">;</span><br><span class="token keyword">import</span> workerUrl <span class="token keyword">from</span> <span class="token string">'js-url:./worker.js'</span><span class="token punctuation">;</span><br><br><span class="token function">loadImg</span><span class="token punctuation">(</span>imageUrl<span class="token punctuation">)</span><span class="token punctuation">;</span><br>WebAssembly<span class="token punctuation">.</span><span class="token function">instantiateStreaming</span><span class="token punctuation">(</span><span class="token function">fetch</span><span class="token punctuation">(</span>wasmUrl<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">new</span> <span class="token class-name">Worker</span><span class="token punctuation">(</span>workerUrl<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>When a bundler plugin finds an import with either an extension it recognizes or such an explicit custom scheme (<code>asset-url:</code> and <code>js-url:</code> in the example above), it adds the referenced asset to the build graph, copies it to the final destination, performs optimizations applicable for the asset's type and returns the final URL to be used during runtime.</p>
+<p>The benefits of this approach: reusing the JavaScript import syntax guarantees that all URLs are static and relative to the current file, which makes locating such dependencies easy for the build system.</p>
+<p>However, it has one significant drawback: such code can't work directly in the browser, as the browser doesn't know how to handle those custom import schemes or extensions. This might be fine if you control all the code and rely on a bundler for development anyway, but it's increasingly common to use JavaScript modules directly in the browser, at least during development, to reduce the friction. Someone working on a small demo might not even need a bundler at all, even in production.</p>
+<h3 id="universal-pattern-for-browsers-and-bundlers">Universal pattern for browsers and bundlers <a class="w-headline-link" href="#universal-pattern-for-browsers-and-bundlers">#</a></h3>
+<p>If you're working on a reusable component, you'd want it to function in either environment, whether it's used directly in the browser or pre-built as part of a larger app. Most modern bundlers allow for this by accepting the following pattern in JavaScript modules:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">new</span> <span class="token class-name">URL</span><span class="token punctuation">(</span><span class="token string">'./relative-path'</span><span class="token punctuation">,</span> <span class="token keyword">import</span><span class="token punctuation">.</span>meta<span class="token punctuation">.</span>url<span class="token punctuation">)</span></code></pre>
+</web-copy-code><p>This pattern can be detected statically by tools, almost as if it was a special syntax, yet it's a valid JavaScript expression that works directly in the browser, too.</p>
+<p>When using this pattern, the example above can be rewritten as:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token comment">// regular JavaScript import</span><br><span class="token keyword">import</span> <span class="token punctuation">{</span> loadImg <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'./utils.js'</span><span class="token punctuation">;</span><br><br><span class="token function">loadImg</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">URL</span><span class="token punctuation">(</span><span class="token string">'./image.png'</span><span class="token punctuation">,</span> <span class="token keyword">import</span><span class="token punctuation">.</span>meta<span class="token punctuation">.</span>url<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>WebAssembly<span class="token punctuation">.</span><span class="token function">instantiateStreaming</span><span class="token punctuation">(</span><br>  <span class="token function">fetch</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">URL</span><span class="token punctuation">(</span><span class="token string">'./module.wasm'</span><span class="token punctuation">,</span> <span class="token keyword">import</span><span class="token punctuation">.</span>meta<span class="token punctuation">.</span>url<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span><br>  <span class="token punctuation">{</span> <span class="token comment">/* … */</span> <span class="token punctuation">}</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">new</span> <span class="token class-name">Worker</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">URL</span><span class="token punctuation">(</span><span class="token string">'./worker.js'</span><span class="token punctuation">,</span> <span class="token keyword">import</span><span class="token punctuation">.</span>meta<span class="token punctuation">.</span>url<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>How does it work? Let's break it up. The <code>new URL(...)</code> constructor takes a relative URL as the first argument and resolves it against an absolute URL provided as the second argument. In our case, the second argument is <a href="https://v8.dev/features/modules#import-meta" rel="noopener"><code>import.meta.url</code></a> which gives the URL of the current JavaScript module, so the first argument can be any path relative to it.</p>
+<p>It has similar tradeoffs to the <a href="https://v8.dev/features/dynamic-import" rel="noopener">dynamic import</a>. While it's possible to use <code>import(...)</code> with arbitrary expressions like <code>import(someUrl)</code>, the bundlers give special treatment to a pattern with static URL <code>import('./some-static-url.js')</code> as a way to preprocess a dependency known at compile-time, yet <a href="https://web.dev/reduce-javascript-payloads-with-code-splitting/">split it out into its own chunk</a> that's loaded dynamically.</p>
+<p>Similarly, you can use <code>new URL(...)</code> with arbitrary expressions like <code>new URL(relativeUrl, customAbsoluteBase)</code>, yet the <code>new URL('...', import.meta.url)</code> pattern is a clear signal for bundlers to preprocess and include a dependency alongside the main JavaScript.</p>
+<h3 id="ambiguous-relative-urls">Ambiguous relative URLs <a class="w-headline-link" href="#ambiguous-relative-urls">#</a></h3>
+<p>You might be wondering, why can't bundlers detect other common patterns—for example, <code>fetch('./module.wasm')</code> without the <code>new URL</code> wrappers?</p>
+<p>The reason is that, unlike import statements, any dynamic requests are resolved relatively to the document itself, and not to the current JavaScript file. Let's say you have the following structure:</p>
+<ul>
+<li><code>index.html</code>:<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>src/main.js<span class="token punctuation">"</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>module<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code></li>
+<li><code>src/</code>
+<ul>
+<li><code>main.js</code></li>
+<li><code>module.wasm</code></li>
+</ul>
+</li>
+</ul>
+<p>If you want to load <code>module.wasm</code> from <code>main.js</code>, it might be tempting to use a relative path like <code>fetch('./module.wasm')</code>.</p>
+<p>However, <code>fetch</code> does not know the URL of the JavaScript file it's executed in, instead, it resolves URLs relatively to the document. As a result, <code>fetch('./module.wasm')</code> would end up trying to load <code>http://example.com/module.wasm</code> instead of the intended <code>http://example.com/src/module.wasm</code> and fail (or, worse, silently load a different resource than you intended).</p>
+<p>By wrapping the relative URL into <code>new URL('...', import.meta.url)</code> you can avoid this problem and guarantee that any provided URL is resolved relative to the URL of the current JavaScript module (<code>import.meta.url</code>) before it's passed on to any loaders.</p>
+<p>Replace <code>fetch('./module.wasm')</code> with <code>fetch(new URL('./module.wasm', import.meta.url))</code> and it will successfully load the expected WebAssembly module, as well as give bundlers a way to find those relative paths during the build time too.</p>
+<h3 id="tooling-support">Tooling support <a class="w-headline-link" href="#tooling-support">#</a></h3>
+<h4 id="bundlers">Bundlers <a class="w-headline-link" href="#bundlers">#</a></h4>
+<p>Following bundlers support the <code>new URL</code> scheme already:</p>
+<ul>
+<li><a href="https://webpack.js.org/guides/asset-modules/#url-assets" rel="noopener">Webpack v5</a></li>
+<li><a href="https://rollupjs.org/" rel="noopener">Rollup</a> (Achieved via plugins—<a href="https://modern-web.dev/docs/building/rollup-plugin-import-meta-assets/" rel="noopener">@web/rollup-plugin-import-meta-assets</a> for generic assets and <a href="https://github.com/surma/rollup-plugin-off-main-thread" rel="noopener">@surma/rollup-plugin-off-main-thread</a> for Workers specifically.)</li>
+<li><a href="https://v2.parceljs.org/languages/javascript/#url-dependencies" rel="noopener">Parcel v2 (beta)</a></li>
+<li><a href="https://vitejs.dev/guide/assets.html#new-url-url-import-meta-url" rel="noopener">Vite</a></li>
+</ul>
+<h4 id="webassembly">WebAssembly <a class="w-headline-link" href="#webassembly">#</a></h4>
+<p>When working with WebAssembly, you will commonly not load the Wasm module by hand, but instead import the JavaScript glue emitted by the toolchain. The following toolchains can emit the described <code>new URL(...)</code> pattern under the hood for you.</p>
+<h5 id="cc++-via-emscripten">C/C++ via Emscripten <a class="w-headline-link" href="#cc++-via-emscripten">#</a></h5>
+<p>When using Emscripten, you can ask it to emit JavaScript glue as an ES6 module instead of a regular script via one of the following options:</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell">$ emcc input.cpp -o output.mjs<br><span class="token comment">## or, if you don't want to use .mjs extension</span><br>$ emcc input.cpp -o output.js -s EXPORT_ES6</code></pre>
+</web-copy-code><p>When using this option, the output will use the <code>new URL(..., import.meta.url)</code> pattern under the hood, so that bundlers can find the associated Wasm file automatically.</p>
+<p>You can also use this option with <a href="https://web.dev/webassembly-threads/#c">WebAssembly threads</a> by adding a <code>-pthread</code> flag:</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell">$ emcc input.cpp -o output.mjs -pthread<br><span class="token comment">## or, if you don't want to use .mjs extension</span><br>$ emcc input.cpp -o output.js -s EXPORT_ES6 -pthread</code></pre>
+</web-copy-code><p>In this case, the generated Web Worker will be included in the same fashion and will also be discoverable by bundlers and browsers alike.</p>
+<h5 id="rust-via-wasm-pack-wasm-bindgen">Rust via wasm-pack / wasm-bindgen <a class="w-headline-link" href="#rust-via-wasm-pack-wasm-bindgen">#</a></h5>
+<p><a href="https://github.com/rustwasm/wasm-pack" rel="noopener">wasm-pack</a>—the primary Rust toolchain for WebAssembly—also has several output modes.</p>
+<p>By default, it will emit a JavaScript module that relies on the <a href="https://github.com/WebAssembly/esm-integration" rel="noopener">WebAssembly ESM integration proposal</a>. At the moment of writing, this proposal is still experimental, and the output will work only when bundled with Webpack.</p>
+<p>Instead, you can ask wasm-pack to emit a browser-compatible ES6 module via <code>--target web</code>:</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell">$ wasm-pack build --target web</code></pre>
+</web-copy-code><p>The output will use the described <code>new URL(..., import.meta.url)</code> pattern, and the Wasm file will be automatically discovered by bundlers as well.</p>
+<p>If you want to use WebAssembly threads with Rust, the story is a bit more complicated. Check out the <a href="https://web.dev/webassembly-threads/#rust">corresponding section of the guide</a> to learn more.</p>
+<p>Short version is that you can't use arbitrary thread APIs, but if you use <a href="https://github.com/rayon-rs/rayon" rel="noopener">Rayon</a>, you can combine it with the <a href="https://github.com/GoogleChromeLabs/wasm-bindgen-rayon" rel="noopener">wasm-bindgen-rayon</a> adapter so that it can spawn Workers on the Web. The JavaScript glue used by wasm-bindgen-rayon <a href="https://github.com/GoogleChromeLabs/wasm-bindgen-rayon/blob/4cd0666d2089886d6e8731de2371e7210f848c5d/demo/index.js#L26" rel="noopener">also includes</a> the <code>new URL(...)</code> pattern under the hood, and so the Workers will be discoverable and included by bundlers as well.</p>
+<h2 id="future-features">Future features <a class="w-headline-link" href="#future-features">#</a></h2>
+<h3 id="import.meta.resolve">import.meta.resolve <a class="w-headline-link" href="#import.meta.resolve">#</a></h3>
+<p>A dedicated <code>import.meta.resolve(...)</code> call is a potential future improvement. It would allow resolving specifiers relatively to the current module in a more straightforward fashion, without extra params:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><del class="highlight-line highlight-line-remove"><span class="token keyword">new</span> <span class="token class-name">URL</span><span class="token punctuation">(</span><span class="token string">'...'</span><span class="token punctuation">,</span> <span class="token keyword">import</span><span class="token punctuation">.</span>meta<span class="token punctuation">.</span>url<span class="token punctuation">)</span></del><br><ins class="highlight-line highlight-line-add"><span class="token keyword">await</span> <span class="token keyword">import</span><span class="token punctuation">.</span>meta<span class="token punctuation">.</span><span class="token function">resolve</span><span class="token punctuation">(</span><span class="token string">'...'</span><span class="token punctuation">)</span></ins></code></pre>
+</web-copy-code><p>It would also integrate better with import maps and custom resolvers as it would go through the same module resolution system as <code>import</code>. It would be a stronger signal for bundlers too as it's a static syntax that doesn't depend on runtime APIs like <code>URL</code>.</p>
+<p><code>import.meta.resolve</code> is already implemented <a href="https://nodejs.org/api/esm.html#esm_import_meta_resolve_specifier_parent" rel="noopener">as an experiment in Node.js</a> but there are still some <a href="https://github.com/WICG/import-maps/issues/79" rel="noopener">unresolved questions</a> about how it should work on the web.</p>
+<h3 id="import-assertions">Import assertions <a class="w-headline-link" href="#import-assertions">#</a></h3>
+<p>Import assertions are a new feature that allows to import types other than ECMAScript modules. For now they're limited to JSON:</p>
+<p class="w-label">foo.json:</p>
+<web-copy-code><pre class="language-json"><code class="language-json"><span class="token punctuation">{</span> <span class="token property">"answer"</span><span class="token operator">:</span> <span class="token number">42</span> <span class="token punctuation">}</span></code></pre>
+</web-copy-code><p class="w-label">main.mjs:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">import</span> json <span class="token keyword">from</span> <span class="token string">'./foo.json'</span> <span class="token keyword">assert</span> <span class="token punctuation">{</span> type<span class="token operator">:</span> <span class="token string">'json'</span> <span class="token punctuation">}</span><span class="token punctuation">;</span><br>console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>json<span class="token punctuation">.</span>answer<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 42</span></code></pre>
+</web-copy-code><p>They might also be used by bundlers and replace the use-cases currently covered by the <code>new URL</code> pattern, but types in import assertions are added on a per-case basis. For now they only cover JSON, with CSS modules coming up soon, but other kinds of assets will still require a more generic solution.</p>
+<p>Check out the <a href="https://v8.dev/features/import-assertions" rel="noopener">v8.dev feature explainer</a> to learn more about this feature.</p>
+<h2 id="conclusion">Conclusion <a class="w-headline-link" href="#conclusion">#</a></h2>
+<p>As you can see, there are various ways to include non-JavaScript resources on the web, but they have various drawbacks and don't work across various toolchains. Future proposals might let us import such assets with specialized syntax, but we're not quite there yet.</p>
+<p>Until then, the <code>new URL(..., import.meta.url)</code> pattern is the most promising solution that already works in browsers, various bundlers and WebAssembly toolchains today.</p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/webassembly/">WebAssembly</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/modules/">Modules</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/javascript/">JavaScript</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Sep 8, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/blog/bundling-non-js-resources/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@RReverser"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

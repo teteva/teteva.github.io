@@ -1,0 +1,1009 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=bdfa1c3b0058c">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=678c7f905a455">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>よりプライベートな広告コンバージョンの測定方法である Event Conversion Measurement API について</title>
+<meta name="description" content="" />
+
+<link rel="canonical" href="https://web.dev/i18n/ja/conversion-measurement/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/conversion-measurement/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/conversion-measurement/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/conversion-measurement/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/conversion-measurement/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/conversion-measurement/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/conversion-measurement/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/conversion-measurement/" />
+<meta itemprop="name" content="よりプライベートな広告コンバージョンの測定方法である Event Conversion Measurement API について" />
+<meta itemprop="description" content="" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="ja_JP" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/ja/conversion-measurement/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="よりプライベートな広告コンバージョンの測定方法である Event Conversion Measurement API について" />
+<meta property="og:description" content="" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="privacy" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="よりプライベートな広告コンバージョンの測定方法である Event Conversion Measurement API について" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=37576dda42c6a', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=2f3c1cffce4da', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          学習する
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        測定する
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        ブログ
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        概要
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">閉じる</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt=""     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="このページ内">
+    <div class="course-toc__heading font-google-sans weight-medium">このページ内</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#api">この API について知っておく必要があるのは、アドテック プラットフォーム、広告主、パブリッシャーです。</a></li><li class="toc__listitem"><a class="toc__anchor" href="#api-2">API の概要</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-2">なぜこれが必要なのですか？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">最初のイテレーション</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">クリックのみ</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">使い方</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#api-3">ブラウザーのサポートと類似する API</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-6">ブラウザーのサポート</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-7">標準化</a></li><li class="toc__listitem"><a class="toc__anchor" href="#api-4">同様の API</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#api-5">この API がユーザーのプライバシーを保護する方法</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-8">データ制限</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-9">コンバージョン データのノイズ</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-10">レポートのタイミング</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-11">例</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#(-1-5)">広告クリック (ステップ 1 から 5)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#(-6-9)">変換とレポートのスケジュール (ステップ 6 から 9)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#(-10-11)">レポートの送信 (ステップ 10 および 11)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-12">その後の変換と有効期限</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-13">ユース ケース</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-14">現在サポートされているもの</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-15">このイテレーションでサポートされていないもの</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-16">将来のイテレーションで変わる可能性があるもの</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-17">お試しください</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-18">デモ</a></li><li class="toc__listitem"><a class="toc__anchor" href="#api-6">API をお試しください</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-19">フィードバックを共有する</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-20">最新情報の確認をお忘れなく</a></li></ul></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="event-conversion-measurement-api">よりプライベートな広告コンバージョンの測定方法である Event Conversion Measurement API について</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            オリジン トライアルとして利用可能な新しい Web API がクロスサイト ID を使用せずに、広告のクリックがコンバージョンにつながるタイミングを測定します。
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Oct 6, 2020</time>
+             — 更新済み <time>May 4, 2020</time> 
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/conversion-measurement/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/conversion-measurement/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/conversion-measurement/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/conversion-measurement/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/conversion-measurement/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/conversion-measurement/">
+      English</a></span>
+        </div>
+        
+
+        
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/maudn/"> <img     alt="Maud Nalpas"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/maudn/">Maud Nalpas</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/maudnals">Twitter</a>
+               <a href="https://github.com/maudnals">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/samdutton/"> <img     alt="Sam Dutton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/wPss4TJX9IJ1CJza7iFY.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/wPss4TJX9IJ1CJza7iFY.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/wPss4TJX9IJ1CJza7iFY.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/wPss4TJX9IJ1CJza7iFY.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/wPss4TJX9IJ1CJza7iFY.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/wPss4TJX9IJ1CJza7iFY.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/samdutton/">Sam Dutton</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/sw12">Twitter</a>
+               <a href="https://github.com/samdutton">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="このページ内">
+      <summary>
+        このページ内
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#api">この API について知っておく必要があるのは、アドテック プラットフォーム、広告主、パブリッシャーです。</a></li><li class="toc__listitem"><a class="toc__anchor" href="#api-2">API の概要</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-2">なぜこれが必要なのですか？</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">最初のイテレーション</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">クリックのみ</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-5">使い方</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#api-3">ブラウザーのサポートと類似する API</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-6">ブラウザーのサポート</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-7">標準化</a></li><li class="toc__listitem"><a class="toc__anchor" href="#api-4">同様の API</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#api-5">この API がユーザーのプライバシーを保護する方法</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-8">データ制限</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-9">コンバージョン データのノイズ</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-10">レポートのタイミング</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-11">例</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#(-1-5)">広告クリック (ステップ 1 から 5)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#(-6-9)">変換とレポートのスケジュール (ステップ 6 から 9)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#(-10-11)">レポートの送信 (ステップ 10 および 11)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-12">その後の変換と有効期限</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-13">ユース ケース</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-14">現在サポートされているもの</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-15">このイテレーションでサポートされていないもの</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-16">将来のイテレーションで変わる可能性があるもの</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-17">お試しください</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-18">デモ</a></li><li class="toc__listitem"><a class="toc__anchor" href="#api-6">API をお試しください</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-19">フィードバックを共有する</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-20">最新情報の確認をお忘れなく</a></li></ul></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <div role="banner" class="banner bg-state-bad-bg color-core-text">
+    <div class="banner__content flow">
+      Conversion Measurement API は <em>Attribution Reporting API</em> に名前が変更され、さらなる機能を提供します。
+<ul>
+<li>
+<p><a href="https://chromestatus.com/features/schedule">Chrome 91</a> <a href="https://github.com/WICG/conversion-measurement-api/blob/3e0ef7d3cee8d7dc5a4b953e70cb027b0e13943b/README.md">以下で (Conversion Measurement API</a> ) をお試しの方は、この投稿を読んで、API の詳細、使用例、手順を確認してください。</p>
+</li>
+<li>
+<p>Chrome (オリジン トライアル) での実験に利用できるこの API (Attribution Reporting) の次のイテレーションに興味がある方は、<a href="https://groups.google.com/u/1/a/chromium.org/g/attribution-reporting-api-dev">メーリングリストにご登録の上、利用可能な実験の最新情報をご確認ください。</a></p>
+  </div>
+  </div>
+</li>
+</ul>
+<p>広告キャンペーンの効果を測定するために、広告主とサイト運営者は、広告のクリックまたは表示が購入や申し込みなどの<a href="/digging-into-the-privacy-sandbox/#conversion">コンバージョンにつながる時期を知る必要があります。</a><strong>歴史的に、これはサードパーティの Cookie を使用</strong>して行われてきました。現在、Event Conversion Measurement API を使用すると、サイト間でユーザーを認識するために使用できるメカニズムを使用せずに、サイト運営者の Web サイトでのイベントとその後の広告主サイトでのコンバージョンを関連付けることができます。</p>
+<div role="banner" class="banner bg-state-info-bg color-core-text">
+    <div class="banner__content flow">
+      **この提案には、皆さまからのフィードバックが必要です。**コメントをお持ちの方は、API プロポーザルのリポジトリで<a href="https://github.com/WICG/conversion-measurement-api/issues/">課題を作成してください。</a> 
+    </div>
+    </div>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>この API は、プライバシーサンドボックスの一部であり、サードパーティの Cookie やその他のクロスサイト追跡メカニズムを使用せずにサードパーティのユース ケースを満たす一連の提案です。すべての提案の概要については、「<a href="/digging-into-the-privacy-sandbox">Digging into the Privacy Sandbox</a>」を参照してください。</p>
+</div></aside>
+<h2 id="">用語集 <a class="w-headline-link" href="#">#</a></h2>
+<ul>
+<li><strong>アドテック プラットフォーム</strong>: ブランドや代理店がデジタル広告をターゲティング、配信、分析できるようにするソフトウェアやツールを提供する企業。</li>
+<li><strong>広告主</strong>: 広告にお金を払っている会社。</li>
+<li><strong>サイト運営者</strong>：ウェブサイトに広告を表示する会社。</li>
+<li><strong>クリックスルー コンバージョン</strong>: 広告のクリックに起因するコンバージョン。</li>
+<li><strong>ビュースルー コンバージョン</strong>: 広告のインプレッションに起因するコンバージョン (ユーザーが広告を操作しなかった場合は、後でコンバージョンします)。</li>
+</ul>
+<h2 id="api">この API について知っておく必要があるのは、アドテック プラットフォーム、広告主、パブリッシャーです。 <a class="w-headline-link" href="#api">#</a></h2>
+<ul>
+<li><strong><a href="https://en.wikipedia.org/wiki/Demand-side_platform" rel="noopener">デマンドサイド</a></strong> プラットフォームなどの<strong>アドテック プラットフォーム</strong>は、現在サードパーティの Cookie に依存している機能をサポートするためにこの API を使用することに関心を持つ可能性が高いでしょう。変換測定システムの開発に取り組んでいる方は、<a href="#experiment-with-the-api">デモを試し</a>、<a href="#demo">API を使って実験を行い</a>、<a href="#share-your-feedback">フィードバックを共有</a>していただくようお願いします。</li>
+<li><strong>広告やコンバージョンの測定にカスタム コードを使用している広告主やサイト運営者</strong>も、同様にこの API を使用して既存の手法を置き換えることに関心があるかもしれません。</li>
+<li><strong>広告またはコンバージョン測定に関してアドテック プラットフォームに依存している広告主およびパブリッシャー</strong>は、API を直接使用する必要はありませんが、API を統合する可能性のあるアドテック プラットフォームを使用している場合には、特に<a href="#why-is-this-needed">この API の理論的根拠</a>に興味を示されるかもしれません。</li>
+</ul>
+<h2 id="api-2">API の概要 <a class="w-headline-link" href="#api-2">#</a></h2>
+<h3 id="-2">なぜこれが必要なのですか？ <a class="w-headline-link" href="#-2">#</a></h3>
+<p>今日、広告コンバージョンの測定は、多くの場合、 <a href="https://developer.mozilla.org/docs/Web/HTTP/Cookies#Third-party_cookies" rel="noopener">サードパーティ Cookie</a> に依存しています。<strong>しかし、ブラウザーはこれらへのアクセスを制限しています。</strong></p>
+<p><a href="https://blog.chromium.org/2020/01/building-more-private-web-path-towards.html" rel="noopener">Chromeは、サードパーティ Cookie のサポートを段階的に廃止することを</a>計画しており<a href="https://support.google.com/chrome/answer/95647?co=GENIE.Platform%3DDesktop&amp;hl=en" rel="noopener">、ユーザーが選択した場合に</a> Cookie をブロックする方法を提供します。 Safari は<a href="https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/" rel="noopener">サードパーティ Cookie</a> をブロックし、Firefox は<a href="https://blog.mozilla.org/blog/2019/09/03/todays-firefox-blocks-third-party-tracking-cookies-and-cryptomining-by-default" rel="noopener">既知のサードパーティ追跡 Cookie をブロックし</a>、また Edge は<a href="https://support.microsoft.com/en-us/help/4533959/microsoft-edge-learn-about-tracking-prevention?ocid=EdgePrivacySettings-TrackingPrevention" rel="noopener">追跡防止を提供します</a>。</p>
+<p>サードパーティ Cookie はレガシー ソリューションになりつつあります。<strong>このような新しい専用の API</strong> は、サードパーティ Cookie が解決したユース ケースにプライバシーを保護する方法で対処する目的で使用が広まっています。</p>
+<p><strong>Event Conversion Measurement API はサードパーティ Cookie とどのような点で異なりますか？</strong></p>
+<ul>
+<li>Cookie とは異なり、コンバージョンを測定する**ために設計されています。**これにより、ブラウザーはより強化されたプライバシー保護を適用できるようになります。</li>
+<li><strong>より高いレベルのプライバシー</strong>を提供します。たとえば、サイト運営者側と広告主側のユーザー プロファイルをリンクするなど、2 つの異なるトップレベル サイトで同じユーザーを特定することが難しくなります。詳細については、「<a href="#how-this-api-preserves-user-privacy">How this API preserves user privacy</a>」を参照してください。</li>
+</ul>
+<h3 id="-3">最初のイテレーション <a class="w-headline-link" href="#-3">#</a></h3>
+<p>この API は<strong>初期の実験段階にあり</strong>ます。オリジン トライアルとして利用できるのは、API の<strong>最初のイテレーション</strong>です。<a href="#use-cases">将来のイテレーション</a>では、状況が大幅に変わる可能性があります。</p>
+<h3 id="-4">クリックのみ <a class="w-headline-link" href="#-4">#</a></h3>
+<p>この API のイテレーションは、<strong>クリックスルー コンバージョン測定</strong>のみをサポートしていますが、 <a href="https://github.com/WICG/conversion-measurement-api/blob/main/event_attribution_reporting.md" rel="noopener">ビュースルー コンバージョン測定</a>は公開中です。</p>
+<h3 id="-5">使い方 <a class="w-headline-link" href="#-5">#</a></h3>
+<figure>
+  <img     alt="図：変換測定 API ステップの概要"          decoding="async"     height="496"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>この API は、広告に使用される 2 種類のリンク (<code>&lt;a&gt;</code> 要素) で使用できます。</p>
+<ul>
+<li><strong>ファーストパーティのコンテキスト</strong>におけるリンク。ソーシャル ネットワーク上の広告や検索エンジンの結果ページなど。</li>
+<li><strong>サードパーティの iframe</strong> におけるリンク。サードパーティのアドテック プロバイダーを使用するパブリッシャー サイトなど。</li>
+</ul>
+<p>この API を使用すると、このようなアウトバウンド リンクを広告コンバージョンに固有の属性で構成できます。</p>
+<ul>
+<li>クリック ID やキャンペーン ID など、サイト運営者側の広告クリックに添付するカスタム データ。</li>
+<li>この広告のコンバージョンが見込まれる Web サイト。</li>
+<li>変換が成功したことを通知する必要があるレポート エンドポイント。</li>
+<li>この広告でコンバージョンをカウントできなくなった締め切り日時。</li>
+</ul>
+<p>ユーザーが広告をクリックすると、(ユーザーのローカル デバイスの) ブラウザーがこのイベントをコンバージョン設定とともに記録し、 <code>&lt;a&gt;</code>要素のコンバージョン測定属性で指定されたデータをクリックします。</p>
+<p>その後、ユーザーは広告主の Web サイトにアクセスして、広告主またはそのアドテック プロバイダーが<strong>コンバージョン</strong>として分類するアクションを実行できます。これが発生した場合、広告クリックとコンバージョン イベントはユーザーのブラウザーによって照合されます。</p>
+<p>ブラウザーは最終的に <code>&lt;a&gt;</code> 要素の属性で指定されたエンドポイントに送信される<strong>コンバージョン レポート</strong>をスケジュールします。このレポートには、このコンバージョンにつながった広告クリックに関するデータと、コンバージョンに関するデータが含まれています。</p>
+<p>特定の広告クリックに対して複数のコンバージョンが登録されている場合、対応するレポートが多数送信されるようにスケジュールされます (広告クリックごとに最大 3 つ)。</p>
+<p>レポートは、変換後数日または場合によっては数週間の遅延後に送信されます (<a href="#report-timing">レポートのタイミングで</a>理由を参照してください)。</p>
+<h2 id="api-3">ブラウザーのサポートと類似する API <a class="w-headline-link" href="#api-3">#</a></h2>
+<h3 id="-6">ブラウザーのサポート <a class="w-headline-link" href="#-6">#</a></h3>
+<p>Event Conversion Measurement API をサポートできます。</p>
+<ul>
+<li><a href="/origin-trials/">オリジン トライアル</a>としてサポート可能。オリジン トライアルは、特定の<a href="/same-site-same-origin/#origin">オリジンの</a><strong>すべての訪問者</strong>に対して API を有効にします。<strong>エンド ユーザーで API を試すには、オリジン トライアルにオリジンを登録する必要があります</strong>。オリジン トライアルの詳細については、「<a href="/using-conversion-measurement">変換測定 API の使用</a>」を参照してください。</li>
+<li>Chrome 86 以降でフラグをオンにする。<strong>フラグは、単一ユーザー</strong>のブラウザーで API を有効にします。<strong>フラグは、ローカルで開発するときに役立ちます</strong>。</li>
+</ul>
+<p><a href="https://chromestatus.com/features/6412002824028160" rel="noopener">Chrome 機能エントリ</a>の現在のステータスの詳細をご覧ください。</p>
+<h3 id="-7">標準化 <a class="w-headline-link" href="#-7">#</a></h3>
+<p>この API は、Web Platform Incubator Community Group (<a href="https://www.w3.org/community/wicg/" rel="noopener">WICG</a>) でオープンに設計されています。Chrome での実験に利用可能です。</p>
+<h3 id="api-4">同様の API <a class="w-headline-link" href="#api-4">#</a></h3>
+<p>Safari で使用される Web ブラウザー エンジンである  WebKit には、同様の目標を持つ提案である<a href="https://github.com/privacycg/private-click-measurement" rel="noopener">プライベート クリック測定</a>があります。プライバシー コミュニティ グループ (<a href="https://www.w3.org/community/privacycg/" rel="noopener">PrivacyCG</a>) 内で作業中です。</p>
+<h2 id="api-5">この API がユーザーのプライバシーを保護する方法 <a class="w-headline-link" href="#api-5">#</a></h2>
+<p>この API を使用すると、ユーザーのプライバシーを保護しながらコンバージョンを測定できます。ユーザーはサイト間で認識されません。<strong>これは、データ制限</strong>、<strong>変換データの通知</strong>、および<strong>レポートのタイミング</strong> メカニズムによって可能になります。</p>
+<p>これらのメカニズムがどのように機能するか、そしてそれらが実際に何を意味するかを詳しく見てみましょう。</p>
+<h3 id="-8">データ制限 <a class="w-headline-link" href="#-8">#</a></h3>
+<p>以下において、<strong>クリック時間または表示時間のデータ</strong>は、広告がユーザーに配信されてからクリックまたは表示されたときに <code>adtech.example</code> で利用できるデータです。変換が発生したときのデータは、<strong>コンバージョン時間データ</strong>です。</p>
+<p><strong>パブリッシャー</strong> <code>news.example</code> と<strong>広告主</strong> <code>shoes.example</code> を見てみましょう。<strong>アドテック プラットフォーム</strong> <code>adtech.example</code> のサードパーティ スクリプトがパブリッシャー サイト <code>news.example</code> に存在しており、広告主 <code>shoes.example</code> の広告が含まれています。<code>shoes.example</code> には、コンバージョンを検出するための <code>adtech.example</code> が含まれています。</p>
+<p><code>adtech.example</code> は Web ユーザーについてどのくらい学ぶことができますか？</p>
+<h4 id="cookie">サードパーティ Cookie を使用 <a class="w-headline-link" href="#cookie">#</a></h4>
+<figure>
+  <img     alt="図：サードパーティ Cookie がクロスサイト ユーザーの認識を可能にする方法"          decoding="async"     height="860"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p><code>adtech.example</code> は、<strong>サイト間でユーザーを認識する</strong>ために、<strong>一意のクロスサイト識別子として使用されるサードパーティ Cookie</strong> に依存しています。さらに、<code>adtech.example</code> は、詳細なクリック時間または表示時間のデータと詳細な変換時間のデータの<strong>両方</strong>にアクセスし、それらをリンクすることができます。</p>
+<p>その結果、<code>adtech.example</code> は、1 人のユーザーによる広告ビューからクリック、コンバージョンにおよぶサイト全体の行動を追跡できます。</p>
+<p><code>adtech.example</code>、<code>news.example</code>、<code>shoes.example</code> だけでなく、多数のサイト運営者や広告主のサイトに存在する可能性が高いため、ユーザーの行動を Web 全体で追跡できます。</p>
+<h4 id="event-conversion-measurement-api">Event Conversion Measurement API を使用 <a class="w-headline-link" href="#event-conversion-measurement-api">#</a></h4>
+<figure>
+  <img     alt="図：API がクロスサイトユーザー認識なしでコンバージョン測定を可能にする方法"          decoding="async"     height="643"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption>Cookie 図の「広告 ID」と「クリック ID」はどちらも、詳細データへのマッピングを可能にする識別子です。この図では、クリックスルー コンバージョン測定のみがサポートされているため、「クリック ID」と呼ばれています。</figcaption>
+</figure>
+<p><code>adtech.example</code> はクロスサイト識別子を使用できないため、<strong>サイト間でユーザーを認識できません</strong>。</p>
+<ul>
+<li>64 ビット識別子を広告クリックに添付できます。</li>
+<li>変換イベントに添付できる変換データは 3 ビットのみです。3 ビットは 0 から 7 までの整数値に適合できます。これは多くのデータではありませんが、広告主が将来の広告予算をどこに使うかについて適切な決定を下す方法を学ぶのに十分です (たとえば、データモデルのトレーニングによって)。</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>クリック データとコンバージョン データが同じコンテキストの JavaScript 環境に公開されることはありません。</p>
+</div></aside>
+<h4 id="cookie-2">サードパーティ Cookie に代わるものなし <a class="w-headline-link" href="#cookie-2">#</a></h4>
+<p>Event Conversion Measurement API などのサードパーティ Cookie に代わるものがなければ、コンバージョンを <code>adtech.example</code> することはできません。adtech.example がサイト運営者と広告主の両方のサイトに存在する場合は、クリック時間またはコンバージョン時間のデータにアクセスできますが、それらをリンクすることは一切できません。</p>
+<p>この場合、ユーザーのプライバシーは保護されますが、広告主は広告費を最適化できません。Event Conversion Measurement API のような代替手段が必要なのはこのためです。</p>
+<h3 id="-9">コンバージョン データのノイズ <a class="w-headline-link" href="#-9">#</a></h3>
+<p>変換時に収集された 3 ビットには<strong>ノイズ</strong>が発生します。</p>
+<p>たとえば、Chrome の実装では、データ ノイズは次のように機能します。API は 5％ の確率で実際のコンバージョン データではなくランダムな 3 ビット値をレポートします。</p>
+<p>これにより、プライバシー攻撃からユーザーが保護されます。いくつかの変換からのデータを悪用して識別子を作成しようとする攻撃者は、受信するデータを完全には信用できないため、こうしたタイプの攻撃はより複雑化します。</p>
+<p><a href="/using-conversion-measurement/#(optional)-recover-the-corrected-conversion-count">真のコンバージョン数を回復</a>できることにご注意ください。</p>
+<p>クリック データとコンバージョン データの合計:</p>
+<div>
+  <table data-alignment="top">
+    <thead>
+      <tr>
+        <th>データ</th>
+        <th>サイズ</th>
+        <th>例</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>クリック データ (<code>impressiondata</code> 属性)</td>
+        <td>64 ビット</td>
+        <td>広告 ID またはクリック ID</td>
+      </tr>
+      <tr>
+        <td>変換データ</td>
+        <td>3 ビット、ノイズ</td>
+        <td>サインアップ、完全なチェックアウトなど、コンバージョン タイプにマッピングできる 0 から 7 までの整数。</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<h3 id="-10">レポートのタイミング <a class="w-headline-link" href="#-10">#</a></h3>
+<p>特定の広告クリックに対して複数のコンバージョンが登録されている場合**、対応するレポートがコンバージョンごとに送信され、クリックごとに最大 3 つまで送信されます**。</p>
+<p>変換側からより多くの情報を取得する目的で変換時間が使用されることによりユーザーのプライバシーに影響がおよぶのを防ぐために、この API では、変換直後に変換レポートが送信されないことが指定されます。最初の広告クリックの後、このクリックに関連付けられた<strong>レポート ウィンドウ</strong>のスケジュールが開始されます。各レポート ウィンドウには期限があり、その期限より前に登録されたコンバージョンは、そのウィンドウの最後に送信されます。</p>
+<p>レポートは、このようにスケジュールされた日時の正確なタイミングでは送信されない場合があります。レポートの送信がスケジュールされているときにブラウザーが稼働していなければ、レポートはブラウザーの起動時に送信されます。それは、スケジュールされた時刻から数日後または数週間後となる場合があります。</p>
+<p>満了後 (クリック時間 + <code>impressionexpiry</code>)、変換はカウントされません。この広告の変換をカウントできなくなるタイミングとして、<code>impressionexpiry</code> がカットオフの日時となります</p>
+<p>Chromeでは、レポートのスケジュールは次のように機能します。</p>
+<div>
+  <table data-alignment="top">
+    <thead>
+      <tr>
+        <th><code>impressionexpiry</code></th>
+        <th>変換時間に応じて、変換レポートが送信されます (ブラウザーが開いている場合)...</th>
+        <th>レポート ウィンドウの数</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>30 日、デフォルトおよび最大値</td>
+        <td>
+          <ul>
+            <li>広告がクリックされてから 2 日後</li>
+            <li>または広告クリックから 7 日後</li>
+            <li>または<code>impressionexpiry</code> = 広告クリックから 30 日後。</li>
+          </ul>
+        </td>
+        <td>3</td>
+      </tr>
+      <tr>
+        <td>
+<code>impressionexpiry</code>は 7 日から 30 日です</td>
+        <td>
+          <ul>
+            <li>広告クリックの 2 日後</li>
+            <li>または広告クリックから7日後</li>
+            <li>または広告クリック後の<code>impressionexpiry</code>
+</li>
+          </ul>
+        </td>
+        <td>3</td>
+      </tr>
+      <tr>
+        <td>
+<code>impressionexpiry</code>は 2 日から 7 日です</td>
+        <td>
+          <ul>
+            <li>広告クリックの 2 日後</li>
+            <li>または広告クリック後の<code>impressionexpiry</code>
+</li>
+          </ul>
+        </td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td>
+<code>impressionexpiry</code>は 2 日未満です</td>
+        <td>
+          <li>広告クリックの 2 日後</li>
+        </td>
+        <td>1</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<figure>
+  <img     alt="どのレポートがいつ送信されるかを示すクロノロジー"          decoding="async"     height="462"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>タイミングの詳細については、 <a href="https://github.com/WICG/conversion-measurement-api#sending-scheduled-reports" rel="noopener">スケジュールされたレポートの送信を</a>参照してください。</p>
+<h2 id="-11">例 <a class="w-headline-link" href="#-11">#</a></h2>
+<div role="banner" class="banner bg-state-info-bg color-core-text">
+    <div class="banner__content flow">
+      これが実際に動作することを確認するには、<a href="https://goo.gle/demo-event-level-conversion-measurement-api">デモ</a>を試して、対応する<a href="https://github.com/GoogleChromeLabs/trust-safety-demo/tree/main/conversion-measurement">コード</a>を確認してください。 
+    </div>
+    </div>
+<p>API によりコンバージョンが記録および報告される仕組みは次のとおりです。現在の API では、「click-to-convert」のフローはこのように機能します。この API の今後のイテレーションは、これと<a href="#use-cases">異なる可能性があります</a>。</p>
+<h3 id="(-1-5)">広告クリック (ステップ 1 から 5) <a class="w-headline-link" href="#(-1-5)">#</a></h3>
+<figure>
+  <img     alt="図：広告クリックとクリック ストレージ"          decoding="async"     height="694"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p><code>&lt;a&gt;</code>広告要素は、iframe 内の<code>adtech.example</code> によってサイト運営者サイトに読み込まれます。</p>
+<p>アドテック プラットフォームの開発者は、<code>&lt;a&gt;</code> を以下のようなコンバージョン測定属性で設定しています。</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span><br>  <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>ad<span class="token punctuation">"</span></span><br>  <span class="token attr-name">impressiondata</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>200400600<span class="token punctuation">"</span></span><br>  <span class="token attr-name">conversiondestination</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://advertiser.example<span class="token punctuation">"</span></span><br>  <span class="token attr-name">reportingorigin</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://adtech.example<span class="token punctuation">"</span></span><br>  <span class="token attr-name">impressionexpiry</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>864000000<span class="token punctuation">"</span></span><br>  <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://advertiser.example/shoes07<span class="token punctuation">"</span></span><br><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/images/shoe.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>shoe<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>このコードは以下を指定します：</p>
+<div>
+  <table data-alignment="top">
+    <thead>
+      <tr>
+        <th>属性</th>
+        <th>デフォルト値、最大、最小</th>
+        <th>例</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+<code>impressiondata</code> (必須)：広告クリックに添付する<b> 64 ビットの識別子。</b>
+</td>
+        <td>(デフォルトなし)</td>
+        <td>64 ビット整数などの動的に生成されたクリック ID： <code>200400600</code>
+</td>
+      </tr>
+      <tr>
+        <td>
+<code>conversiondestination</code> (必須): <b><a href="/same-site-same-origin/#site" noopener="">eTLD + 1</a></b> 変換はこの広告のために期待されています。</td>
+        <td>(デフォルトなし)</td>
+        <td>
+<code>https://advertiser.example</code> 。<br> <code>conversiondestination</code>が<code>https://advertiser.example</code> である場合、 <code>https://advertiser.example</code> と<code>https://shop.advertiser.example</code> の両方での変換に起因します。<br> <code>conversiondestination</code>が<code>https://shop.advertiser.example</code> の場合も同じことが起こり、<code>https://advertiser.example</code> と<code>https://shop.advertiser.example</code> の両方での変換に起因します。</td>
+      </tr>
+      <tr>
+        <td>
+<code>impressionexpiry</code>の有効期限 (オプション): ミリ秒単位で、コンバージョンがこの広告に起因する可能性がある場合のカットオフ時間。</td>
+        <td>
+<code>2592000000</code> = 30日 (ミリ秒単位)。<br><br>最大: 30 日 (ミリ秒単位)。<br><br>最小: 2日 (ミリ秒単位)。</td>
+        <td>クリックから 10 日後： <code>864000000</code>
+</td>
+      </tr>
+      <tr>
+        <td>
+<code>reportingorigin</code> (オプション): 確認済みのコンバージョンをレポートする宛先。</td>
+        <td>リンク要素が追加されたページのトップレベルの起点。</td>
+        <td><code>https://adtech.example</code></td>
+      </tr>
+      <tr>
+        <td>
+<code>href</code>: 広告クリックの目的の宛先。</td>
+        <td><code>/</code></td>
+        <td><code>https://advertiser.example/shoes07</code></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>例に関する注意事項:</p>
+<ul>
+<li>現在はクリックのみがサポートされていますが、API の属性または API プロポーザルで使用されている「インプレッション」という用語があります。名前は、API の将来の反復で更新される可能性があります。</li>
+<li>広告は iframe 内にある必要はありませんが、これがこの例の基になっています。</li>
+</ul>
+</div></aside>
+<aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>問題の原因</strong></p>
+<div class=" flow">
+<ul>
+<li><code>window.open</code> または <code>window.location</code> を介したナビゲートに基づくフローは、帰属の対象にはなりません。</li>
+</ul>
+</div></aside>
+<p>ユーザーが広告をタップまたはクリックすると、広告主のサイトに移動します。ナビゲーションがコミットされると、ブラウザーは、<code>impressiondata</code>、<code>conversiondestination</code>、<code>reportingorigin</code>、<code>impressionexpiry</code> を含むオブジェクトを保存します。</p>
+<web-copy-code><pre class="language-json"><code class="language-json"><span class="token punctuation">{</span><br>  <span class="token property">"impression-data"</span><span class="token operator">:</span> <span class="token string">"200400600"</span><span class="token punctuation">,</span><br>  <span class="token property">"conversion-destination"</span><span class="token operator">:</span> <span class="token string">"https://advertiser.example"</span><span class="token punctuation">,</span><br>  <span class="token property">"reporting-origin"</span><span class="token operator">:</span> <span class="token string">"https://adtech.example"</span><span class="token punctuation">,</span><br>  <span class="token property">"impression-expiry"</span><span class="token operator">:</span> <span class="token number">864000000</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><h3 id="(-6-9)">変換とレポートのスケジュール (ステップ 6 から 9) <a class="w-headline-link" href="#(-6-9)">#</a></h3>
+<figure>
+  <img     alt="図: 変換とレポートのスケジュール"          decoding="async"     height="639"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>広告をクリックした直後、または後で (たとえば翌日に)、ユーザーは <code>advertiser.example</code> にアクセスし、スポーツ シューズを閲覧し、購入したいペアを見つけて、チェックアウトに進みます。<code>advertiser.example</code> は、チェックアウト ページにピクセルを含めました。</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span><br>  <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1<span class="token punctuation">"</span></span><br>  <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1<span class="token punctuation">"</span></span><br>  <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://adtech.example/conversion?model=shoe07&amp;type=checkout&amp;…<span class="token punctuation">"</span></span><br><span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p><code>adtech.example</code> はこのリクエストを受信し、コンバージョンとして適格であると判断します。次に、コンバージョンを記録するようにブラウザーに要求する必要があります。<code>adtech.example</code> は、すべての変換データを 3 ビット (0 から 7 の整数) に圧縮します。たとえば、<strong>チェックアウト</strong> アクションを変換値 2 にマップする場合があります。</p>
+<p><code>adtech.example</code> は、特定のレジスタ変換リダイレクトをブラウザーに送信します。</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">const</span> conversionValues <span class="token operator">=</span> <span class="token punctuation">{</span><br>  signup<span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span><br>  checkout<span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span><span class="token punctuation">;</span><br><br>app<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'/conversion'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">req<span class="token punctuation">,</span> res</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token keyword">const</span> conversionData <span class="token operator">=</span> conversionValues<span class="token punctuation">[</span>req<span class="token punctuation">.</span>query<span class="token punctuation">.</span>conversiontype<span class="token punctuation">]</span><span class="token punctuation">;</span><br>  res<span class="token punctuation">.</span><span class="token function">redirect</span><span class="token punctuation">(</span><br>    <span class="token number">302</span><span class="token punctuation">,</span><br>    <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">/.well-known/register-conversion?conversion-data=</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>conversionData<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span><br>  <span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p><code>.well-known</code> は特別な URL です。これにより、ソフトウェア ツールやサーバーは、サイトで一般的に必要な情報やリソースを簡単に見つけることができます。たとえば、ユーザーが<a href="/change-password-url/">パスワードを変更できる</a>ページを確認できます。ここで、<code>.well-known</code> は、ブラウザーがこれを特別な変換要求として認識するためだけの目的で使用されます。このリクエストは、実際にはブラウザーによって内部的にキャンセルされます。</p>
+</div></aside>
+<p>ブラウザーはこのリクエストを受け取ります。<code>.well-known/register-conversion</code> を検出すると、ブラウザーは次のようになります。</p>
+<ul>
+<li><code>conversiondestination</code> に一致するストレージ内のすべての広告クリックを検索します (ユーザーが広告をクリックしたときに <code>conversiondestination</code> URL として登録された URL でこのコンバージョンを受信しているため)。 1 日前にサイト運営者のサイトで発生した広告クリックを検出します。</li>
+<li>この広告クリックのコンバージョンを登録します。</li>
+</ul>
+<p>いくつかの広告のクリックが変換にマッチする場合があります。ユーザーは、<code>news.example</code> と <code>weather.example</code> の両方で <code>shoes.example</code> の広告をクリックした可能性があります。この場合は、複数の変換が登録されます。</p>
+<p>これで、ブラウザーはこの変換をアドテック サーバーに通知する必要があることを認識します。具体的には、<code>&lt;a&gt;</code> 要素とピクセル リクエスト (<code>adtech.example</code>) の両方で指定されている <code>reportingorigin</code> に報告する必要があります。</p>
+<p>そのために、ブラウザーは <strong>コンバージョン レポート</strong>、つまり (パブリッシャー サイトからの) クリック データを含むデータのブロブおよび (広告主サイトからの) コンバージョン データを含むデータを送信するようにスケジュールします。この例では、ユーザーはクリックの 1 日後にコンバージョンを達成しました。そのため、レポートは翌日、ブラウザーが実行されている場合はクリック後 2 日目で送信されるようにスケジュールされています。</p>
+<h3 id="(-10-11)">レポートの送信 (ステップ 10 および 11) <a class="w-headline-link" href="#(-10-11)">#</a></h3>
+<figure>
+  <img     alt="図: レポートを送信するブラウザー"          decoding="async"     height="533"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>レポートを送信する予定の時間に達すると、ブラウザーは<strong>変換レポート</strong>を送信します。<code>&lt;a&gt;</code>要素 <code>adtech.example</code> で指定されたレポートの発信元に HTTP POST が送信されます。</p>
+<p><code>https://adtech.example/.well-known/register-conversion?impression-data=200400600&amp;conversion-data=2&amp;credit=100</code></p>
+<p>パラメータとして含まれるものは次のとおりです。</p>
+<ul>
+<li>元の広告クリックに関連付けられたデータ (<code>impression-data</code>)。</li>
+<li>変換に関連するデータ<a href="#noising-of-conversion-data">。ノイズが発生する可能性があり</a>ます。</li>
+<li>クリックに起因するコンバージョン クレジット。この API は、<strong>ラストクリック アトリビューション</strong> モデルに従います。最新の一致する広告クリックには 100 のクレジットが与えられ、他のすべての一致する広告クリックには 0 のクレジットが与えられます。</li>
+</ul>
+<p>アドテック サーバーがこのリクエストを受信すると、サーバーから <code>impression-data</code> と <code>conversion-data</code> (つまり変換レポート) を取得できます。</p>
+<web-copy-code><pre class="language-json"><code class="language-json"><span class="token punctuation">{</span><span class="token property">"impression-data"</span><span class="token operator">:</span> <span class="token string">"200400600"</span><span class="token punctuation">,</span> <span class="token property">"conversion-data"</span><span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span> <span class="token property">"credit"</span><span class="token operator">:</span> <span class="token number">100</span><span class="token punctuation">}</span></code></pre>
+</web-copy-code><h3 id="-12">その後の変換と有効期限 <a class="w-headline-link" href="#-12">#</a></h3>
+<p>後に、ユーザーは、たとえば、シューズに合わせてテニスのラケットを <code>advertiser.example</code> から購入するかもしれません。その際も同様のフローが発生します。</p>
+<ul>
+<li>アドテック サーバーは、変換要求をブラウザーに送信します。</li>
+<li>ブラウザーはこのコンバージョンを広告クリックと照合し、レポートをスケジュールし、それを後からアドテック サーバーに送信します。</li>
+</ul>
+<p><code>impressionexpiry</code> の有効期限が切れると、この広告クリックのコンバージョンはカウントされなくなり、広告クリックはブラウザーのストレージから削除されます。</p>
+<h2 id="-13">ユース ケース <a class="w-headline-link" href="#-13">#</a></h2>
+<h3 id="-14">現在サポートされているもの <a class="w-headline-link" href="#-14">#</a></h3>
+<ul>
+<li>クリックスルー コンバージョンを測定する: どの広告クリックがコンバージョンにつながるかを判断し、コンバージョンに関する大まかな情報にアクセスします。</li>
+<li>機械学習モデルのトレーニングなどにより、データを収集して広告の選択を最適化します。</li>
+</ul>
+<h3 id="-15">このイテレーションでサポートされていないもの <a class="w-headline-link" href="#-15">#</a></h3>
+<p>次の機能はサポートされていませんが、この API の今後のイテレーション、または<a href="https://github.com/WICG/conversion-measurement-api/blob/master/AGGREGATE.md" rel="noopener">集計</a>レポートには含まれる可能性があります。</p>
+<ul>
+<li>ビュースルー コンバージョン測定。</li>
+<li><a href="https://github.com/WICG/conversion-measurement-api/issues/29" rel="noopener">複数のレポート エンドポイント</a>。</li>
+<li><a href="https://github.com/WICG/conversion-measurement-api/issues/54" rel="noopener">iOS/Android アプリで開始された Web コンバージョン</a>。</li>
+<li>コンバージョン リフトの測定/増分: 広告を見たテスト グループと見なかったコントロール グループの違いを測定することによる、コンバージョン行動の因果関係の違いの測定。</li>
+<li>ラストクリックではないアトリビューション モデル。</li>
+<li>変換イベントに関する大量の情報を必要とするユース ケース。たとえば、きめ細かい購入額や商品カテゴリなど。</li>
+</ul>
+<p>これらの機能やその他の機能をサポートする前に、(ノイズやビット数の削減、その他の制限など) <strong>さらなるプライバシー保護</strong>を API に追加する必要があります。</p>
+<p>追加される可能性のある機能に関するディスカッションは、<a href="https://github.com/WICG/conversion-measurement-api/issues" rel="noopener">API プロポーザル リポジトリの<strong>課題のセクション</strong></a>に公開されています。</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>ユース ケースの欠落や API に関するフィードバックがございましたら、ぜひ<a href="#share-your-feedback">共有</a>してください。</p>
+</div></aside>
+<h3 id="-16">将来のイテレーションで変わる可能性があるもの <a class="w-headline-link" href="#-16">#</a></h3>
+<ul>
+<li>この API は、初期の実験段階にあります。今後のイテレーションにおいて、この API は変更される可能性があります。その変更内容は、以下を含むものの、これらに限定されない可能性があります。その目標は、ユーザーのプライバシーを保護しながらコンバージョンを測定することであり、このユース ケースにより適切に対処するのに役立つ変更が加えられます。</li>
+<li>API と属性の命名は進化する可能性があります。</li>
+<li>クリック データとコンバージョン データはエンコードを必要としなくなる可能性があります。</li>
+<li>変換データの 3 ビット制限は増減する可能性があります。</li>
+<li><a href="#what-is-not-supported-in-this-iteration">より多くの機能が追加される可能性があります。そうした新機能をサポートするのに必要でれば、</a><strong>さらなるプライバシー保護 (ノイズ/ビット数の減少/その他の制限など)</strong> が追加される可能性もあります。</li>
+</ul>
+<p>新機能に関するディスカッションをフォローしたり、参加したりするには、プロポーザルの <a href="https://github.com/WICG/conversion-measurement-api/issues" rel="noopener">GitHub リポジトリ</a>を見てアイデアを送信してください。</p>
+<h2 id="-17">お試しください <a class="w-headline-link" href="#-17">#</a></h2>
+<h3 id="-18">デモ <a class="w-headline-link" href="#-18">#</a></h3>
+<p><a href="https://goo.gle/demo-event-level-conversion-measurement-api" rel="noopener">デモをお</a>試しください。必ず「始める前に」の指示に従ってください。</p>
+<p>デモに関する質問については、<a href="https://twitter.com/maudnals?lang=en" rel="noopener">@maudnals</a> または <a href="https://twitter.com/ChromiumDev" rel="noopener">@ChromiumDev</a> をツイートしてください。</p>
+<h3 id="api-6">API をお試しください <a class="w-headline-link" href="#api-6">#</a></h3>
+<p>API をローカルで、またはエンドユーザーを対象に実験する予定の方は、<a href="/using-conversion-measurement">Using the conversion measurement API</a> を参照してください。</p>
+<h3 id="-19">フィードバックを共有する <a class="w-headline-link" href="#-19">#</a></h3>
+<p>新しい Conversion Measurement API がユース ケースをサポートし、開発者に優れた体験を提供するには、<strong>皆さまからのフィードバックが欠かせません</strong>。</p>
+<ul>
+<li>Chrome の実装に関するバグを報告するには、<a href="https://bugs.chromium.org/p/chromium/issues/entry?status=Unconfirmed&amp;components=Internals%3EConversionMeasurement&amp;description=Chrome%20Version%3A%20%28copy%20from%20chrome%3A%2F%2Fversion%29%0AOS%3A%20%28e.g.%20Win10%2C%20MacOS%2010.12%2C%20etc...%29%0AURLs%20%28if%20applicable%29%20%3A%0A%0AWhat%20steps%20will%20reproduce%20the%20problem%3F%0A%281%29%0A%282%29%0A%283%29%0A%0AWhat%20is%20the%20expected%20result%3F%0A%0A%0AWhat%20happens%20instead%3F%0A%0AIf%20applicable%2C%20include%20screenshots%2Finfo%20from%20chrome%3A%2F%2Fconversion-internals%20or%20relevant%20devtools%20errors.%0A" rel="noopener">バグを開いてください</a>。</li>
+<li>Chrome API のフィードバックを共有し、ユース ケースに関するディスカッションを行うには、新しい課題を作成するか、 <a href="https://github.com/WICG/conversion-measurement-api/issues" rel="noopener">API プロポーザル リポジトリ</a>に既存の課題に参加してください。[同様に、API プロポーザル リポジトリでは] (https://github.com/privacycg/private-click-measurement/issues)WebKit/Safari API とそのユース ケースに関するディスカッションを行えます。</li>
+<li>広告の使用例について話し合い、業界の専門家と意見を交換するには、 <a href="https://www.w3.org/community/web-adv/" rel="noopener">Improving Web Advertising Business Group</a> に参加してください。 WebKit/Safari API に関するディスカッションについては、<a href="https://www.w3.org/community/privacycg/" rel="noopener">プライバシー コミュニティ グループ</a>に参加してください。</li>
+</ul>
+<h3 id="-20">最新情報の確認をお忘れなく <a class="w-headline-link" href="#-20">#</a></h3>
+<ul>
+<li>開発者によるフィードバックとユース ケースが収集されるにつれ、Event Conversion Measurement API は進化していきます。プロポーザルの <a href="https://github.com/WICG/conversion-measurement-api/" rel="noopener">GitHub リポジトリ</a>をご覧ください。</li>
+<li>この API を補完する <a href="https://github.com/WICG/conversion-measurement-api/blob/master/AGGREGATE.md" rel="noopener">AggregateConversion Measurement API</a> の進化を追いましょう。</li>
+</ul>
+<p><em>Charlie Harrison、John Delaney、Michael Kleber、KayceBasques をはじめとする、すべてのレビュアーによる貢献とフィードバックに感謝いたします。</em></p>
+<p><em>William Warby によるヒーロー画像/Unsplash の <a href="https://unsplash.com/photos/WahfNoqbYnM" rel="noopener">@wawarby</a>、編集済み。</em></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/privacy/">プライバシー</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          最終更新: <time>May 4, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/ja/blog/conversion-measurement/index.md"
+        >
+          記事を改善する
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@maudnals | @sw12"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">共有する</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            バグを報告する
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            ソースを表示する
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">関連性のあるコンテンツ</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome のアップデート
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            ケーススタディ
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            ポッドキャスト
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            ショー
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">接続する</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          すべての製品
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="ja"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          利用規約とプライバシーポリシー
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          コミュニティガイドライン
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

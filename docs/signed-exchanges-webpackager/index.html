@@ -1,0 +1,917 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=dd3435167c7ac">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>How to set up Signed Exchanges using Web Packager</title>
+<meta name="description" content="Learn how to serve signed exchanges (SXGs) using Web Packager. " />
+
+<link rel="canonical" href="https://web.dev/signed-exchanges-webpackager/" />
+
+<meta itemprop="name" content="How to set up Signed Exchanges using Web Packager" />
+<meta itemprop="description" content="Learn how to serve signed exchanges (SXGs) using Web Packager. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/signed-exchanges-webpackager/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="How to set up Signed Exchanges using Web Packager" />
+<meta property="og:description" content="Learn how to serve signed exchanges (SXGs) using Web Packager. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="Abstract photo" />
+<meta property="tag" content="performance" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="How to set up Signed Exchanges using Web Packager" />
+<meta name="twitter:description" content="Learn how to serve signed exchanges (SXGs) using Web Packager. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=4265bfd85ba25', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=36e08353628c4', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+    <img     alt="Abstract photo"     class="w-hero w-hero--cover"     decoding="auto"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/f7TRFlVQv5w58A2Cbpg7.jpg?auto=format&w=1600 1600w"          width="1600"   />
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#how-to-set-up-signed-exchanges-using-web-packager" class="w-toc__header--link">
+        How to set up Signed Exchanges using Web Packager
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#serve-sxgs-using-a-self-signed-certificate">Serve SXGs using a self-signed certificate</a><ol><li><a href="#prerequisites">Prerequisites</a></li><li><a href="#generate-a-self-signed-certificate">Generate a self-signed certificate</a></li><li><a href="#setup-the-web-packager-server-for-testing">Setup the Web Packager server for testing</a></li></ol></li><li><a href="#serve-signed-exchanges-using-a-cansignhttpexchanges-certificate">Serve signed exchanges using a CanSignHttpExchanges certificate</a><ol><li><a href="#prerequisites-3">Prerequisites</a></li></ol></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@katiehempenius"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Share</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+        
+        <div class="w-post-breadcrumbs">
+          <ul class="w-breadcrumbs">
+  <li class="w-breadcrumbs__crumb">
+    <a
+      class="w-breadcrumbs__link w-breadcrumbs__link--left-justify gc-analytics-event"
+      data-category="web.dev"
+      data-label="post, home breadcrumb"
+      data-action="click"
+      href="/"
+    >
+      Home
+    </a>
+  </li>
+
+  <svg
+    class="w-breadcrumbs__icon"
+    xmlns="http://www.w3.org/2000/svg"
+    height="24"
+    viewBox="0 0 24 24"
+    width="24"
+    aria-hidden="true"
+  >
+    <path d="M0 0h24v24H0V0z" fill="none" />
+    <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+  </svg>
+
+  <li class="w-breadcrumbs__crumb">
+    <a
+      class="w-breadcrumbs__link gc-analytics-event"
+      data-category="web.dev"
+      data-label="post, path breadcrumb"
+      data-action="click"
+      href=/blog
+    >
+      All articles
+    </a>
+  </li>
+</ul>
+        </div>
+      
+
+      <h1 id="how-to-set-up-signed-exchanges-using-web-packager" class="w-article-header__headline">How to set up Signed Exchanges using Web Packager</h1>
+      
+        <p class="w-article-header__subhead w-mb--non">
+          <p>Learn how to serve signed exchanges (SXGs) using Web Packager.</p>
+
+        </p>
+      
+
+      
+        <div class="w-author__published">
+          <time>Feb 19, 2020</time>
+          
+        </div>
+      
+
+      
+      
+
+      
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/katiehempenius/"><img     alt="Katie Hempenius"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/katiehempenius/">Katie Hempenius</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/katiehempenius"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/khempenius">GitHub</a>
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://glitch.com/@khempenius"
+          >Glitch</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://katiehempenius.com/">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <p>A <a href="/signed-exchanges">signed exchange (SXG)</a> is a delivery mechanism that makes it
+possible to authenticate the origin of a resource independently of how it was delivered.
+The following instructions explain how to set up Signed Exchanges using
+<a href="https://github.com/google/webpackager" rel="noopener">Web Packager</a>. Instructions are included for
+both self-signed and <code>CanSignHttpExchanges</code> certificates.</p>
+<h2 id="serve-sxgs-using-a-self-signed-certificate">Serve SXGs using a self-signed certificate <a class="w-headline-link" href="#serve-sxgs-using-a-self-signed-certificate">#</a></h2>
+<p>Using a self-signed certificate to serve SXGs is primarily used for
+demonstration and testing purposes. SXGs signed with a self-signed certificate
+will generate error messages in the browser when used outside of testing
+environments and should not be served to crawlers.</p>
+<h3 id="prerequisites">Prerequisites <a class="w-headline-link" href="#prerequisites">#</a></h3>
+<p>To follow these instructions you will need to have
+<a href="https://github.com/openssl/openssl#build-and-install" rel="noopener">openssl</a> and
+<a href="https://golang.org/doc/install" rel="noopener">Go</a> installed in your development environment.</p>
+<h3 id="generate-a-self-signed-certificate">Generate a self-signed certificate <a class="w-headline-link" href="#generate-a-self-signed-certificate">#</a></h3>
+<p>This section explains how to generate a self-signed certificate that can be
+used with signed exchanges.</p>
+<h4 id="instructions">Instructions <a class="w-headline-link" href="#instructions">#</a></h4>
+<ol>
+<li>
+<p>Generate a private key.</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell">openssl ecparam -out priv.key -name prime256v1 -genkey</code></pre>
+</web-copy-code><p>The private key will be saved as a file named <code>priv.key</code>.</p>
+</li>
+<li>
+<p>Create a <a href="https://en.wikipedia.org/wiki/Certificate_signing_request" rel="noopener">certificate signing
+request</a> (CSR).</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell">openssl req -new -sha256 -key priv.key -out cert.csr -subj <span class="token string">'/O=Web Packager Demo/CN=example.com'</span></code></pre>
+</web-copy-code><p>A certificate signing request is a block of encoded text that conveys the
+information necessary to request a certificate from a <a href="https://en.wikipedia.org/wiki/Certificate_authority" rel="noopener">certificate authority(CA)</a>. Although you will not be requesting a certificate from a
+CA, it is still necessary to create a certificate signing request.</p>
+<p>The command above creates a certificate signing request for an organization
+named <code>Web Packager Demo</code> that has the <a href="https://knowledge.digicert.com/solution/SO7239.html" rel="noopener">common
+name</a> <code>example.com</code>. The
+common name should be the fully qualified domain name of the site that contains
+the content that you want to package as SXG.</p>
+<p>In a production SXG setup, this would be a site that you own. However, in a
+testing environment like the one described in these instructions, it can be any
+site.</p>
+</li>
+<li>
+<p>Create a certificate that has the <code>CanSignHttpExchanges</code> extension.</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell">openssl x509 -req -days <span class="token number">90</span> -in cert.csr -signkey priv.key -out cert.pem -extfile <span class="token operator">&lt;</span><span class="token punctuation">(</span><span class="token builtin class-name">echo</span> -e <span class="token string">"1.3.6.1.4.1.11129.2.1.22 = ASN1:NULL<span class="token entity" title="\n">\n</span>subjectAltName=DNS:example.com"</span><span class="token punctuation">)</span></code></pre>
+</web-copy-code><p>This command uses the private key and the CSR created in steps 1 and 2 to create the
+certificate file <code>cert.pem</code>. The <code>-extfile</code> flag associates the certificate with
+the <code>CanSignHttpExchanges</code> certificate extension (<code>1.3.6.1.4.1.11129.2.1.22</code> is
+the <a href="https://access.redhat.com/documentation/en-us/red_hat_certificate_system/9/html/administration_guide/standard_x.509_v3_certificate_extensions" rel="noopener">object
+identifier</a>
+for the <code>CanSignHttpExchanges</code> extension). In addition, the <code>-extfile</code> flag also
+defines <code>example.com</code> as a <a href="https://en.wikipedia.org/wiki/Subject_Alternative_Name" rel="noopener">Subject Alternative
+Name</a>.</p>
+<p>If you are curious about the contents of <code>cert.pem</code>, you can view them using the
+following command:</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell">openssl x509 -in cert.pem -noout -text</code></pre>
+</web-copy-code><p>You are done creating private keys and certificates. You will need the
+<code>priv.key</code> and <code>cert.pem</code> files in the next section.</p>
+</li>
+</ol>
+<h3 id="setup-the-web-packager-server-for-testing">Setup the Web Packager server for testing <a class="w-headline-link" href="#setup-the-web-packager-server-for-testing">#</a></h3>
+<h4 id="prerequisites-2">Prerequisites <a class="w-headline-link" href="#prerequisites-2">#</a></h4>
+<ol>
+<li>
+<p>Install <a href="https://github.com/google/webpackager" rel="noopener">Web Packager</a>.</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell"><span class="token function">git</span> clone https://github.com/google/webpackager.git</code></pre>
+</web-copy-code></li>
+<li>
+<p>Build <code>webpkgserver</code>.</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell"><span class="token builtin class-name">cd</span> webpackager/cmd/webpkgserver<br>go build <span class="token builtin class-name">.</span></code></pre>
+</web-copy-code><p><code>webpkgserver</code> is a specific binary within the Web Packager project.</p>
+</li>
+<li>
+<p>Verify that <code>webpkgserver</code> has been installed correctly.</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell">./webpkgserver --help</code></pre>
+</web-copy-code><p>This command should return information about the usage of <code>webpkgserver</code>. If
+this does not work, a good first troubleshooting step is to verify that your
+<a href="https://golang.org/doc/gopath_code.html#GOPATH" rel="noopener">GOPATH</a> is configured
+correctly.</p>
+</li>
+</ol>
+<h4 id="instructions-2">Instructions <a class="w-headline-link" href="#instructions-2">#</a></h4>
+<ol>
+<li>
+<p>Navigate to the <code>webpkgserver</code> directory (you might already be in this
+directory).</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell"><span class="token builtin class-name">cd</span> /path/to/cmd/webpkgserver</code></pre>
+</web-copy-code></li>
+<li>
+<p>Create a <code>webpkgsever.toml</code> file by copying the example.</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell"><span class="token function">cp</span> ./webpkgserver.example.toml ./webpkgserver.toml</code></pre>
+</web-copy-code><p>This file contains the configuration options for <code>webpkgserver</code>.</p>
+</li>
+<li>
+<p>Open <code>webpkgserver.toml</code> with an editor of your choice and make the following
+changes:</p>
+<ul>
+<li>Change the line <code>#AllowTestCert = false</code> to <code>AllowTestCert = true</code>.</li>
+<li>Change the line <code>PEMFile = 'path/to/your.pem'</code> to reflect the path to
+the PEM certificate, <code>cert.pem</code>, that you created. Do not change the
+line mentioning <code>TLS.PEMFile</code>—this is a different configuration option.</li>
+<li>Change the line <code>KeyFile = 'priv.key'</code> to reflect the path of the
+private key, <code>priv.key</code>, that you created. Do not change the line
+mentioning <code>TLS.KeyFile</code>—this is a different configuration option.</li>
+<li>Change the line <code>#CertURLBase = '/webpkg/cert'</code> to <code>CertURLBase = 'data:'</code>. <code>CertURLBase</code> indicates the serving location of the SXG
+certificate. This information is used to set the <code>cert-url</code> parameter in
+the
+<a href="https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#name-the-signature-header" rel="noopener"><code>Signature</code></a>
+header of the SXG. In production environments, <code>CertURLBase</code> is used
+like this: <code>CertURLBase = 'https://mysite.com/'</code>. However, for local
+testing, <code>CertURLBase = 'data:'</code> can be used to instruct <code>webpkgserver</code>
+to use a <a href="https://developer.mozilla.org/docs/Web/HTTP/Basics_of_HTTP/Data_URIs" rel="noopener">data
+URL</a>
+to inline the certificate in the <code>cert-url</code> field. For local testing,
+this is the most conveninent way to serve the SXG certificate.</li>
+<li>Change the line <code>Domain = 'example.org'</code> to reflect the domain that you
+created a certificate for. If you have followed the instructions in this
+article verbatim, this should be changed to <code>example.com</code>.
+<code>webpkgserver</code> will only fetch content from the domain indicated by
+<code>webpkgserver.toml</code>. If you try to fetch pages from a different domain
+without updating <code>webpkgserver.toml</code>, the <code>webpkgserver</code> logs will show
+the error message <code>URL doesn't match the fetch targets</code>.</li>
+</ul>
+<p><strong>Optional</strong></p>
+<p>If you want to enable or disable <a href="https://github.com/WICG/webpackage/blob/master/explainers/signed-exchange-subresource-substitution.md" rel="noopener">subresource
+preloading</a>,
+the following <code>webpkgserver.toml</code> configuration options are relevant:</p>
+<ul>
+<li>
+<p>To have <code>webpkgserver</code> insert directives for preloading stylesheet
+and script subresources as SXGs, change the line <code>#PreloadCSS = false</code>
+to <code>PreloadCSS = true</code>. In addition, change the line <code>#PreloadJS = false</code> to <code>PreloadJS = true</code>.</p>
+<p>As an alternative to using this configuration option, you can manually
+add <code>Link: rel=&quot;preload&quot;</code> headers and <code>&lt;link rel=&quot;preload&quot;&gt;</code> tags to a
+page's HTML.</p>
+</li>
+<li>
+<p>By default, <code>webpkgserver</code> replaces existing <code>&lt;link rel=&quot;preload&quot;&gt;</code> tags
+with the equivalent <code>&lt;link&gt;</code> tags necessary for fetching this content as
+SXG. In doing so, <code>webpkgserver</code> will set the
+<a href="https://github.com/WICG/webpackage/blob/main/explainers/signed-exchange-subresource-substitution.md#use-cases" rel="noopener"><code>allowed-alt-sxg</code></a>
+and
+<a href="https://github.com/WICG/webpackage/blob/main/explainers/signed-exchange-subresource-substitution.md#use-cases" rel="noopener"><code>header-integrity</code></a>
+directives as needed—HTML authors do not need to add these by hand. To
+override this behavior and keep existing non-SXG preloads, change
+<code>#KeepNonSXGPreloads (default = false)</code> to <code>KeepNonSXGPreloads = true</code>.
+Keep in mind that enabling this option may make the SXG ineligible for
+the Google SXG cache per these
+<a href="https://github.com/google/webpackager/blob/master/docs/cache_requirements.md" rel="noopener">requirements</a>.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Start <code>webpkgserver</code>.</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell">./webpkgserver</code></pre>
+</web-copy-code><p>If the server has started successfully, you should see the following log messages:</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell">Listening at <span class="token number">127.0</span>.0.1:8080<br>Successfully retrieved valid OCSP.<br>Writing to cache <span class="token keyword">in</span> /private/tmp/webpkg</code></pre>
+</web-copy-code><p>Your log messages may look slightly different. In particular, the directory
+that <code>webpkgserver</code> uses to cache certificates varies by operating system.</p>
+<p>If you do not see these messages, a good first troubleshooting
+step is to double-check <code>webpkgserver.toml</code>.</p>
+<p>If you update <code>webpkgserver.toml</code> you should restart <code>webpkgserver</code>.</p>
+</li>
+<li>
+<p>Launch Chrome using the following command:</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell">/Applications/Google<span class="token punctuation">\</span> Chrome.app/Contents/MacOS/Google<span class="token punctuation">\</span> Chrome <span class="token punctuation">\</span><br>--user-data-dir<span class="token operator">=</span>/tmp/udd <span class="token punctuation">\</span><br>--ignore-certificate-errors-spki-list<span class="token operator">=</span><span class="token variable"><span class="token variable">`</span>openssl x509 -noout -pubkey -in cert.pem <span class="token operator">|</span> openssl pkey -pubin -outform der <span class="token operator">|</span> openssl dgst -sha256 -binary <span class="token operator">|</span> base64<span class="token variable">`</span></span></code></pre>
+</web-copy-code><p>This command instructs Chrome to ignore the certificate errors associated
+with <code>cert.pem</code>. This makes it possible to test SXGs using a test
+certificate. If Chrome is launched without this command, inspecting the SXG
+in DevTools will display the error <code>Certificate verification error: ERR_CERT_INVALID</code>.</p>
+<p><strong>Note:</strong></p>
+<p>You may need to adjust this command to reflect the location of Chrome on
+your machine, as well as the location of <code>cert.pem</code>. If you've done this
+correctly, you should see a warning displayed below the address bar. The
+warning should be similar to this: <code>You are using an unsupported command-line flag: --ignore-certificate-errors-spki-list=9uxADcgc6/ho0mJLRMBcOjfBaN21k0sOInoMchr9CMY=.</code></p>
+<p>If the warning does not include a hash string, you have not correctly
+indicated the location of the SXG certificate.</p>
+</li>
+<li>
+<p>Open the DevTools <strong>Network</strong> tab, then visit the following URL:
+<code>http://localhost:8080/priv/doc/https://example.com</code>.</p>
+<p>This makes a request to the <code>webpackager</code> instance running at
+<code>http://localhost:8080</code> for a SXG containing the contents of
+<code>https://example.com</code>. <code>/priv/doc/</code> is the default API endpoint used by
+<code>webpackager</code>.</p>
+</li>
+</ol>
+  <img     alt="Screenshot of the DevTools Network tab showing a SXG and its certificate."          decoding="async"     height="236"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format"     srcset="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/DPw05KcHLdWOgHYiDsgf.png?auto=format&w=1600 1600w"          width="800"   />
+<p>The following resources are listed in the <strong>Network</strong> tab:</p>
+<ul>
+<li>A resource with the type <code>signed-exchange</code>. This is the SXG.</li>
+<li>A resource with the type <code>cert-chain+cbor</code>. This the SXG certificate. SXG certificates must use the <code>application/cert-chain+cbor</code> format.</li>
+<li>A resource with the type <code>document</code>. This is the content that has been delivered via SXG.</li>
+</ul>
+<p>If you don't see these resources, try clearing the browser cache, then
+reloading <code>http://localhost:8080/priv/doc/https://example.com</code>.</p>
+<p>Click on the <strong>Preview</strong> tab to see more information about the Signed Exchange
+and its signature.</p>
+  <img     alt="Screenshot of the Preview tab showing a SXG"          decoding="async"     height="541"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format"     srcset="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/x9hfT6ZJ8OuB4M1ImWic.png?auto=format&w=1600 1600w"          width="800"   />
+<h2 id="serve-signed-exchanges-using-a-cansignhttpexchanges-certificate">Serve signed exchanges using a <code>CanSignHttpExchanges</code> certificate <a class="w-headline-link" href="#serve-signed-exchanges-using-a-cansignhttpexchanges-certificate">#</a></h2>
+<p>The instructions in this section explain how to serve SXGs using a
+<code>CanSignHttpExchanges</code> certificate. Production use of SXGs requires a
+<code>CanSignHttpExchanges</code> certificate.</p>
+<p>For the sake of brevity, these instructions are written with the assumption
+that you understand the concepts discussed in the <a href="/signed-exchanges-webpackager/#serve-sxgs-using-a-self-signed-certificate">Setup Signed Exchanges
+using a self-signed
+certificate</a>
+section.</p>
+<h3 id="prerequisites-3">Prerequisites <a class="w-headline-link" href="#prerequisites-3">#</a></h3>
+<ul>
+<li>You have a <code>CanSignHttpExchanges</code> certificate. This
+<a href="https://github.com/google/webpackager/wiki/Certificate-Authorities" rel="noopener">page</a>
+lists the CAs that offer this type of certificate.</li>
+<li>Although not a requirement, it is strongly recommended that you run
+<code>webpkgserver</code> behind an edge server. If you do not use an edge server, you
+will need to configure the <code>TLS.PEMFile</code> and <code>TLS.KeyFile</code> options in
+<code>webpkgserver.toml</code>. By default, <code>webpkgserver</code> runs over HTTP. However, SXG
+certificates must be served over HTTPS to be considered valid by the browser.
+Configuring <code>TLS.PEMFile</code> and <code>TLS.KeyFile</code> allows <code>webpkgserver</code> to use
+HTTPS and therefore serve the SXG certificate directly to the browser.</li>
+</ul>
+<h4 id="instructions-3">Instructions <a class="w-headline-link" href="#instructions-3">#</a></h4>
+<ol>
+<li>
+<p>Create a PEM file by concatenating your site's SXG certificate followed by
+your site's CA certificate. More instructions on this can be found
+<a href="https://www.digicert.com/kb/ssl-support/pem-ssl-creation.htm" rel="noopener">here</a>.</p>
+<p><a href="https://en.wikipedia.org/wiki/X.509#Certificate_filename_extensions" rel="noopener">PEM</a> is
+a file format that is commonly used as a &quot;container&quot; for storing multiple
+certificates.</p>
+</li>
+<li>
+<p>Create a fresh <code>webpkgsever.toml</code> file by copying the example.</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell"><span class="token function">cp</span> ./webpkgserver.example.toml ./webpkgserver.toml</code></pre>
+</web-copy-code></li>
+<li>
+<p>Open <code>webpkgserver.toml</code> with the editor of your choice and make the
+following changes:</p>
+<ul>
+<li>Change the line <code>PEMFile = cert.pem</code> to reflect the location of the PEM
+file containing your full certificate chain.</li>
+<li>Change the line <code>KeyFile = 'priv.key'</code> to reflect the location of the
+private key corresponding to your PEM File.</li>
+<li>Change the line <code>Domain = 'example.org'</code> to reflect your site.</li>
+<li>(Optional) To have <code>webpkgserver</code> auto-renew the SXG certificate every
+90 days, configure the options in the <code>[SXG.ACME]</code> section of
+<code>webpkgserver.toml</code>. This option only applies to sites with a DigiCert
+ACME account setup.</li>
+</ul>
+</li>
+<li>
+<p>Configure your edge server to forward traffic to the <code>webpkgserver</code>
+instance.</p>
+<p>There are two primary types of requests handled by <code>webpkgserver</code>: requests
+for SXGs (which are served by the <code>/priv/doc/</code> endpoint) and requests for
+the SXG certificate (which are served by the <code>/webpkg/cert/</code> endpoint). The
+URL rewriting rules for each of these request types varies slightly. For
+more information, see <a href="https://github.com/google/webpackager/blob/master/cmd/webpkgserver/README.md#running-behind-front-end-edge-server" rel="noopener">Running behind front end edge
+server</a>.</p>
+<p><strong>Note:</strong></p>
+<p>By default, <code>webpkgserver</code> serves the SXG certificate at
+<code>/webpkg/cert/$CERT_HASH</code>—for example,
+<code>/webpkg/cert/-0QmE0gvoedn92gtwI3s7On9zPevJGm5pn2RYhpZxgY</code>.
+To generate <code>$CERT_HASH</code>, run the following command:</p>
+<web-copy-code><pre class="language-shell"><code class="language-shell">openssl base64 -in cert.pem -d <span class="token operator">|</span> openssl dgst -sha256 -binary <span class="token operator">|</span> base64 <span class="token operator">|</span> <span class="token function">tr</span> /+ _- <span class="token operator">|</span> <span class="token function">tr</span> -d <span class="token operator">=</span></code></pre>
+</web-copy-code></li>
+</ol>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">Performance</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Feb 19, 2020</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/fast/signed-exchanges-webpackager/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/blog"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>
