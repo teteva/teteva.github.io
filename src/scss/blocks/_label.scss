@@ -1,7 +1,0 @@
-.label {
-  @include apply-utility('color', 'mid-text');
-}
-
-.label + * {
-  --flow-space: 0.5rem;
-}
