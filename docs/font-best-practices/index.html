@@ -1,0 +1,985 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=e757153b8e68c">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Best practices for fonts</title>
+<meta name="description" content="Learn about how to optimize web fonts for Core Web Vitals. " />
+
+<link rel="canonical" href="https://web.dev/font-best-practices/" />
+
+<meta itemprop="name" content="Best practices for fonts" />
+<meta itemprop="description" content="Learn about how to optimize web fonts for Core Web Vitals. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/font-best-practices/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Best practices for fonts" />
+<meta property="og:description" content="Learn about how to optimize web fonts for Core Web Vitals. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="A photo of letterpress type." />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Best practices for fonts" />
+<meta name="twitter:description" content="Learn about how to optimize web fonts for Core Web Vitals. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=c34f3498b23d7', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=3002d82835d76', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+    <img     alt="A photo of letterpress type."     class="w-hero w-hero--cover"     decoding="auto"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/T4kc8pjG9mvfZwynORjM.jpg?auto=format&w=1600 1600w"          width="1600"   />
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#best-practices-for-fonts" class="w-toc__header--link">
+        Best practices for fonts
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#font-loading">Font loading</a><ol><li><a href="#best-practices">Best practices</a></li></ol></li><li><a href="#font-delivery">Font delivery</a><ol><li><a href="#best-practices-2">Best practices</a></li></ol></li><li><a href="#font-rendering">Font rendering</a><ol><li><a href="#best-practices-3">Best practices</a></li></ol></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@katiehempenius"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Share</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+        
+        <div class="w-post-breadcrumbs">
+          <ul class="w-breadcrumbs">
+  <li class="w-breadcrumbs__crumb">
+    <a
+      class="w-breadcrumbs__link w-breadcrumbs__link--left-justify gc-analytics-event"
+      data-category="web.dev"
+      data-label="post, home breadcrumb"
+      data-action="click"
+      href="/"
+    >
+      Home
+    </a>
+  </li>
+
+  <svg
+    class="w-breadcrumbs__icon"
+    xmlns="http://www.w3.org/2000/svg"
+    height="24"
+    viewBox="0 0 24 24"
+    width="24"
+    aria-hidden="true"
+  >
+    <path d="M0 0h24v24H0V0z" fill="none" />
+    <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+  </svg>
+
+  <li class="w-breadcrumbs__crumb">
+    <a
+      class="w-breadcrumbs__link gc-analytics-event"
+      data-category="web.dev"
+      data-label="post, path breadcrumb"
+      data-action="click"
+      href=/blog
+    >
+      All articles
+    </a>
+  </li>
+</ul>
+        </div>
+      
+
+      <h1 id="best-practices-for-fonts" class="w-article-header__headline">Best practices for fonts</h1>
+      
+        <p class="w-article-header__subhead w-mb--non">
+          <p>Optimize web fonts for Core Web Vitals.</p>
+
+        </p>
+      
+
+      
+        <div class="w-author__published">
+          <time>Jun 3, 2021</time>
+          
+        </div>
+      
+
+      
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/katiehempenius/"><img     alt="Katie Hempenius"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/katiehempenius/">Katie Hempenius</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/katiehempenius"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/khempenius">GitHub</a>
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://glitch.com/@khempenius"
+          >Glitch</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://katiehempenius.com/">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <p>This article discusses performance best practices for fonts. There are a variety
+of ways in which web fonts impact performance:</p>
+<ul>
+<li><strong>Delayed text rendering:</strong> If a web font has not loaded, browsers typically
+delay text rendering. In many situations, this delays <a href="/fcp">First Contentful
+Paint (FCP)</a>. In some situations, this delays <a href="/lcp/">Largest
+Contentful Paint (LCP)</a>.</li>
+<li><strong>Layout shifts:</strong> The practice of font swapping has the potential to <a href="/debug-layout-shifts/#identifying-the-cause-of-a-layout-shift">cause
+layout
+shifts</a>.
+These layout shifts occur when a web font and its fallback font take up
+different amounts of space on the page.</li>
+</ul>
+<p>This article is broken down into three sections: font loading, font delivery,
+and font rendering. Each section explains how that particular aspect of the font
+lifecycle works and provides corresponding best practices.</p>
+<h2 id="font-loading">Font loading <a class="w-headline-link" href="#font-loading">#</a></h2>
+<p>Before diving into best practices for font loading it's important to understand
+how <a href="https://developer.mozilla.org/docs/Web/CSS/@font-face" rel="noopener"><code>@font-face</code></a>
+works and how this impacts font loading.</p>
+<p>The <a href="https://developer.mozilla.org/docs/Web/CSS/@font-face" rel="noopener"><code>@font-face</code></a>
+declaration is an essential part of working with any web font. At a minimum, it
+declares the name that will be used to refer to the font and indicates the
+location of the corresponding font file.</p>
+<web-copy-code><pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span><br>  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Open Sans"</span><span class="token punctuation">;</span><br>  <span class="token property">src</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"/fonts/OpenSans-Regular-webfont.woff2"</span><span class="token punctuation">)</span></span> <span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"woff2"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>A common misconception is that a font is requested when a <code>@font-face</code>
+declaration is encountered—this is not true. By itself, <code>@font-face</code>
+declaration does not trigger font download. Rather, a font is downloaded only if
+it is referenced by styling that is used on the page. For example, like this:</p>
+<web-copy-code><pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span><br>  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Open Sans"</span><span class="token punctuation">;</span><br>  <span class="token property">src</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"/fonts/OpenSans-Regular-webfont.woff2"</span><span class="token punctuation">)</span></span> <span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"woff2"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><br><br><span class="token selector">h1</span> <span class="token punctuation">{</span><br>  <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Open Sans"</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>In other words, in the example above, <code>Open Sans</code> would only be downloaded if
+the page contained a <code>&lt;h1&gt;</code> element.</p>
+<div class="w-aside w-aside--note">
+<p>Other ways of loading a font are the
+<a href="https://developer.mozilla.org/docs/Web/HTML/Preloading_content" rel="noopener"><code>preload</code></a>
+resource hint and the <a href="/optimize-webfont-loading/#the-font-loading-api">Font Loading
+API</a>.</p>
+</div>
+<p>Thus, when thinking about font optimization, it's important to give stylesheets
+just as much consideration as the font files themselves. Changing the contents
+or delivery of stylesheets can have a significant impact on when fonts arrive.
+Similarly, removing unused CSS and splitting stylesheets can reduce the number
+of fonts loaded by a page.</p>
+<h3 id="best-practices">Best practices <a class="w-headline-link" href="#best-practices">#</a></h3>
+<p>Fonts are typically important resources, as without them the user might be
+unable to view page content. Thus, best practices for font loading generally focus
+on making sure that fonts get loaded as early as possible. Particular care
+should be given to fonts loaded from third-party sites as downloading these font
+files requires separate connection setups.</p>
+<p>If you're unsure if your page's fonts are being requested in time, check the
+<strong>Timing</strong> tab within the <strong>Network</strong> panel in Chrome DevTools for more
+information.</p>
+<img     alt="Screenshot of the Timing tab in DevTools"          decoding="async"     height="472"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format"     srcset="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/hFVGVzDQHymbC5aIAtD9.png?auto=format&w=1600 1600w"          width="800"   />
+<h4 id="inline-font-declarations">Inline font declarations <a class="w-headline-link" href="#inline-font-declarations">#</a></h4>
+<p>Most sites would strongly benefit from inlining font declarations and other
+critical styling in the <code>&lt;head&gt;</code> of the main document rather than including them
+in an external stylesheet. This allows the browser to discover the font
+declarations sooner as the browser doesn't need to wait for the external
+stylesheet to download.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">></span></span><span class="token style"><span class="token language-css"><br>    <span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span><br>        <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Open Sans"</span><span class="token punctuation">;</span><br>        <span class="token property">src</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"/fonts/OpenSans-Regular-webfont.woff2"</span><span class="token punctuation">)</span></span> <span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"woff2"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br><br>    <span class="token selector">body</span> <span class="token punctuation">{</span><br>        <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Open Sans"</span><span class="token punctuation">;</span><br><br>    <span class="token punctuation">}</span><br>  </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span><br></code></pre>
+</web-copy-code><div class="w-aside w-aside--note">
+<p>Inlining the font files themselves is not recommended. Inlining large
+resources like fonts is likely to delay the delivery of the main document,
+and with it, the discovery of other resources.</p>
+</div>
+<h4 id="preconnect-to-critical-third-party-origins">Preconnect to critical third-party origins <a class="w-headline-link" href="#preconnect-to-critical-third-party-origins">#</a></h4>
+<p>If your site loads fonts from a third-party site, it is highly recommended that
+you use the
+<a href="https://developer.mozilla.org/docs/Web/HTML/Link_types/preconnect" rel="noopener"><code>preconnect</code></a>
+resource hint to establish early connection(s) with the third-party origin.
+Resource hints should be placed in the <code>&lt;head&gt;</code> of the document. The resource
+hint below sets up a connection for loading the font stylesheet.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preconnect<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://fonts.com<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>To preconnect the connection that is used to download the font file,
+add a separate <code>preconnect</code> resource hint that uses the <code>crossorigin</code>
+attribute. Unlike stylesheets, font files must be sent over a <a href="https://developer.mozilla.org/docs/Web/HTTP/CORS#what_requests_use_cors" rel="noopener">CORS
+connection</a>.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preconnect<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://fonts.com<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preconnect<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://fonts.com<span class="token punctuation">"</span></span> <span class="token attr-name">crossorigin</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>When using the <code>preconnect</code> resource hint, keep in mind that a font provider may
+serve stylesheets and fonts from separate origins. For example, this is how the
+<code>preconnect</code> resource hint would be used for Google Fonts.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preconnect<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://fonts.googleapis.com<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preconnect<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://fonts.gstatic.com<span class="token punctuation">"</span></span> <span class="token attr-name">crossorigin</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><div class="w-aside w-aside--note">
+<p><a href="https://fonts.google.com/" rel="noopener">Google Fonts</a> provides the option to load fonts via
+<code>&lt;link&gt;</code> tags or an <code>@import</code> statement. The <code>&lt;link&gt;</code> code snippet includes a
+<code>preconnect</code> resource hint and therefore will likely result in faster stylesheet
+delivery than using <code>@import</code> version. These <code>&lt;link&gt;</code> tags should be placed as
+early in the document as possible.</p>
+</div>
+<h4 id="avoid-using-preload-to-load-fonts">Avoid using preload to load fonts <a class="w-headline-link" href="#avoid-using-preload-to-load-fonts">#</a></h4>
+<p>Generally speaking, using the
+<a href="https://developer.mozilla.org/docs/Web/HTML/Preloading_content" rel="noopener"><code>preload</code></a>
+resource hint to load fonts should be avoided. Although <code>preload</code> is highly
+effective at making fonts discoverable early in the page load process, this
+comes at the cost of taking away browser resources from the loading of other
+resources.</p>
+<p>In most scenarios, inlining font declarations and adjusting stylesheets is
+a more effective approach. These adjustments come closer to addressing the root
+cause of late-discovered fonts - rather than just providing a workaround.</p>
+<p>In addition, using <code>preload</code> as a font-loading strategy should also be used
+carefully as it bypasses some of the browser's built-in content negotiation
+strategies. For example, <code>preload</code> ignores <code>unicode-range</code> declarations, and if
+used prudently, should only be used to load a single font format.</p>
+<h2 id="font-delivery">Font delivery <a class="w-headline-link" href="#font-delivery">#</a></h2>
+<p>Faster font delivery yields faster text rendering. In addition, if a font is
+delivered early enough, this can help eliminate layout shifts resulting from
+font swapping.</p>
+<h3 id="best-practices-2">Best practices <a class="w-headline-link" href="#best-practices-2">#</a></h3>
+<h4 id="using-self-hosted-fonts">Using self-hosted fonts <a class="w-headline-link" href="#using-self-hosted-fonts">#</a></h4>
+<p>On paper, using a self-hosted font should deliver better performance as
+it eliminates a third-party connection setup. However, in practice, the
+performance differences between these two options is less clear cut: for
+example, the <a href="https://almanac.httparchive.org/en/2020/fonts#fig-7" rel="noopener">Web Almanac</a>
+found that sites using third-party fonts had a faster render than fonts that
+used first-party fonts.</p>
+<p>If you are considering using self-hosted fonts, confirm that your site is using
+a <a href="/content-delivery-networks/">Content Delivery Network (CDN)</a>
+and <a href="/content-delivery-networks/#http2-and-http3">HTTP/2</a>.
+Without use of these technologies, it is much less likely that self-hosted fonts
+will deliver better performance. For more information, see <a href="/content-delivery-networks/">Content Delivery
+Networks</a>.</p>
+<div class="w-aside w-aside--note">
+<p>If you're unsure if using self-hosted fonts will deliver better performance, try
+serving a font file from your own servers and compare the transfer time
+(including connection setup) with that of a third-party font. If you have slow
+servers, don't use a CDN, or don't use HTTP/2 it becomes less likely that the
+self-hosted font will be more performant.</p>
+</div>
+<p>If you use a self-hosted font, it is recommended that you also apply some of the
+font file optimizations that third-party font providers typically provide
+automatically—for example, font subsetting and WOFF2 compression. The amount
+of effort required to apply these optimizations will depend somewhat on the
+languages that your site supports. In particular, be aware that optimizing fonts
+for <a href="https://en.wikipedia.org/wiki/CJK_characters" rel="noopener">CJK languages</a> can be
+particularly challenging.</p>
+<p><strong>Unicode-range and font subsetting:</strong> <code>@font-face</code> is often used in
+conjunction with the
+<a href="https://developer.mozilla.org/docs/Web/CSS/@font-face/unicode-range" rel="noopener"><code>unicode-range</code></a>
+descriptor. <code>unicode-range</code> informs the browser which characters a font can
+be used for.</p>
+<web-copy-code><pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span><br>    <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">"Open Sans"</span><span class="token punctuation">;</span><br>    <span class="token property">src</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span><span class="token string url">"/fonts/OpenSans-Regular-webfont.woff2"</span><span class="token punctuation">)</span></span> <span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"woff2"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token property">unicode-range</span><span class="token punctuation">:</span> U+0025-00FF<span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>A font file will be downloaded if the page contains one or more characters
+matching the unicode range. <code>unicode-range</code> is commonly used to serve
+different font files depending on the language used by page content.</p>
+<p><code>unicode-range</code> is often used in conjunction with the technique of
+subsetting. A subset font includes a smaller portion of the
+<a href="https://en.wikipedia.org/wiki/Glyph" rel="noopener">glyphs</a> (that is, characters) that
+were contained in the original font file. For example, rather than serve all
+characters to all users, a site might generate separate subset fonts for
+Latin and Cyrillic characters. The number of glyphs per font varies wildly:
+Latin fonts are usually on the magnitude of 100 to 1000 glyphs per font;
+<a href="https://en.wikipedia.org/wiki/CJK_characters" rel="noopener">CJK</a> fonts may have over
+10,000 characters. Removing unused glyphs can significantly reduce the
+filesize of a font.</p>
+<p>Tools for generating font subsets include
+<a href="https://github.com/Munter/subfont" rel="noopener">subfont</a> and
+<a href="https://github.com/zachleat/glyphhanger" rel="noopener">glyphanger</a>.</p>
+<p>For information on how Google Fonts implements font subsetting, see this
+<a href="https://www.unicodeconference.org/presentations-42/S5T3-Sheeter.pdf" rel="noopener">presentation</a>.
+For the Google Fonts API subsets, see this
+<a href="https://github.com/googlefonts/gftools/tree/main/Lib/gftools/encodings" rel="noopener">repo</a>.</p>
+<p><strong>WOFF2:</strong> Of the modern font fonts, <a href="https://www.w3.org/TR/WOFF2/" rel="noopener">WOFF2</a> is
+the newest, has the widest browser support, and offers the best compression.
+Because it uses Brotli, WOFF2 compresses 30% better than WOFF.</p>
+<h4 id="use-fewer-web-fonts">Use fewer web fonts <a class="w-headline-link" href="#use-fewer-web-fonts">#</a></h4>
+<p>The fastest font to deliver is a font that isn't requested in the first place.
+System fonts and variable fonts are two ways to potentially reduce the number of
+web fonts used on your site.</p>
+<p>A <strong>system font</strong> is the default font used by the user
+interface of a user's device. System fonts typically vary by operating system
+and version. Because the font is already installed, the font does not need to
+be downloaded. System fonts can work particularly well for body text.</p>
+<p>To use the system font in your CSS, list <code>system-ui</code> as the font-family:</p>
+<web-copy-code><pre class="language-css"><code class="language-css"><span class="token property">font-family</span><span class="token punctuation">:</span> system-ui</code></pre>
+</web-copy-code><p>The idea behind <strong><a href="/variable-fonts/">variable
+fonts</a></strong> is that a single variable font can be
+used as a replacement for multiple font files. Variable fonts work by
+defining a &quot;default&quot; font style and providing
+<a href="/variable-fonts/#axes-definitions">&quot;axes&quot;</a> for manipulating
+the font. For example, a variable font with a <code>Weight</code> axis could be used to
+implement lettering that would previously require separate fonts for light,
+regular, bold, and extra bold.</p>
+<div class="w-aside w-aside--note">
+<p>We often refer to &quot;Times New Roman&quot; and &quot;Helvetica&quot; as fonts. However,
+technically speaking, these are font <em>families</em>. A family is composed of styles,
+which are particular variations of the typeface (for example, light, medium,
+or bold italic). A font file contains a single style unless it is a variable font.
+A typeface is the underlying design, which can be expressed as digital fonts -
+and in physical type, like carved woodblocks or metal.</p>
+</div>
+<p>Not everyone will benefit from switching to variable fonts. <a href="/variable-fonts/">Variable
+fonts</a> contain many styles, so typically have larger file
+sizes than individual non-variable fonts that only contain one style.
+Sites that will see the largest improvement from using variable fonts are
+those that use (and need to use) a variety of font styles and weights.</p>
+<h2 id="font-rendering">Font rendering <a class="w-headline-link" href="#font-rendering">#</a></h2>
+<p>When faced with a web font that has not yet loaded, the browser is faced with a
+dilemma: should it hold off on rendering text until the web font has arrived? Or
+should it render the text in a fallback font until the web font arrives?</p>
+<p>Different browsers handle this scenario differently. By default, Chromium-based
+and Firefox browsers will block text rendering for up to 3 seconds if the
+associated web font has not loaded; Safari will block text rendering
+indefinitely.</p>
+<p>This behavior can be configured by using the <code>font-display</code> attribute. This
+choice can have significant implications: <code>font-display</code> has the potential to
+impact LCP, FCP, and layout stability.</p>
+<h3 id="best-practices-3">Best practices <a class="w-headline-link" href="#best-practices-3">#</a></h3>
+<h4 id="choose-an-appropriate-font-display-strategy">Choose an appropriate <code>font-display</code> strategy <a class="w-headline-link" href="#choose-an-appropriate-font-display-strategy">#</a></h4>
+<p><a href="https://developer.mozilla.org/docs/Web/CSS/@font-face/font-display" rel="noopener"><code>font-display</code></a>
+informs the browser how it should proceed with text rendering when the
+associated web font has not loaded. It is defined per font-face.</p>
+<web-copy-code><pre class="language-css"><code class="language-css"><span class="token atrule"><span class="token rule">@font-face</span></span> <span class="token punctuation">{</span><br>  <span class="token property">font-family</span><span class="token punctuation">:</span> Roboto<span class="token punctuation">,</span> Sans-Serif<br>  <span class="token property">src</span><span class="token punctuation">:</span> <span class="token url"><span class="token function">url</span><span class="token punctuation">(</span>/fonts/roboto.woff<span class="token punctuation">)</span></span> <span class="token function">format</span><span class="token punctuation">(</span><span class="token string">'woff'</span><span class="token punctuation">)</span><span class="token punctuation">,</span><br>  <span class="token property">font-display</span><span class="token punctuation">:</span> swap<span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>There are five possible values for <code>font-display</code>:</p>
+<div class="w-table-wrapper">
+<table>
+<thead>
+  <tr>
+   <td><strong>Value</strong>
+   </td>
+   <td><strong>Block period</strong>
+   </td>
+   <td><strong>Swap period</strong>
+   </td>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+   <td>Auto
+   </td>
+   <td>Varies by browser
+   </td>
+   <td>Varies by browser
+   </td>
+  </tr>
+  <tr>
+   <td>Block
+   </td>
+   <td>3 seconds
+   </td>
+   <td>Infinite
+   </td>
+  </tr>
+  <tr>
+   <td>Swap
+   </td>
+   <td>0ms
+   </td>
+   <td>Infinite
+   </td>
+  </tr>
+  <tr>
+   <td>Fallback
+   </td>
+   <td>100ms
+   </td>
+   <td>3 seconds
+   </td>
+  </tr>
+  <tr>
+   <td>Optional
+   </td>
+   <td>100ms
+   </td>
+   <td>None
+   </td>
+  </tr>
+  </tbody>
+</table>
+</div>
+<ul>
+<li><strong>Block period</strong>: The block period begins when the browser requests a web
+font. During the block period, if the web font is not available, the font is
+rendered in an <em>invisible</em> fallback font and thus the text will not be
+visible to the user. If the font is not available at the end of the block
+period, it will be rendered in the fallback font.</li>
+<li><strong>Swap period</strong>: The swap period comes after the block period. If the web
+font becomes available during the swap period, it will be &quot;swapped&quot; in.</li>
+</ul>
+<h5 id="recommendation">Recommendation <a class="w-headline-link" href="#recommendation">#</a></h5>
+<p><code>font-display</code> strategies reflect different viewpoints about the tradeoff
+between performance and aesthetics. For most sites, these are the two strategies
+that will be most applicable:</p>
+<ul>
+<li>
+<p><strong>If performance is a top priority:</strong> Use <code>font-display: optional</code>. This is
+the most &quot;performant&quot; approach: text render is delayed for no longer than
+100ms and there is assurance that there will be no font-swap related layout
+shifts.</p>
+</li>
+<li>
+<p><strong>If displaying text in a web font is a top priority:</strong> Use <code>font-display: swap</code> but make sure to deliver the font early enough that it does not cause a
+layout shift.</p>
+</li>
+</ul>
+<div class="w-aside w-aside--note">
+<p><code>font-display: auto</code>, <code>font-display: block</code>, <code>font-display: swap</code>, and
+<code>font-display: fallback</code> all have the potential to cause layout shifts when
+the font is swapped. However, of these approaches, <code>font-display: swap</code> will
+delay text render the least. Thus, it is the preferred approach for
+situations where it is important that text ultimately gets rendered as a web
+font.</p>
+</div>
+<p>Also keep in mind that these two approaches can be combined: for example, use
+<code>font-display: swap</code> for branding and other visually distinctive page elements;
+use <code>font-display: optional</code> for fonts used in body text.</p>
+<div class="w-aside w-aside--note">
+<p>The <code>font-display</code> strategies that work well for traditional web fonts don't
+work nearly as well for icon fonts. The fallback font for an icon font
+typically looks significantly different than the icon font and its
+characters may convey a completely different meaning. As a result, icon
+fonts are more likely to cause significant layout shifts. In addition, using
+a fallback font may not be practical. If possible, it's best to replace icon
+fonts with SVG (this is also better for accessibility). Newer versions of
+popular icon fonts typically support SVG. For more information on switching
+to SVG, see <a href="https://fontawesome.com/v5.15/how-to-use/on-the-web/advanced/svg-sprites" rel="noopener">Font
+Awesome</a>
+and <a href="https://google.github.io/material-design-icons/#svg" rel="noopener">Material Icons</a>.</p>
+</div>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">Performance</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/web-vitals/">Web Vitals</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Jun 3, 2021</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/fast/font-best-practices/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/blog"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

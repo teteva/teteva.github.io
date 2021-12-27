@@ -1,0 +1,723 @@
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=e6f87dfd2601c">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Total Blocking Time (TBT)</title>
+<meta name="description" content="En esta publicación se presenta la métrica Total Blocking Time (TBT) y se explica como medirla" />
+
+<link rel="canonical" href="https://web.dev/i18n/es/tbt/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/tbt/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/tbt/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/tbt/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/tbt/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/tbt/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/tbt/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/tbt/" />
+<meta itemprop="name" content="Total Blocking Time (TBT)" />
+<meta itemprop="description" content="En esta publicación se presenta la métrica Total Blocking Time (TBT) y se explica como medirla" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="es_ALL" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/es/tbt/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Total Blocking Time (TBT)" />
+<meta property="og:description" content="En esta publicación se presenta la métrica Total Blocking Time (TBT) y se explica como medirla" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="metrics" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Total Blocking Time (TBT)" />
+<meta name="twitter:description" content="En esta publicación se presenta la métrica Total Blocking Time (TBT) y se explica como medirla" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=c9895a009abfb', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=c38b19d9f4535', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Abrir menú">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Abrir menú</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Aprender
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Medir
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Cerrar"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Cerrar</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Aprender
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Medir
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#total-blocking-time-(tbt)" class="w-toc__header--link">
+        Total Blocking Time (TBT)
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#que-es-tbt">¿Qué es TBT?</a><ol><li><a href="#como-se-relaciona-tbt-con-tti">¿Cómo se relaciona TBT con TTI?</a></li></ol></li><li><a href="#como-medir-tbt">Cómo medir TBT</a><ol><li><a href="#herramientas-de-laboratorio">Herramientas de laboratorio</a></li></ol></li><li><a href="#que-es-una-buena-puntuacion-tbt">¿Qué es una buena puntuación TBT?</a></li><li><a href="#como-mejorar-tbt">Cómo mejorar TBT</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@philwalton"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Compartir</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="total-blocking-time-(tbt)" class="w-article-header__headline">Total Blocking Time (TBT)</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Nov 7, 2019</time>
+           <span class="w-author__separator">•</span> Actualizado <time>Jun 15, 2020</time> 
+        </div>
+      
+
+      
+      
+      <div class="w-layout-container--narrow w-post-signpost">
+        <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/tbt/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/tbt/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/tbt/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/tbt/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/tbt/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/tbt/">
+      English</a></span>
+      </div>
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/metrics"
+          >Métricas</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/philipwalton/"><img     alt="Philip Walton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/philipwalton/">Philip Walton</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/philwalton"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/philipwalton">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://philipwalton.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <div class="w-aside w-aside--note">
+<p>Total Blocking Time: Tiempo de bloqueo total (TBT) es una <a href="/user-centric-performance-metrics/#in-the-lab">métrica de laboratorio</a> importante para medir la <a href="/user-centric-performance-metrics/#types-of-metrics">capacidad de respuesta de la carga</a> porque ayuda a cuantificar la gravedad de la falta de interacción de una página antes de que se vuelva interactiva de manera confiable: una TBT baja ayuda a garantizar que la página sea <a href="/user-centric-performance-metrics/#questions">útil</a>.</p>
+</div>
+<h2 id="que-es-tbt">¿Qué es TBT? <a class="w-headline-link" href="#que-es-tbt">#</a></h2>
+<p>La métrica Total Blocking Time (TBT) mide la cantidad total de tiempo entre <a href="/fcp/">First Contentful Paint: Primer despliegue del contenido (FCP)</a> y <a href="/tti/">Time to Interactive: Tiempo para interactuar (TTI)</a> donde el subproceso principal estuvo bloqueado durante el tiempo suficiente para evitar la respuesta de entrada.</p>
+<p>El subproceso principal se considera &quot;bloqueado&quot; cada vez que hay una <a href="/custom-metrics/#long-tasks-api">Tarea larga</a>, una tarea que se ejecuta en el subproceso principal durante más de 50 milisegundos (ms). Decimos que el subproceso principal está &quot;bloqueado&quot; porque el navegador no puede interrumpir una tarea que está en curso. Así que en el caso de que un usuario <em>interactúe</em> con la página en medio de una tarea larga, el navegador debe esperar a que la tarea termine antes de que pueda responder.</p>
+<p>Si la tarea es lo suficientemente larga (por ejemplo, cualquier cosa que supere los 50 ms), es probable que el usuario se dé cuenta de la demora y perciba que la página es lenta o poco funcional.</p>
+<p>El <em>tiempo de bloqueo</em> de una tarea larga determinada es su duración superior a 50 ms. Y el <em>tiempo de bloqueo total</em> de una página es la suma del <em>tiempo de bloqueo</em> para cada tarea larga que se produce entre FCP y TTI.</p>
+<p>Por ejemplo, considere consultar el siguiente diagrama del subproceso principal del navegador durante la carga de la página:</p>
+<p><a href="https://web-dev.imgix.net/image/admin/clHG8Yv239lXsGWD6Iu6.svg"><img      alt="Una línea de tiempo de tareas en el subproceso principal"            decoding="async"      height="156"            loading="lazy"            src="https://web-dev.imgix.net/image/admin/clHG8Yv239lXsGWD6Iu6.svg"                  width="800"    /></a></p>
+<p>La línea de tiempo anterior tiene cinco tareas, tres de las cuales son tareas largas porque su duración supera los 50 ms. En el siguiente diagrama se muestra el tiempo de bloqueo para cada una de las tareas largas:</p>
+<p><a href="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xKxwKagiz8RliuOI2Xtc.svg"><img      alt="Una línea de tiempo de tareas en el subproceso principal que muestra el tiempo de bloqueo"            decoding="async"      height="156"            loading="lazy"            src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/xKxwKagiz8RliuOI2Xtc.svg"                  width="800"    /></a></p>
+<p>Entonces, mientras que el tiempo total dedicado a ejecutar tareas en el subproceso principal es de 560 ms, solo 345 ms de ese tiempo se considera como tiempo de bloqueo.</p>
+<table>
+  <tr>
+    <th></th>
+    <th>Duración de la tarea</th>
+    <th>Tiempo de bloqueo de la tarea</th>
+  </tr>
+  <tr>
+    <td>Tarea uno</td>
+    <td>250 ms</td>
+    <td>200 ms</td>
+  </tr>
+  <tr>
+    <td>Tarea dos</td>
+    <td>90 ms</td>
+    <td>40 ms</td>
+  </tr>
+  <tr>
+    <td>Tarea tres</td>
+    <td>35 ms</td>
+    <td>0 ms</td>
+  </tr>
+  <tr>
+    <td>Tarea cuatro</td>
+    <td>30 ms</td>
+    <td>0 ms</td>
+  </tr>
+  <tr>
+    <td>Tarea cinco</td>
+    <td>155 ms</td>
+    <td>105 ms</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Tiempo total de bloqueo</strong></td>
+    <td><strong>345 ms</strong></td>
+  </tr>
+</table>
+<h3 id="como-se-relaciona-tbt-con-tti">¿Cómo se relaciona TBT con TTI? <a class="w-headline-link" href="#como-se-relaciona-tbt-con-tti">#</a></h3>
+<p>TBT es una gran métrica complementaria para TTI porque ayuda a cuantificar la gravedad de la falta de interactividad de una página antes de que se convierta en interactiva confiable.</p>
+<p>TTI considera que una página es &quot;confiablemente interactiva&quot; si el subproceso principal ha estado libre de tareas largas durante al menos cinco segundos. Esto significa que tres tareas de 51 ms repartidas a lo largo de 10 segundos pueden demorar el TTI tanto como una sola tarea de 10 segundos de duración, pero estos dos escenarios serían muy diferentes para un usuario que intenta interactuar con la página.</p>
+<p>En el primer caso, tres tareas de 51 ms tendrían un TBT de <strong>3 ms</strong>. Mientras que una sola tarea de 10 segundos de duración tendría un TBT de <strong>9, 950 ms</strong>. El valor mayor de TBT en el segundo caso cuantifica la peor experiencia.</p>
+<h2 id="como-medir-tbt">Cómo medir TBT <a class="w-headline-link" href="#como-medir-tbt">#</a></h2>
+<p>TBT es una métrica que debe medirse <a href="/user-centric-performance-metrics/#in-the-lab">en el laboratorio</a> . La mejor manera de medir TBT es ejecutar una auditoría de desempeño Lighthouse en su sitio. Consulte la <a href="/lighthouse-total-blocking-time">documentación de Lighthouse sobre TBT</a> para obtener información sobre su uso.</p>
+<h3 id="herramientas-de-laboratorio">Herramientas de laboratorio <a class="w-headline-link" href="#herramientas-de-laboratorio">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-devtools/" rel="noopener">Chrome DevTools</a></li>
+<li><a href="https://developers.google.com/web/tools/lighthouse/" rel="noopener">Lighthouse</a></li>
+<li><a href="https://www.webpagetest.org/" rel="noopener">WebPageTest</a></li>
+</ul>
+<div class="w-aside w-aside--note">
+<p>Si bien es posible medir TBT en el campo, no se recomienda ya que la interacción del usuario puede afectar la TBT de su página de manera que genere muchas variaciones en sus reportes. Para comprender la interactividad de una página en el campo, debe medir <a href="/fid/">First Input Delay (FID)</a>. </div></p>
+<h2 id="que-es-una-buena-puntuacion-tbt">¿Qué es una buena puntuación TBT? <a class="w-headline-link" href="#que-es-una-buena-puntuacion-tbt">#</a></h2>
+<p>Para ofrecer una buena experiencia de usuario, los sitios deben esforzarse por tener un Total Blocking Time inferior a <strong>300 milisegundos</strong> cuando se prueban en el hardware de un <strong>dispositivo móvil promedio</strong>.</p>
+<p>Para obtener más información sobre cómo la TBT de su página afecta a su puntuación de rendimiento de Lighthouse, consulte <a href="/lighthouse-total-blocking-time/#how-lighthouse-determines-your-tbt-score">Cómo determina Lighthouse su puntuación TBT</a></p>
+<h2 id="como-mejorar-tbt">Cómo mejorar TBT <a class="w-headline-link" href="#como-mejorar-tbt">#</a></h2>
+<p>Para aprender a mejorar TBT para un sitio específico, puede ejecutar una auditoría de desempeño Lighthouse y prestar atención a cualquier <a href="/lighthouse-performance/#opportunities">oportunidad</a> específica que sugiera la auditoría.</p>
+<p>Para saber cómo mejorar la TBT en general (para cualquier sitio), consulte las siguientes normas de rendimiento:</p>
+<ul>
+<li><a href="/third-party-summary/">Reducir el impacto en el código de terceros</a></li>
+<li><a href="/bootup-time/">Reducir el tiempo de ejecución de JavaScript</a></li>
+<li><a href="/mainthread-work-breakdown/">Minimizar el trabajo del subproceso principal</a></li>
+<li><a href="/resource-summary/">Mantener la cantidad de solicitudes bajas y los tamaños de transferencia reducidos</a></li>
+</ul>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">Rendimiento</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/metrics/">Métricas</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Última actualización: <time>Jun 15, 2020</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/es/metrics/tbt/index.md"
+      >
+        Mejorar el artículo
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/metrics"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Presentar un error
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Ver fuente
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contenido relevante</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome Actualizaciones
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Conectar</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            Todos los productos
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="es"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Condiciones y privacidad
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Principios de la Comunidad
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

@@ -1,0 +1,763 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=01eab48822eaa">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>PWA with offline streaming</title>
+<meta name="description" content="Building a PWA with offline streaming has its challenges. In this article you will learn about the APIs and techniques that provide users with a high-quality offline media experience. " />
+
+<link rel="canonical" href="https://web.dev/pwa-with-offline-streaming/" />
+
+<meta itemprop="name" content="PWA with offline streaming" />
+<meta itemprop="description" content="Building a PWA with offline streaming has its challenges. In this article you will learn about the APIs and techniques that provide users with a high-quality offline media experience. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/pwa-with-offline-streaming/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="PWA with offline streaming" />
+<meta property="og:description" content="Building a PWA with offline streaming has its challenges. In this article you will learn about the APIs and techniques that provide users with a high-quality offline media experience. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="media" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="PWA with offline streaming" />
+<meta name="twitter:description" content="Building a PWA with offline streaming has its challenges. In this article you will learn about the APIs and techniques that provide users with a high-quality offline media experience. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=913fafff2b3a3', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=eb4e40f736279', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#pwa-with-offline-streaming" class="w-toc__header--link">
+        PWA with offline streaming
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#downloading-and-storing-a-large-media-file">Downloading and storing a large media file</a><ol><li><a href="#downloading-media-files-using-the-fetch-api">Downloading media files using the Fetch API</a></li><li><a href="#resuming-downloads">Resuming downloads</a></li><li><a href="#custom-write-buffer-for-indexeddb">Custom write buffer for IndexedDB</a></li></ol></li><li><a href="#serving-a-media-file-from-offline-storage">Serving a media file from offline storage</a></li><li><a href="#other-considerations">Other considerations</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@dero_name | @derekherman"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Share</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="pwa-with-offline-streaming" class="w-article-header__headline">PWA with offline streaming</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Jul 5, 2021</time>
+           <span class="w-author__separator">•</span> Updated <time>Jul 5, 2021</time> 
+        </div>
+      
+
+      
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/media"
+          >Media</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/dero/"><img     alt="Jaroslav Polakovič"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/wj3d5QqXh3gIUuR7Ob7w.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/wj3d5QqXh3gIUuR7Ob7w.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/wj3d5QqXh3gIUuR7Ob7w.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/wj3d5QqXh3gIUuR7Ob7w.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/wj3d5QqXh3gIUuR7Ob7w.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/wj3d5QqXh3gIUuR7Ob7w.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/dero/">Jaroslav Polakovič</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/dero_name"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/dero">GitHub</a>
+      </li>
+      
+      
+    </ul>
+  </div>
+</div>
+          
+            <div class="w-author">
+  <a href="/authors/derekherman/"><img     alt="Derek Herman"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/derekherman/">Derek Herman</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/derekherman"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/derekherman">GitHub</a>
+      </li>
+      
+      
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <p><a href="/progressive-web-apps/">Progressive Web Apps</a> bring a lot of features previously reserved for native
+applications to the web. One of the most prominent features associated with
+PWAs is an offline experience.</p>
+<p>Even better would be an offline streaming media experience, which is an
+enhancement you could offer to your users in a few different ways. However,
+this creates a truly unique problem—media files can be <em>very</em> large. So
+you might be asking:</p>
+<ul>
+<li>How do I download and store a large video file?</li>
+<li>And how do I serve it to the user?</li>
+</ul>
+<p>In this article we will discuss answers to these questions, while
+referencing the <a href="https://kinoweb.dev" rel="noopener">Kino</a> demo PWA we built that provides you with practical
+examples of how you can implement an offline streaming media experience without
+using any functional or presentational frameworks. The following examples are
+mainly for educational purposes, because in most cases you should probably use
+one of the existing <a href="/media-frameworks/">Media Frameworks</a> to provide these features.</p>
+<p>Unless you have a good business case for developing your own, building a PWA
+with offline streaming has its challenges. In this article you will learn about
+the APIs and techniques used to provide users with a high-quality offline media
+experience.</p>
+<h2 id="downloading-and-storing-a-large-media-file">Downloading and storing a large media file <a class="w-headline-link" href="#downloading-and-storing-a-large-media-file">#</a></h2>
+<p>Progressive Web Apps usually use the convenient <a href="/cache-api-quick-guide/">Cache API</a> to both download
+and store the assets required to provide the offline experience: documents,
+stylesheets, images, and others.</p>
+<p>Here is a basic example of using the Cache API within a Service Worker:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="highlight-line"><span class="token keyword">const</span> cacheStorageName <span class="token operator">=</span> <span class="token string">'v1'</span><span class="token punctuation">;</span></span><br><span class="highlight-line"></span><br><span class="highlight-line"><span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'install'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">  event<span class="token punctuation">.</span><span class="token function">waitUntil</span><span class="token punctuation">(</span></span><br><span class="highlight-line">    caches<span class="token punctuation">.</span><span class="token function">open</span><span class="token punctuation">(</span>cacheStorageName<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">cache</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">      <span class="token keyword">return</span> cache<span class="token punctuation">.</span><span class="token function">addAll</span><span class="token punctuation">(</span><span class="token punctuation">[</span></span><br><span class="highlight-line">        <span class="token string">'index.html'</span><span class="token punctuation">,</span></span><br><span class="highlight-line">        <span class="token string">'style.css'</span><span class="token punctuation">,</span></span><br><span class="highlight-line">        <span class="token string">'scripts.js'</span><span class="token punctuation">,</span></span><br><span class="highlight-line"></span><br><mark class="highlight-line highlight-line-active">        <span class="token comment">// Don't do this.</span></mark><br><mark class="highlight-line highlight-line-active">        <span class="token string">'very-large-video.mp4'</span><span class="token punctuation">,</span></mark><br><span class="highlight-line">      <span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line">    <span class="token punctuation">}</span><span class="token punctuation">)</span></span><br><span class="highlight-line">  <span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line"><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span></code></pre>
+</web-copy-code><p>While the example above does technically work, using the Cache API has several
+limitations that makes its use with large files impractical.</p>
+<p>For example, the Cache API doesn't:</p>
+<ul>
+<li>Allow you to easily pause and resume downloads</li>
+<li>Let you track the progress of downloads</li>
+<li>Offer a way to properly respond to <a href="https://developer.mozilla.org/docs/Web/HTTP/Range_requests" rel="noopener">HTTP range requests</a></li>
+</ul>
+<p>All of these issues are pretty serious limitations for any video application.
+Let's review some other options that might be more appropriate.</p>
+<p>Nowadays, the <a href="https://developer.mozilla.org/docs/Web/API/Fetch_API" rel="noopener">Fetch API</a> is a cross-browser way to asynchronously access remote
+files. In our use case it allows you to access large video files as a stream and
+store them incrementally as chunks using an HTTP range request.</p>
+<div class="w-aside w-aside--note">
+<p>Check out the <a href="https://developer.mozilla.org/docs/Web/API/Background_Fetch_API" rel="noopener">Background Fetch API</a> as a candidate for a progressive
+enhancement of the Fetch API in browsers that <a href="https://caniuse.com/mdn-api_serviceworkerregistration_backgroundfetch" rel="noopener">support Background Fetch</a>.</p>
+</div>
+<p>Now that you can read the chunks of data with the <a href="https://developer.mozilla.org/docs/Web/API/Fetch_API" rel="noopener">Fetch API</a> you also need to
+store them. Chances are there is a bunch of metadata associated with your media
+file such as: name, description, runtime length, category, etc.</p>
+<p>You're not storing just the one media file, you are storing a structured object,
+and the media file is just one of its properties.</p>
+<p>In this case the <a href="https://developer.mozilla.org/docs/Web/API/IndexedDB_API" rel="noopener">IndexedDB API</a> provides an excellent solution to store both the
+media data and metadata. It can hold huge amounts of binary data easily, and it
+also offers indexes that allow you to perform very fast data lookups.</p>
+<div class="w-aside w-aside--note">
+<p>There is also a <a href="/file-system-access/">File System Access API</a> that you could use in some browsers to
+store the media files directly on the client device.</p>
+</div>
+<h3 id="downloading-media-files-using-the-fetch-api">Downloading media files using the Fetch API <a class="w-headline-link" href="#downloading-media-files-using-the-fetch-api">#</a></h3>
+<p>We built a couple of interesting features around the Fetch API in our demo PWA,
+which we named <a href="https://kinoweb.dev" rel="noopener">Kino</a>—the <a href="https://github.com/GoogleChrome/kino" rel="noopener">source code</a> is public so feel free to review it.</p>
+<ul>
+<li>The ability to pause and resume incomplete downloads.</li>
+<li>A custom buffer for storing chunks of data in the database.</li>
+</ul>
+<p>Before showing how those features are implemented, we'll first do a
+quick recap of how you can use the Fetch API to download files.</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token comment">/**<br> * Downloads a single file.<br> *<br> * @param {string} url URL of the file to be downloaded.<br> */</span><br><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">downloadFile</span><span class="token punctuation">(</span><span class="token parameter">url</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token keyword">const</span> response <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token keyword">const</span> reader <span class="token operator">=</span> response<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">getReader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token keyword">do</span> <span class="token punctuation">{</span><br>    <span class="token keyword">const</span> <span class="token punctuation">{</span> done<span class="token punctuation">,</span> dataChunk <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token keyword">await</span> reader<span class="token punctuation">.</span><span class="token function">read</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token comment">// Store the `dataChunk` to IndexedDB.</span><br>  <span class="token punctuation">}</span> <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token operator">!</span>done<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>Notice that <code>await reader.read()</code> is in a loop? That's how you'll receive chunks
+of data from a readable stream as they arrive from the network. Consider how
+useful this is: you can start processing your data even before it all arrives
+from the network.</p>
+<div class="w-aside w-aside--note">
+<p>If you find the concept of streams confusing, check out
+<a href="/streams/">Streams–The definitive guide</a> before you continue.</p>
+</div>
+<h3 id="resuming-downloads">Resuming downloads <a class="w-headline-link" href="#resuming-downloads">#</a></h3>
+<p>When a download is paused or interrupted, the data chunks that have arrived will
+be safely stored in an IndexedDB database. You can then display a button to
+resume a download in your application. Because the <a href="https://kinoweb.dev" rel="noopener">Kino</a> demo PWA server
+supports <a href="https://developer.mozilla.org/docs/Web/HTTP/Range_requests" rel="noopener">HTTP range requests</a> resuming a download is somewhat straightforward:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token keyword">async</span> <span class="token function">downloadFile</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token comment">// this.currentFileMeta contains data from IndexedDB.</span><br>  <span class="token keyword">const</span> <span class="token punctuation">{</span> bytesDownloaded<span class="token punctuation">,</span> url<span class="token punctuation">,</span> downloadUrl <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>currentFileMeta<span class="token punctuation">;</span><br>  <span class="token keyword">const</span> fetchOpts <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span><br><br>  <span class="token comment">// If we already have some data downloaded,</span><br>  <span class="token comment">// request everything from that position on.</span><br>  <span class="token keyword">if</span> <span class="token punctuation">(</span>bytesDownloaded<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    fetchOpts<span class="token punctuation">.</span>headers <span class="token operator">=</span> <span class="token punctuation">{</span><br>      Range<span class="token operator">:</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">bytes=</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>bytesDownloaded<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">-</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span><br>    <span class="token punctuation">}</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><br><br>  <span class="token keyword">const</span> response <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token function">fetch</span><span class="token punctuation">(</span>downloadUrl<span class="token punctuation">,</span> fetchOpts<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token keyword">const</span> reader <span class="token operator">=</span> response<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">getReader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>  <span class="token keyword">let</span> dataChunk<span class="token punctuation">;</span><br>  <span class="token keyword">do</span> <span class="token punctuation">{</span><br>    dataChunk <span class="token operator">=</span> <span class="token keyword">await</span> reader<span class="token punctuation">.</span><span class="token function">read</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>dataChunk<span class="token punctuation">.</span>done<span class="token punctuation">)</span> <span class="token keyword">this</span><span class="token punctuation">.</span>buffer<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>dataChunk<span class="token punctuation">.</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span> <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token operator">!</span>dataChunk<span class="token punctuation">.</span>done <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span><span class="token keyword">this</span><span class="token punctuation">.</span>paused<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><h3 id="custom-write-buffer-for-indexeddb">Custom write buffer for IndexedDB <a class="w-headline-link" href="#custom-write-buffer-for-indexeddb">#</a></h3>
+<p>On paper, the process of writing <code>dataChunk</code> values into an IndexedDB database
+is simple. Those values already are <code>ArrayBuffer</code> instances, which are storable
+in IndexedDB directly, so we can just create an object of an appropriate shape
+and store it.</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> dataItem <span class="token operator">=</span> <span class="token punctuation">{</span><br>  url<span class="token operator">:</span> fileUrl<span class="token punctuation">,</span><br>  rangeStart<span class="token operator">:</span> dataStartByte<span class="token punctuation">,</span><br>  rangeEnd<span class="token operator">:</span> dataEndByte<span class="token punctuation">,</span><br>  data<span class="token operator">:</span> dataChunk<span class="token punctuation">,</span><br><span class="token punctuation">}</span><br><br><span class="token comment">// Name of the store that will hold your data.</span><br><span class="token keyword">const</span> storeName <span class="token operator">=</span> <span class="token string">'fileChunksStorage'</span><br><br><span class="token comment">// `db` is an instance of `IDBDatabase`.</span><br><span class="token keyword">const</span> transaction <span class="token operator">=</span> db<span class="token punctuation">.</span><span class="token function">transaction</span><span class="token punctuation">(</span><span class="token punctuation">[</span>storeName<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">'readwrite'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">const</span> store <span class="token operator">=</span> transaction<span class="token punctuation">.</span><span class="token function">objectStore</span><span class="token punctuation">(</span>storeName<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">const</span> putRequest <span class="token operator">=</span> store<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>putRequest<span class="token punctuation">.</span><span class="token function-variable function">onsuccess</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span> <span class="token operator">...</span> <span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>While this approach works, you will likely discover that your IndexedDB writes
+are significantly slower than your download. This isn't because IndexedDB writes
+are slow, it's because we are adding a lot of transactional overhead by creating
+a new transaction for every data chunk that we receive from a network.</p>
+<p>The downloaded chunks can be rather small and can be emitted by the stream in
+rapid succession. You need to limit the rate of IndexedDB writes. In the
+<a href="https://kinoweb.dev" rel="noopener">Kino</a> demo PWA we do this by implementing an <strong>intermediary write buffer</strong>.</p>
+<p>As data chunks arrive from the network, we append them to our buffer first. If
+the incoming data doesn't fit, we flush the full buffer into the database and
+clear it before appending the rest of the data. As a result our IndexedDB
+writes are less frequent, which leads to significantly improved write
+performance.</p>
+<h2 id="serving-a-media-file-from-offline-storage">Serving a media file from offline storage <a class="w-headline-link" href="#serving-a-media-file-from-offline-storage">#</a></h2>
+<p>Once you have a media file downloaded, you probably want your service worker to
+serve it from IndexedDB instead of fetching the file from the network.</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token comment">/**<br> * The main service worker fetch handler.<br> *<br> * @param {FetchEvent} event Fetch event.<br> */</span><br><span class="token keyword">const</span> <span class="token function-variable function">fetchHandler</span> <span class="token operator">=</span> <span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token keyword">const</span> <span class="token function-variable function">getResponse</span> <span class="token operator">=</span> <span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>    <span class="token comment">// Omitted Cache API code used to serve static assets.</span><br><br>    <span class="token keyword">const</span> videoResponse <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token function">getVideoResponse</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token keyword">if</span> <span class="token punctuation">(</span>videoResponse<span class="token punctuation">)</span> <span class="token keyword">return</span> videoResponse<span class="token punctuation">;</span><br><br>    <span class="token comment">// Fallback to network.</span><br>    <span class="token keyword">return</span> <span class="token function">fetch</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">;</span><br>  event<span class="token punctuation">.</span><span class="token function">respondWith</span><span class="token punctuation">(</span><span class="token function">getResponse</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><span class="token punctuation">;</span><br>self<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'fetch'</span><span class="token punctuation">,</span> fetchHandler<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>So what do you need to do in <code>getVideoResponse()</code>?</p>
+<ul>
+<li>The <code>event.respondWith()</code> method expects a <code>Response</code> object as a parameter.</li>
+<li>The <a href="https://developer.mozilla.org/docs/Web/API/Response/Response" rel="noopener">Response() constructor</a> tells us that there are several types of objects we
+could use to instantiate a <code>Response</code> object: a <code>Blob</code>, <code>BufferSource</code>,
+<code>ReadableStream</code>, and more.</li>
+<li>We need an object that doesn't hold all of its data in memory, so we'll
+probably want to choose the <code>ReadableStream</code>.</li>
+</ul>
+<p>Also, because we're dealing with large files, and we wanted to allow browsers to
+only request the part of the file they currently need, we needed to implement
+some basic support for <a href="https://developer.mozilla.org/docs/Web/HTTP/Range_requests" rel="noopener">HTTP range requests</a>.</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token comment">/**<br> * Respond to a request to fetch offline video file and construct a response<br> * stream.<br> *<br> * Includes support for `Range` requests.<br> *<br> * @param {Request} request  Request object.<br> * @param {Object}  fileMeta File meta object.<br> *<br> * @returns {Response} Response object.<br> */</span><br><span class="token keyword">const</span> <span class="token function-variable function">getVideoResponse</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">request<span class="token punctuation">,</span> fileMeta</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token keyword">const</span> rangeRequest <span class="token operator">=</span> request<span class="token punctuation">.</span>headers<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'range'</span><span class="token punctuation">)</span> <span class="token operator">||</span> <span class="token string">''</span><span class="token punctuation">;</span><br>  <span class="token keyword">const</span> byteRanges <span class="token operator">=</span> rangeRequest<span class="token punctuation">.</span><span class="token function">match</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">bytes=<span class="token group punctuation">(?&lt;<span class="token group-name variable">from</span>></span><span class="token charset"><span class="token charset-punctuation punctuation">[</span><span class="token range">0<span class="token range-punctuation operator">-</span>9</span><span class="token charset-punctuation punctuation">]</span></span><span class="token quantifier number">+</span><span class="token group punctuation">)</span><span class="token quantifier number">?</span>-<span class="token group punctuation">(?&lt;<span class="token group-name variable">to</span>></span><span class="token charset"><span class="token charset-punctuation punctuation">[</span><span class="token range">0<span class="token range-punctuation operator">-</span>9</span><span class="token charset-punctuation punctuation">]</span></span><span class="token quantifier number">+</span><span class="token group punctuation">)</span><span class="token quantifier number">?</span></span><span class="token regex-delimiter">/</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>  <span class="token comment">// Using the optional chaining here to access properties of</span><br>  <span class="token comment">// possibly nullish objects.</span><br>  <span class="token keyword">const</span> rangeFrom <span class="token operator">=</span> <span class="token function">Number</span><span class="token punctuation">(</span>byteRanges<span class="token operator">?.</span>groups<span class="token operator">?.</span>from <span class="token operator">||</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token keyword">const</span> rangeTo <span class="token operator">=</span> <span class="token function">Number</span><span class="token punctuation">(</span>byteRanges<span class="token operator">?.</span>groups<span class="token operator">?.</span>to <span class="token operator">||</span> fileMeta<span class="token punctuation">.</span>bytesTotal <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>  <span class="token comment">// Omitting implementation for brevity.</span><br>  <span class="token keyword">const</span> streamSource <span class="token operator">=</span> <span class="token punctuation">{</span><br>     <span class="token function">pull</span><span class="token punctuation">(</span><span class="token parameter">controller</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>       <span class="token comment">// Read file data here and call `controller.enqueue`</span><br>       <span class="token comment">// with every retrieved chunk, then `controller.close`</span><br>       <span class="token comment">// once all data is read.</span><br>     <span class="token punctuation">}</span><br>  <span class="token punctuation">}</span><br>  <span class="token keyword">const</span> stream <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ReadableStream</span><span class="token punctuation">(</span>streamSource<span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>  <span class="token comment">// Make sure to set proper headers when supporting range requests.</span><br>  <span class="token keyword">const</span> responseOpts <span class="token operator">=</span> <span class="token punctuation">{</span><br>    status<span class="token operator">:</span> rangeRequest <span class="token operator">?</span> <span class="token number">206</span> <span class="token operator">:</span> <span class="token number">200</span><span class="token punctuation">,</span><br>    statusText<span class="token operator">:</span> rangeRequest <span class="token operator">?</span> <span class="token string">'Partial Content'</span> <span class="token operator">:</span> <span class="token string">'OK'</span><span class="token punctuation">,</span><br>    headers<span class="token operator">:</span> <span class="token punctuation">{</span><br>      <span class="token string">'Accept-Ranges'</span><span class="token operator">:</span> <span class="token string">'bytes'</span><span class="token punctuation">,</span><br>      <span class="token string">'Content-Length'</span><span class="token operator">:</span> rangeTo <span class="token operator">-</span> rangeFrom <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">,</span><br>    <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token punctuation">}</span><span class="token punctuation">;</span><br>  <span class="token keyword">if</span> <span class="token punctuation">(</span>rangeRequest<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    responseOpts<span class="token punctuation">.</span>headers<span class="token punctuation">[</span><span class="token string">'Content-Range'</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">bytes </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>rangeFrom<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>rangeTo<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>fileMeta<span class="token punctuation">.</span>bytesTotal<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><br>  <span class="token keyword">const</span> response <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Response</span><span class="token punctuation">(</span>stream<span class="token punctuation">,</span> responseOpts<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token keyword">return</span> response<span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>Feel free to check out the <a href="https://kinoweb.dev" rel="noopener">Kino</a> demo PWA <a href="https://github.com/GoogleChrome/kino/blob/72055bdc7c8ad3de943a55293b2bf882e467c814/src/js/sw/sw.js#L53-L122" rel="noopener">service worker source code</a> to find
+out how we are reading file data from IndexedDB and constructing a stream in
+a real application.</p>
+<h2 id="other-considerations">Other considerations <a class="w-headline-link" href="#other-considerations">#</a></h2>
+<p>With the main obstacles out of your way, you can now start adding some
+nice-to-have features to your video application. Here are a few examples of
+features you would find in the <a href="https://kinoweb.dev" rel="noopener">Kino</a> demo PWA:</p>
+<ul>
+<li><a href="/media-session/">Media Session API</a> integration that allows your users to control media
+playback using dedicated hardware media keys or from media notification
+popups.</li>
+<li>Caching of other assets associated with the media files like subtitles, and
+poster images using the good old <a href="/cache-api-quick-guide/">Cache API</a>.</li>
+<li>Support for video streams (DASH, HLS) download within the app. Because stream
+manifests generally declare multiple sources of different bitrates, you need to
+transform the manifest file and only download one media version before storing
+it for offline viewing.</li>
+</ul>
+<p>Up next, you will learn about <a href="/fast-playback-with-preload/">Fast playback with audio and video preload</a>.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/media/">Media</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Jul 5, 2021</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/media/pwa-with-offline-streaming/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/media"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

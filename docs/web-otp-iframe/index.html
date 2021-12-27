@@ -1,0 +1,715 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=af3c36248d8e3">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=d54c3c2190782">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Fill OTP forms within cross-origin iframes with WebOTP API</title>
+<meta name="description" content="WebOTP API can now receive an OTP from within an iframe. " />
+
+<link rel="canonical" href="https://web.dev/web-otp-iframe/" />
+
+<meta itemprop="name" content="Fill OTP forms within cross-origin iframes with WebOTP API" />
+<meta itemprop="description" content="WebOTP API can now receive an OTP from within an iframe. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/web-otp-iframe/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Fill OTP forms within cross-origin iframes with WebOTP API" />
+<meta property="og:description" content="WebOTP API can now receive an OTP from within an iframe. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="A man entering the credit card number on a computer." />
+<meta property="tag" content="identity" />
+<meta property="tag" content="capabilities" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Fill OTP forms within cross-origin iframes with WebOTP API" />
+<meta name="twitter:description" content="WebOTP API can now receive an OTP from within an iframe. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=b3f6c9930dfd3', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=b85a6dbdc156f', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="A man entering the credit card number on a computer."     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/cjCJPMZpWEK9MgnH3MK1.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#how-webotp-api-works">How WebOTP API works</a></li><li class="toc__listitem"><a class="toc__anchor" href="#cross-origin-iframes-use-cases">Cross-origin iframes use cases</a></li><li class="toc__listitem"><a class="toc__anchor" href="#how-to-use-webotp-api-from-a-cross-origin-iframe">How to use WebOTP API from a cross-origin iframe</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#annotate-bound-origins-to-the-sms-text-message">Annotate bound-origins to the SMS text message</a></li><li class="toc__listitem"><a class="toc__anchor" href="#configure-permissions-policy">Configure Permissions Policy</a></li><li class="toc__listitem"><a class="toc__anchor" href="#caveats">Caveats</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#interoperability">Interoperability</a></li><li class="toc__listitem"><a class="toc__anchor" href="#feedback">Feedback</a></li><li class="toc__listitem"><a class="toc__anchor" href="#resources">Resources</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="fill-otp-forms-within-cross-origin-iframes-with-webotp-api">Fill OTP forms within cross-origin iframes with WebOTP API</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            WebOTP API can now receive OTPs from within iframes.
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Apr 21, 2021</time>
+            
+          </div>
+        
+
+        
+        
+
+        
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/yigu/"> <img     alt="Yi Gu"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/1jsaXAFfmWcyGObF0MF3.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/1jsaXAFfmWcyGObF0MF3.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/1jsaXAFfmWcyGObF0MF3.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/1jsaXAFfmWcyGObF0MF3.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/1jsaXAFfmWcyGObF0MF3.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/1jsaXAFfmWcyGObF0MF3.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/yigu/">Yi Gu</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/yigsgu">Twitter</a>
+               <a href="https://github.com/yi-gu">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/agektmr/"> <img     alt="Eiji Kitamura"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/agektmr/">Eiji Kitamura</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/agektmr">Twitter</a>
+               <a href="https://github.com/agektmr">GitHub</a>
+               
+               <a href="https://blog.agektmr.com">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#how-webotp-api-works">How WebOTP API works</a></li><li class="toc__listitem"><a class="toc__anchor" href="#cross-origin-iframes-use-cases">Cross-origin iframes use cases</a></li><li class="toc__listitem"><a class="toc__anchor" href="#how-to-use-webotp-api-from-a-cross-origin-iframe">How to use WebOTP API from a cross-origin iframe</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#annotate-bound-origins-to-the-sms-text-message">Annotate bound-origins to the SMS text message</a></li><li class="toc__listitem"><a class="toc__anchor" href="#configure-permissions-policy">Configure Permissions Policy</a></li><li class="toc__listitem"><a class="toc__anchor" href="#caveats">Caveats</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#interoperability">Interoperability</a></li><li class="toc__listitem"><a class="toc__anchor" href="#feedback">Feedback</a></li><li class="toc__listitem"><a class="toc__anchor" href="#resources">Resources</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <p>SMS OTPs (one-time passwords) are commonly used to verify phone numbers, for
+example as a second step in authentication, or to verify payments on the web.
+However, switching between the browser and the SMS app, to copy-paste or manually
+enter the OTP makes it easy to make mistakes and adds friction to the user experience.</p>
+<p>The <a href="/web-otp">WebOTP API</a> gives websites the ability to programmatically
+obtain the one-time password from a SMS message and enter it
+automatically in the form for the users with just one tap without switching the
+app. The SMS is specially-formatted and bound to the origin, so it mitigates
+chances for phishing websites to steal the OTP as well.</p>
+<p>One use case that has yet to be supported in WebOTP was targeting an origin
+inside an iframe. This is typically used for payment confirmation, especially
+with <a href="https://en.wikipedia.org/wiki/3-D_Secure" rel="noopener">3D Secure</a>. Having <a href="https://wicg.github.io/sms-one-time-codes/" rel="noopener">the common
+format to support cross-origin
+iframes</a>, WebOTP API now delivers
+OTPs bound to nested origins starting in Chrome 91.</p>
+<h2 id="how-webotp-api-works">How WebOTP API works <a class="w-headline-link" href="#how-webotp-api-works">#</a></h2>
+<p>WebOTP API itself is simple enough:</p>
+<web-copy-code><pre class="language-js"><code class="language-js">…<br>  <span class="token keyword">const</span> otp <span class="token operator">=</span> <span class="token keyword">await</span> navigator<span class="token punctuation">.</span>credentials<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token punctuation">{</span><br>    otp<span class="token operator">:</span> <span class="token punctuation">{</span> transport<span class="token operator">:</span><span class="token punctuation">[</span><span class="token string">'sms'</span><span class="token punctuation">]</span> <span class="token punctuation">}</span><br>  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>…</code></pre>
+</web-copy-code><p>The SMS message must be <a href="/web-otp/#format">formatted with the origin-bound one-time
+codes</a>.</p>
+<web-copy-code><pre class="language-text"><code class="language-text">Your OTP is: 123456.<br><br>@web-otp.glitch.me #12345</code></pre>
+</web-copy-code><p>Notice that at the last line it contains the origin to be bound to preceded with
+a <code>@</code> followed by the OTP preceded with a <code>#</code>.</p>
+<p>When the text message arrives, an info bar pops up and prompts the user to
+verify their phone number. After the user clicks the <code>Verify</code> button, the
+browser automatically forwards the OTP to the site and resolves the
+<code>navigator.credentials.get()</code>. The website can then extract the OTP and complete
+the verification process.</p>
+<p>Learn the basics of using WebOTP at <a href="/web-otp/">Verify phone numbers on the web with the
+WebOTP API</a>.</p>
+<h2 id="cross-origin-iframes-use-cases">Cross-origin iframes use cases <a class="w-headline-link" href="#cross-origin-iframes-use-cases">#</a></h2>
+<p>Entering an OTP in a form within a cross-origin iframe is common in payment
+scenarios. Some credit card issuers require an additional verification step to
+check the payer's authenticity. This is called 3D Secure and the form is
+typically exposed within an iframe on the same page as if it's a part of the
+payment flow.</p>
+<p>For example:</p>
+<ul>
+<li>A user visits <code>shop.example</code> to purchase a pair of shoes with a credit card.</li>
+<li>After entering the credit card number, the integrated payment provider shows a
+form from <code>bank.example</code> within an iframe asking the user to verify their
+phone number for fast checkout.</li>
+<li><code>bank.example</code> sends an SMS that contains an OTP to the user so that they can
+enter it to verify their identity.</li>
+</ul>
+<h2 id="how-to-use-webotp-api-from-a-cross-origin-iframe">How to use WebOTP API from a cross-origin iframe <a class="w-headline-link" href="#how-to-use-webotp-api-from-a-cross-origin-iframe">#</a></h2>
+<p>To use WebOTP API from within a cross-origin iframe, you need to do two
+things:</p>
+<ul>
+<li>Annotate both the top-frame origin and the iframe origin in the SMS text
+message.</li>
+<li>Configure permissions policy to allow the cross-origin iframe to receive OTP
+from the user directly.</li>
+</ul>
+<figure class="w-figure">
+<video      autoplay            class="w-screenshot"      controls            height="600"            loop      muted                  preload="auto"      width="300"    >      <source src="https://storage.googleapis.com/web-dev-uploads/video/YLflGBAPWecgtKJLqCJHSzHqe2J2/Ba3OSkSsB4NwFkHGOuvc.mp4" type="video/mp4" />    </video>
+  <figcaption class="w-figcaption">
+    WebOTP API within an iframe in action.
+  </figcaption>
+</figure>
+<p>You can try the demo yourself at
+<a href="https://web-otp-iframe-demo.stackblitz.io" rel="noopener">https://web-otp-iframe-demo.stackblitz.io</a>.</p>
+<h3 id="annotate-bound-origins-to-the-sms-text-message">Annotate bound-origins to the SMS text message <a class="w-headline-link" href="#annotate-bound-origins-to-the-sms-text-message">#</a></h3>
+<p>When WebOTP API is called from within an iframe, the SMS text message must
+include the top-frame origin preceded by <code>@</code> followed by the OTP preceded by <code>#</code>
+followed by the iframe origin preceded by <code>@</code>.</p>
+<web-copy-code><pre class="language-text"><code class="language-text">@shop.example #123456 @bank.exmple</code></pre>
+</web-copy-code><h3 id="configure-permissions-policy">Configure Permissions Policy <a class="w-headline-link" href="#configure-permissions-policy">#</a></h3>
+<p>To use WebOTP in a cross-origin iframe, the embedder must grant access to this
+API via otp-credentials <a href="https://www.w3.org/TR/permissions-policy-1" rel="noopener">permissions
+policy</a> to avoid unintended
+behavior. In general there are two ways to achieve this goal:</p>
+<ul>
+<li>via HTTP Header:</li>
+</ul>
+<web-copy-code><pre class="language-http"><code class="language-http"><span class="token header-name keyword">Permissions-Policy:</span> otp-credentials=(self "https://bank.example")</code></pre>
+</web-copy-code><ul>
+<li>via iframe <code>allow</code> attribute:</li>
+</ul>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://bank.example/…<span class="token punctuation">"</span></span> <span class="token attr-name">allow</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>otp-credentials<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>See <a href="https://github.com/w3c/webappsec-permissions-policy/blob/master/permissions-policy-explainer.md#how-is-a-policy-specified" rel="noopener">more examples on how to specify a permission policy
+</a>.</p>
+<h3 id="caveats">Caveats <a class="w-headline-link" href="#caveats">#</a></h3>
+<h4 id="nesting-levels">Nesting levels <a class="w-headline-link" href="#nesting-levels">#</a></h4>
+<p>At the moment Chrome only supports WebOTP API calls from cross-origin iframes
+that have <strong>no more than one</strong> unique origin in its ancestor chain. In the
+following scenarios:</p>
+<ul>
+<li>a.com -&gt; b.com</li>
+<li>a.com -&gt; b.com -&gt; b.com</li>
+<li>a.com -&gt; a.com -&gt; b.com</li>
+<li>a.com -&gt; b.com -&gt; c.com</li>
+</ul>
+<p>using WebOTP in b.com is supported but using it in c.com is not.</p>
+<p>Note that the following scenario is also not supported because of lack of demand
+and UX complexities.</p>
+<ul>
+<li>a.com -&gt; b.com -&gt; a.com (calls WebOTP API)</li>
+</ul>
+<h2 id="interoperability">Interoperability <a class="w-headline-link" href="#interoperability">#</a></h2>
+<p>While browser engines other than Chromium do not implement the WebOTP API,
+Safari shares the same <a href="https://wicg.github.io/sms-one-time-codes/" rel="noopener">SMS format</a>
+with its <code>input[autocomplete=&quot;one-time-code&quot;]</code> support. In Safari, as soon as an
+SMS that contains an origin-bound one-time code format arrives with the matched
+origin, the keyboard suggests to enter the OTP to the input field.</p>
+<p>As of April 2021, Safari supports iframe with <a href="https://github.com/WICG/sms-one-time-codes/issues/4#issuecomment-709557866" rel="noopener">a unique SMS format using
+<code>%</code></a>.
+However, as the spec discussion concluded to go with <code>@</code> instead, we hope the
+implementation of supported SMS format will converge.</p>
+<h2 id="feedback">Feedback <a class="w-headline-link" href="#feedback">#</a></h2>
+<p>Your feedback is invaluable in making WebOTP API better, so go on and try it out
+and <a href="https://bugs.chromium.org/p/chromium/issues/detail?id=1136506" rel="noopener">let us know</a>
+what you think.</p>
+<h2 id="resources">Resources <a class="w-headline-link" href="#resources">#</a></h2>
+<ul>
+<li><a href="https://web.dev/web-otp/">Verify phone numbers on the web with the Web OTP
+API</a></li>
+<li><a href="https://web.dev/sms-otp-form/">SMS OTP form best practices</a></li>
+<li><a href="https://wicg.github.io/web-otp/" rel="noopener">WebOTP API</a></li>
+<li><a href="https://wicg.github.io/sms-one-time-codes/" rel="noopener">Origin-bound one-time codes delivered via
+SMS</a></li>
+</ul>
+<p>Photo by <a href="https://unsplash.com/@rupixen?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" rel="noopener">rupixen.com</a> on <a href="https://unsplash.com/s/photos/online-payment?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" rel="noopener">Unsplash</a></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/identity/">Identity</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/capabilities/">Capabilities</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Apr 21, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/blog/web-otp-iframe/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@yigsgu | @agektmr"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

@@ -1,0 +1,1235 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=5c082ad6a2b97">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=ecc344e229317">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Monitor your web application with the Reporting API</title>
+<meta name="description" content="Use the Reporting API to monitor security violations, deprecated API calls, and more. " />
+
+<link rel="canonical" href="https://web.dev/reporting-api/" />
+
+<meta itemprop="name" content="Monitor your web application with the Reporting API" />
+<meta itemprop="description" content="Use the Reporting API to monitor security violations, deprecated API calls, and more. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/reporting-api/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Monitor your web application with the Reporting API" />
+<meta property="og:description" content="Use the Reporting API to monitor security violations, deprecated API calls, and more. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="A person looking into a scope, symbolizing monitoring and observation via the Reporting API. " />
+<meta property="tag" content="monitoring" />
+<meta property="tag" content="security" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Monitor your web application with the Reporting API" />
+<meta name="twitter:description" content="Use the Reporting API to monitor security violations, deprecated API calls, and more. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=8d80807a976c2', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=78b98c33f4f05', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="A person looking into a scope, symbolizing monitoring and observation via the Reporting API."     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/PEgnzZFQVPhP2PyOnMm8.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#demo-and-code">Demo and code</a></li><li class="toc__listitem"><a class="toc__anchor" href="#overview">Overview</a></li><li class="toc__listitem"><a class="toc__anchor" href="#use-cases-and-report-types">Use cases and report types</a></li><li class="toc__listitem"><a class="toc__anchor" href="#reports">Reports</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#report-format">What do reports look like?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#report-timing">When and how does the browser send reports?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#third-party-and-first-party-issues">Third-party and first-party issues</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#browser-support">Browser support</a></li><li class="toc__listitem"><a class="toc__anchor" href="#using-the-reporting-api">Using the Reporting API</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#decide-where-reports-should-be-sent">Decide where reports should be sent</a></li><li class="toc__listitem"><a class="toc__anchor" href="#configure-the-reporting-endpoints-header">Configure the Reporting-Endpoints header</a></li><li class="toc__listitem"><a class="toc__anchor" href="#edit-your-policies">Edit your policies</a></li><li class="toc__listitem"><a class="toc__anchor" href="#example-code">Example code</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#debug-your-reporting-setup">Debug your reporting setup</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#intentionally-generate-reports">Intentionally generate reports</a></li><li class="toc__listitem"><a class="toc__anchor" href="#save-time">Save time</a></li><li class="toc__listitem"><a class="toc__anchor" href="#use-devtools">Use DevTools</a></li><li class="toc__listitem"><a class="toc__anchor" href="#troubleshooting">Troubleshooting</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#related-reporting-mechanisms">Related reporting mechanisms</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#report-only">Report-Only</a></li><li class="toc__listitem"><a class="toc__anchor" href="#reportingobserver">ReportingObserver</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#further-reading">Further reading</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="monitor-your-web-application-with-the-reporting-api">Monitor your web application with the Reporting API</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            <p>Use the Reporting API to monitor security violations, deprecated API calls, and more.</p>
+
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Oct 19, 2021</time>
+             — Updated <time>Oct 19, 2021</time> 
+          </div>
+        
+
+        
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/secure"
+          >Safe and secure</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/maudn/"> <img     alt="Maud Nalpas"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/maudn/">Maud Nalpas</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/maudnals">Twitter</a>
+               <a href="https://github.com/maudnals">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#demo-and-code">Demo and code</a></li><li class="toc__listitem"><a class="toc__anchor" href="#overview">Overview</a></li><li class="toc__listitem"><a class="toc__anchor" href="#use-cases-and-report-types">Use cases and report types</a></li><li class="toc__listitem"><a class="toc__anchor" href="#reports">Reports</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#report-format">What do reports look like?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#report-timing">When and how does the browser send reports?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#third-party-and-first-party-issues">Third-party and first-party issues</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#browser-support">Browser support</a></li><li class="toc__listitem"><a class="toc__anchor" href="#using-the-reporting-api">Using the Reporting API</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#decide-where-reports-should-be-sent">Decide where reports should be sent</a></li><li class="toc__listitem"><a class="toc__anchor" href="#configure-the-reporting-endpoints-header">Configure the Reporting-Endpoints header</a></li><li class="toc__listitem"><a class="toc__anchor" href="#edit-your-policies">Edit your policies</a></li><li class="toc__listitem"><a class="toc__anchor" href="#example-code">Example code</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#debug-your-reporting-setup">Debug your reporting setup</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#intentionally-generate-reports">Intentionally generate reports</a></li><li class="toc__listitem"><a class="toc__anchor" href="#save-time">Save time</a></li><li class="toc__listitem"><a class="toc__anchor" href="#use-devtools">Use DevTools</a></li><li class="toc__listitem"><a class="toc__anchor" href="#troubleshooting">Troubleshooting</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#related-reporting-mechanisms">Related reporting mechanisms</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#report-only">Report-Only</a></li><li class="toc__listitem"><a class="toc__anchor" href="#reportingobserver">ReportingObserver</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#further-reading">Further reading</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <div role="banner" class="banner bg-state-bad-bg color-core-text">
+    <div class="banner__content flow">
+       This is an API guide with detailed usage examples for the <strong>Reporting
+API (v1)</strong>, which uses the <code>Reporting-Endpoints</code> header. If you're already using the legacy
+Reporting API (<code>Report-To</code> header), head over to the <a href="/reporting-api-migration">migration post</a>
+instead. 
+    </div>
+    </div>
+<p>Some errors only occur in production. You won't see them locally or during development because
+<strong>real users</strong>, <strong>real networks</strong>, and <strong>real devices</strong> change the game. The Reporting API helps
+catch some of these errors⏤such as security violations or deprecated and soon-to-be-deprecated API
+calls⏤across your site, and transmits them to an endpoint you've specified. It lets you declare what
+you'd like to monitor via HTTP headers, and is operated <strong>by the browser</strong>.</p>
+<p>Setting up the Reporting API gives you peace of mind that when users experience these types of
+errors, you'll know, so you can fix them. ✨</p>
+<p>This post covers what this API can do and how to use it. Let's dive in!</p>
+<h2 id="demo-and-code">Demo and code <a class="w-headline-link" href="#demo-and-code">#</a></h2>
+<aside class="aside flow bg-quaternary-box-bg color-quaternary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewbox="0 0 24 24" fill="currentColor" role="img" aria-label="Code brackets" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M9.41 16.59L8 18l-6-6 6-6 1.41 1.41L4.83 12l4.58 4.59zm5.18-9.18L16 6l6 6-6 6-1.41-1.41L19.17 12l-4.58-4.59z" />
+</svg></span>
+<strong>Try it</strong></p>
+<div class=" flow">
+<p>See the Reporting API in action starting from <strong><a href="https://chromestatus.com/features/schedule" rel="noopener">Chrome 96</a></strong> and newer (Chrome Beta or Canary, as of October 2021):</p>
+<ul>
+<li><a href="https://reports-endpoint.glitch.me" rel="noopener">Demo site: reporting endpoint</a>. This page receives and
+displays reports. See the <a href="https://glitch.com/edit/#!/reports-endpoint" rel="noopener">code</a>.</li>
+<li><a href="https://reporting-api-demo.glitch.me" rel="noopener">Demo site: report generation page</a>. This page uses the new
+Reporting API with the <code>Reporting-Endpoints</code> header. It also intentionally violates its own policies, uses deprecated APIs, and does other bad things in order to generate reports. <code>Reporting-Endpoints</code> on this page is set to send reports to the demo reporting endpoint mentioned above. See the
+<a href="https://glitch.com/edit/#!/reporting-api-demo" rel="noopener">code</a>.</li>
+</ul>
+</div></aside>
+<h2 id="overview">Overview <a class="w-headline-link" href="#overview">#</a></h2>
+<figure>
+<img     alt="Diagram summarizing the steps below, from report generation to report access by the developer"          decoding="async"     height="240"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format"     srcset="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/RgiT3KRy6w99wG1cAhha.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption>
+    How reports are generated and sent.
+  </figcaption>
+</figure>
+<p>Let's assume that your site, <code>site.example</code>, has a Content-Security-Policy and a Document-Policy
+(you don't need to know what these do in order to understand this example!).</p>
+<p>You decide to monitor your site in order to know when these policies are violated, but also because
+you want to keep an eye on deprecated or soon-to-be-deprecated APIs your codebase may be using.</p>
+<p>To do so, you configure a <code>Reporting-Endpoints</code> header, and map these endpoint names via the
+<code>report-to</code> directive in your policies where needed.</p>
+<web-copy-code><pre class="language-http"><code class="language-http"><span class="token header-name keyword">Reporting-Endpoints:</span> main-endpoint="https://reports.example/main", default="https://reports.example/default"</code></pre>
+</web-copy-code><web-copy-code><pre class="language-http"><code class="language-http"># Content-Security-Policy violations and Document-Policy violations will be sent to main-endpoint<br><span class="token header-name keyword">Content-Security-Policy:</span> script-src 'self'; object-src 'none'; report-to main-endpoint;<br><span class="token header-name keyword">Document-Policy:</span> document-write=?0; report-to=main-endpoint;<br># Deprecation reports don't need an explicit endpoint because these reports are always sent to the `default` endpoint</code></pre>
+</web-copy-code><p>Something unforeseen happens, and these policies get violated for some of your users.</p>
+<details >
+<summary>
+  Example violations
+</summary>
+<p><code>index.html</code></p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>script.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span><br><span class="token comment">&lt;!-- CSP VIOLATION: Try to load a script that's forbidden as per the Content-Security-Policy --></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com/script.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p><code>script.js</code>, loaded by <code>index.html</code></p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token comment">// DOCUMENT-POLICY VIOLATION: Attempt to use document.write despite the document policy</span><br><span class="token keyword">try</span> <span class="token punctuation">{</span><br>  document<span class="token punctuation">.</span><span class="token function">write</span><span class="token punctuation">(</span><span class="token string">'&lt;h1>hi&lt;/h1>'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span>e<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><br><span class="token comment">// DEPRECATION: Call a deprecated API</span><br><span class="token keyword">const</span> webkitStorageInfo <span class="token operator">=</span> window<span class="token punctuation">.</span>webkitStorageInfo<span class="token punctuation">;</span></code></pre>
+</web-copy-code></details>
+<p>The browser generates a CSP violation report, a Document-Policy violation report, and a Deprecation
+report that capture these issues.</p>
+<p>With a short delay—up to a minute—the browser then sends the reports to the endpoint that was
+configured for this violation type. The reports are sent
+<strong><a href="https://en.wikipedia.org/wiki/Out-of-band_data" rel="noopener">out-of-band</a></strong> by the browser itself (not by your
+server nor by your site).</p>
+<p>The endpoint(s) receive(s) these reports.</p>
+<p>You can now access the reports on these endpoints and monitor what went wrong. You're ready to start
+troubleshooting the problem that's affecting your users.</p>
+<details >
+<summary>
+  Example report
+</summary>
+<web-copy-code><pre class="language-json"><code class="language-json"><span class="token punctuation">{</span><br>  <span class="token property">"age"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span><br>  <span class="token property">"body"</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>    <span class="token property">"blockedURL"</span><span class="token operator">:</span> <span class="token string">"https://site2.example/script.js"</span><span class="token punctuation">,</span><br>    <span class="token property">"disposition"</span><span class="token operator">:</span> <span class="token string">"enforce"</span><span class="token punctuation">,</span><br>    <span class="token property">"documentURL"</span><span class="token operator">:</span> <span class="token string">"https://site.example"</span><span class="token punctuation">,</span><br>    <span class="token property">"effectiveDirective"</span><span class="token operator">:</span> <span class="token string">"script-src-elem"</span><span class="token punctuation">,</span><br>    <span class="token property">"originalPolicy"</span><span class="token operator">:</span> <span class="token string">"script-src 'self'; object-src 'none'; report-to main-endpoint;"</span><span class="token punctuation">,</span><br>    <span class="token property">"referrer"</span><span class="token operator">:</span> <span class="token string">"https://site.example"</span><span class="token punctuation">,</span><br>    <span class="token property">"sample"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span><br>    <span class="token property">"statusCode"</span><span class="token operator">:</span> <span class="token number">200</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"csp-violation"</span><span class="token punctuation">,</span><br>  <span class="token property">"url"</span><span class="token operator">:</span> <span class="token string">"https://site.example"</span><span class="token punctuation">,</span><br>  <span class="token property">"user_agent"</span><span class="token operator">:</span> <span class="token string">"Mozilla/5.0... Chrome/92.0.4504.0"</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code></details>
+<h2 id="use-cases-and-report-types">Use cases and report types <a class="w-headline-link" href="#use-cases-and-report-types">#</a></h2>
+<p>The Reporting API can be configured to help you monitor many types of interesting warnings or issues
+that happen throughout your site:</p>
+<div role="banner" class="banner bg-state-bad-bg color-core-text">
+    <div class="banner__content flow">
+<p><a href="https://w3c.github.io/network-error-logging/">Network Error Logging</a> isn't listed because it isn't
+supported in the new version of the API. Check the <a href="/reporting-api-migration/#network-error-logging">migration
+guide</a> for details.</p>
+<p></div>
+</div></p>
+<div>
+  <table>
+    <thead>
+      <tr>
+        <th>Report type</th>
+        <th>Example of a situation where a report would be generated</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a href="https://developer.mozilla.org/docs/Web/HTTP/CSP">CSP</a> violation (Level 3 only)</td>
+        <td>You've set a <code>Content-Security-Policy</code> (CSP) on one of your pages, but the page is trying to load a script that's not allowed by your CSP.</td>
+      </tr>
+      <tr>
+        <td><a href="/why-coop-coep/#coop">COOP</a> violation</td>
+        <td>You've set a <code>Cross-Origin-Opener-Policy</code> on a page, but a cross-origin window is trying to interact directly with the document.</td>
+      </tr>
+      <tr>
+        <td><a href="/why-coop-coep/#coep">COEP</a> violation</td>
+        <td>You've set a <code>Cross-Origin-Embedder-Policy</code> on a page, but the document includes a cross-origin iframe that has not opted into being loaded by cross-origin documents.</td>
+      </tr>
+      <tr>
+        <td>Document Policy violation</td>
+        <td>The page has a document policy that prevents usage of <code>document.write</code>, but a script tries to call <code>document.write</code>.</td>
+      </tr>
+      <tr>
+        <td>Deprecation warning</td>
+        <td>The page is using an API that is deprecated or will be deprecated; it calls it directly or via a top-level third-party script.
+        </td>
+      </tr>
+      <tr>
+        <td>Intervention</td>
+        <td>The page is trying to do something that the browser decides not to honor, for security, performance or user experience reasons. Example in Chrome: the page uses <a href="https://developers.google.com/web/updates/2016/08/removing-document-write"><code>document.write</code> on slow networks</a> or calls <code>navigator.vibrate</code> in a cross-origin frame that the user hasn't interacted with yet.</td>
+      </tr>
+      <tr>
+        <td>Crash</td>
+        <td>The browser crashes while your site is open.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p><a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Feature-Policy" rel="noopener">Permissions policy</a>
+(formerly feature policy) violation reports may be supported by default in the future. Right now,
+they're experimental. One example situation where such reports would be generated: your site
+has a permission policy that prevents microphone usage, and a script requests audio input.</p>
+</div></aside>
+<h2 id="reports">Reports <a class="w-headline-link" href="#reports">#</a></h2>
+<h3 id="report-format">What do reports look like? <a class="w-headline-link" href="#report-format">#</a></h3>
+<p>The browser sends reports to the endpoint you've configured. It sends requests that look as follows:</p>
+<web-copy-code><pre class="language-http"><code class="language-http">POST<br><span class="token header-name keyword">Content-Type:</span> application/reports+json</code></pre>
+</web-copy-code><p>The payload of these requests is a list of reports.</p>
+<details >
+<summary>
+  Example list of reports
+</summary>
+<web-copy-code><pre class="language-json"><code class="language-json"><span class="token punctuation">[</span><br>  <span class="token punctuation">{</span><br>    <span class="token property">"age"</span><span class="token operator">:</span> <span class="token number">420</span><span class="token punctuation">,</span><br>    <span class="token property">"body"</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>      <span class="token property">"columnNumber"</span><span class="token operator">:</span> <span class="token number">12</span><span class="token punctuation">,</span><br>      <span class="token property">"disposition"</span><span class="token operator">:</span> <span class="token string">"enforce"</span><span class="token punctuation">,</span><br>      <span class="token property">"lineNumber"</span><span class="token operator">:</span> <span class="token number">11</span><span class="token punctuation">,</span><br>      <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"Document policy violation: document-write is not allowed in this document."</span><span class="token punctuation">,</span><br>      <span class="token property">"policyId"</span><span class="token operator">:</span> <span class="token string">"document-write"</span><span class="token punctuation">,</span><br>      <span class="token property">"sourceFile"</span><span class="token operator">:</span> <span class="token string">"https://site.example/script.js"</span><br>    <span class="token punctuation">}</span><span class="token punctuation">,</span><br>    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"document-policy-violation"</span><span class="token punctuation">,</span><br>    <span class="token property">"url"</span><span class="token operator">:</span> <span class="token string">"https://site.example/"</span><span class="token punctuation">,</span><br>    <span class="token property">"user_agent"</span><span class="token operator">:</span> <span class="token string">"Mozilla/5.0... Chrome/92.0.4504.0"</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token punctuation">{</span><br>    <span class="token property">"age"</span><span class="token operator">:</span> <span class="token number">510</span><span class="token punctuation">,</span><br>    <span class="token property">"body"</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>      <span class="token property">"blockedURL"</span><span class="token operator">:</span> <span class="token string">"https://site.example/img.jpg"</span><span class="token punctuation">,</span><br>      <span class="token property">"destination"</span><span class="token operator">:</span> <span class="token string">"image"</span><span class="token punctuation">,</span><br>      <span class="token property">"disposition"</span><span class="token operator">:</span> <span class="token string">"enforce"</span><span class="token punctuation">,</span><br>      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"corp"</span><br>    <span class="token punctuation">}</span><span class="token punctuation">,</span><br>    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"coep"</span><span class="token punctuation">,</span><br>    <span class="token property">"url"</span><span class="token operator">:</span> <span class="token string">"https://dummy.example/"</span><span class="token punctuation">,</span><br>    <span class="token property">"user_agent"</span><span class="token operator">:</span> <span class="token string">"Mozilla/5.0... Chrome/92.0.4504.0"</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">]</span></code></pre>
+</web-copy-code></details>
+<p>Here's the data you can find in each of these reports:</p>
+<div>
+  <table>
+    <thead>
+      <tr>
+        <th>Field</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>age</code></td>
+        <td>The number of milliseconds between the report's timestamp and the current time.</td>
+      </tr>
+      <tr>
+        <td><code>body</code></td>
+        <td>The actual report data, serialized into a JSON string. The fields contained in a report's <code>body</code> are determined by the report's <code>type</code>. <strong>⚠️ Reports of different types have different bodies</strong>.
+        To see the exact body of each report type, check out the <a href="https://reports-endpoint.glitch.me">demo reporting endpoint<a> and follow the instructions to generate example reports.</td>
+      </tr>
+      <tr>
+        <td><code>type</code></td>
+        <td>A report type, for example <code>csp-violation</code> or <code>coep</code>.</td>
+      </tr>
+      <tr>
+        <td><code>url</code></td>
+        <td>The address of the document or worker from which the report was generated. Sensitive data such as username, password, and fragment are <a href="https://w3c.github.io/reporting/#capability-urls">stripped from this URL</a>.</td>
+      </tr>
+      <tr>
+        <td><code>user_agent</code></td>
+        <td>The <code>User-Agent</code> header of the request from which the report was generated.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<h4 id="credentialed-reports">Credentialed reports <a class="w-headline-link" href="#credentialed-reports">#</a></h4>
+<p>Reporting endpoints that have the <a href="/same-site-same-origin/#same-origin-and-cross-origin">same origin</a> as the page that generates the report receive the credentials
+(cookies) in the requests that contain the reports.</p>
+<p>Credentials may give useful additional context about the report; for
+example, whether a given user’s account is triggering errors consistently, or if a certain sequence
+of actions taken on other pages is triggering a report on this page.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p><a href="/same-site-same-origin/#same-origin-and-cross-origin">Cross-origin</a> endpoints don't receive
+credentials. This is a security measure and can't be changed.</p>
+</div></aside>
+<h3 id="report-timing">When and how does the browser send reports? <a class="w-headline-link" href="#report-timing">#</a></h3>
+<p><strong>Reports are delivered out-of-band from your site</strong>: the browser controls when they're sent to the
+configured endpoint(s). There's
+also no way to control when the browser sends reports; it captures, queues, and sends them automatically at a suitable time.</p>
+<p>This means that there's little to no performance concern when using the Reporting API.</p>
+<p><strong>Reports are sent with a delay</strong>⏤up to a minute⏤to increase the chances to send reports in batches.
+This saves bandwidth to be respectful to the user's network connection, which is especially
+important on mobile. The browser can also delay delivery if it's busy processing higher priority
+work, or if the user is on a slow and/or congested network at the time.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>When you're debugging locally, you can turn off this delay for convenience. <a href="#save-time">See how</a>.</p>
+</div></aside>
+<h3 id="third-party-and-first-party-issues">Third-party and first-party issues <a class="w-headline-link" href="#third-party-and-first-party-issues">#</a></h3>
+<p>Reports that are generated due to violations or deprecations happening <strong>on your page</strong> will be sent
+to the endpoint(s) you've configured. This includes violations committed by <strong>third-party scripts</strong>
+running on your page.</p>
+<p>Violations or deprecations that happened <strong>in a cross-origin iframe embedded in your page</strong> will
+<strong>not</strong> be reported to your endpoint(s) (at least not by default). An iframe could set up its own
+reporting and even report to your site's⏤that is, the first-party's⏤reporting service; but that's up
+to the framed site. Also note that most reports are generated only if a page's policy is violated,
+and that your page's policies and the iframe's policies are different.</p>
+<aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>Gotchas</strong></p>
+<div class=" flow">
+<p>In Chrome DevTools, you'll see a console error or warning pop up for violations that are committed
+by third-party scripts <em>and</em> cross-origin iframes. Not all of these will translate into reports being
+sent to your endpoint: the formers will, the latters won't.</p>
+</div></aside>
+<h4 id="example-with-deprecations">Example with deprecations <a class="w-headline-link" href="#example-with-deprecations">#</a></h4>
+<figure>
+<img     alt="If the Reporting-Endpoints header is set up on your page: deprecated API called by third-party scripts running on your page will be reported to your endpoint. Deprecated API called by an iframe embedded in your page will not be reported to your endpoint. A deprecation report will be generated only if the iframe server has set up Reporting-Endpoints, and this report will be sent to whichever endpoint the iframe&#x27;s server has set up."          decoding="async"     height="280"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format"     srcset="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/MG8VyOfB1XDORyBFfoCm.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption>
+    If the Reporting-Endpoints header is set up on your page: deprecated API called by third-party scripts running on your page will be reported to your endpoint. Deprecated API called by an iframe embedded in your page will not be reported to your endpoint. A deprecation report will be generated only if the iframe server has set up Reporting-Endpoints, and this report will be sent to whichever endpoint the iframe's server has set up.
+  </figcaption>
+</figure>
+<h2 id="browser-support">Browser support <a class="w-headline-link" href="#browser-support">#</a></h2>
+<p>The table below sums up browser support for the <strong>Reporting API v1</strong>, that is with the
+<code>Reporting-Endpoints</code> header. Browser support for the Reporting API v0 (<code>Report-To</code> header) is the
+same, except for one report type: Network Error Logging isn't supported in the new Reporting API.
+Read the <a href="/reporting-api-migration/#network-error-logging">migration guide</a> for details.</p>
+<div>
+  <table>
+    <thead>
+      <tr>
+        <th>Report type</th>
+        <th>Chrome</th>
+        <th>Chrome iOS</th>
+        <th>Safari</th>
+        <th>Firefox</th>
+        <th>Edge</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>CSP violation (Level 3 only)*</td>
+        <td>✔ Yes</td>
+        <td>✘ No</td>
+        <td>✘ No</td>
+        <td>✘ No</td>
+        <td>✔ Yes</td>
+      </tr>
+      <tr>
+        <td>Network Error Logging</td>
+        <td>✘ No</td>
+        <td>✘ No</td>
+        <td>✘ No</td>
+        <td>✘ No</td>
+        <td>✘ No</td>
+      </tr>
+      <tr>
+        <td>All other types: COOP/COEP violation, Document Policy violation, Deprecation, Intervention, Crash</td>
+        <td>✔ Yes</td>
+        <td>✘ No</td>
+        <td>✘ No</td>
+        <td>✘ No</td>
+        <td>✔ Yes</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<aside class="aside flow bg-state-bad-bg color-state-bad-text">
+<p class="cluster color-state-bad-text">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error sign">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm0-10v6h2V7h-2z" />
+</svg></span>
+<strong>Caution</strong></p>
+<div class=" flow">
+<p>Browser support for CSP reporting is different from other reporting types, because CSP has been around for some time. CSP reports can be generated via:</p>
+<ul>
+<li>The legacy <code>report-uri</code> directive that doesn't rely on the Reporting API.</li>
+<li>The newer <code>report-to</code> directive that relies on the Reporting API (and the <code>Reporting-To</code> or the newer <code>Reporting-Endpoints</code> headers).</li>
+</ul>
+<p>This table only summarizes support for <code>report-to</code> with the new <code>Reporting-Endpoints</code> header. Read the <a href="/reporting-api-migration/#csp-reporting-migration">CSP reporting migration tips</a> if you're looking to migrate to <code>Reporting-Endpoints</code>.</p>
+</div></aside>
+<h2 id="using-the-reporting-api">Using the Reporting API <a class="w-headline-link" href="#using-the-reporting-api">#</a></h2>
+<h3 id="decide-where-reports-should-be-sent">Decide where reports should be sent <a class="w-headline-link" href="#decide-where-reports-should-be-sent">#</a></h3>
+<p>You have two options:</p>
+<ul>
+<li>Send reports to an existing report collector service.</li>
+<li>Send reports to a reporting collector you build and operate yourself.</li>
+</ul>
+<h4 id="option-1:-use-an-existing-report-collector-service">Option 1: Use an existing report collector service <a class="w-headline-link" href="#option-1:-use-an-existing-report-collector-service">#</a></h4>
+<p>Some examples of report collector services are:</p>
+<ul>
+<li><a href="https://report-uri.com" rel="noopener">report-uri</a></li>
+<li><a href="https://uriports.com" rel="noopener">uriports</a></li>
+</ul>
+<p>If you know of other solutions, <a href="https://github.com/GoogleChrome/web.dev/issues" rel="noopener">open an
+issue</a> to let us know, and we'll update this post!</p>
+<p><strong>Beside pricing, consider the following points when selecting a report collector:</strong> 🧐</p>
+<ul>
+<li>Does this collector support all report types? For example, not all reporting endpoint solutions
+support COOP/COEP reports.</li>
+<li>Are you comfortable sharing any of your application's URLs with a third-party report collector?
+Even if the browser strips sensitive information from these URLs, sensitive information <a href="https://w3c.github.io/reporting/#capability-urls" rel="noopener">may get
+leaked this way</a>. If this sounds too risky for
+your application, operate your own reporting endpoint.</li>
+</ul>
+<h4 id="option-2:-build-and-operate-your-own-report-collector">Option 2: Build and operate your own report collector <a class="w-headline-link" href="#option-2:-build-and-operate-your-own-report-collector">#</a></h4>
+<p>Building your own server that receives reports isn't that trivial. To get started, you can fork our
+lightweight boilerplate. It's built with Express and can receive and display reports.</p>
+<aside class="aside flow bg-state-bad-bg color-state-bad-text">
+<p class="cluster color-state-bad-text">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error sign">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm0-10v6h2V7h-2z" />
+</svg></span>
+<strong>Caution</strong></p>
+<div class=" flow">
+<p>Don't use it as-in in production, but feel free to use it for a quick
+prototype. Make sure to fork it before using it, so that nobody you don't trust gets to see reports
+generated by your page.</p>
+</div></aside>
+<ol>
+<li>Head over to the <a href="https://glitch.com/edit/#!/reports-endpoint" rel="noopener">boilerplate report collector</a>.</li>
+</ol>
+<ul>
+<li>Click <strong>Remix to Edit</strong> to make the project editable.</li>
+</ul>
+<ol start="3">
+<li>You now have your clone! You can customize it for your own purposes.</li>
+</ol>
+<p>If you're not using the boilerplate and are building your own server from scratch:</p>
+<ul>
+<li>Check for <code>POST</code> requests with a <code>Content-Type</code> of <code>application/reports+json</code> to recognize reports
+requests sent by the browser to your endpoint.</li>
+<li>If your endpoint lives on a different origin than your site, ensure it supports <a href="https://developer.mozilla.org/docs/Glossary/Preflight_request" rel="noopener">CORS preflight
+requests</a>.</li>
+</ul>
+<aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>Gotchas</strong></p>
+<div class=" flow">
+<p>Make sure your endpoint supports <a href="https://developer.mozilla.org/docs/Glossary/Preflight_request" rel="noopener">CORS preflight
+requests</a>.</p>
+</div></aside>
+<h4 id="option-3:-combine-option-1-and-2">Option 3: Combine Option 1 and 2 <a class="w-headline-link" href="#option-3:-combine-option-1-and-2">#</a></h4>
+<p>You may want to let a specific provider take care of some types of reports, but have an in-house
+solution for others.</p>
+<p>In this case, set multiple endpoints as follows:</p>
+<web-copy-code><pre class="language-http"><code class="language-http"><span class="token header-name keyword">Reporting-Endpoints:</span> endpoint-1="https://reports-collector.example", endpoint-2="https://my-custom-endpoint.example"</code></pre>
+</web-copy-code><h3 id="configure-the-reporting-endpoints-header">Configure the <code>Reporting-Endpoints</code> header <a class="w-headline-link" href="#configure-the-reporting-endpoints-header">#</a></h3>
+<p>Set a <code>Reporting-Endpoints</code> response header. Its value must be one or a series of comma-separated
+key-value pairs:</p>
+<web-copy-code><pre class="language-http"><code class="language-http"><span class="token header-name keyword">Reporting-Endpoints:</span> main-endpoint="https://reports.example/main", default="https://reports.example/default"</code></pre>
+</web-copy-code><p>If you're migrating from the legacy Reporting API to the new Reporting API, it may make sense to
+set <strong>both</strong> <code>Reporting-Endpoints</code> and <code>Report-To</code>. See details in the <a href="/reporting-api-migration/#migration-steps">migration
+guide</a>. In particular, if you're using reporting for
+<code>Content-Security-Policy</code> violations via the <code>report-uri</code> directive only, check the <a href="/reporting-api-migration/#migration-steps-for-csp-reporting">migration
+steps for CSP reporting</a>.</p>
+<web-copy-code><pre class="language-http"><code class="language-http"><span class="token header-name keyword">Reporting-Endpoints:</span> main-endpoint="https://reports.example/main", default="https://reports.example/default"<br><span class="token header-name keyword">Report-To:</span> ...</code></pre>
+</web-copy-code><h4 id="keys-(endpoint-names)">Keys (endpoint names) <a class="w-headline-link" href="#keys-(endpoint-names)">#</a></h4>
+<p>Each key can be a name of your choice, such as <code>main-endpoint</code> or <code>endpoint-1</code>. You can decide to
+set different named endpoints for different report types⏤for example, <code>my-coop-endpoint</code>,
+<code>my-csp-endpoint</code>. With this, you can route reports to different endpoints depending on their
+type.</p>
+<p>If you want to receive <strong>intervention</strong>, <strong>deprecation</strong> and/or <strong>crash</strong> reports, set an endpoint
+named <code>default</code>.</p>
+<aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>Gotchas</strong></p>
+<div class=" flow">
+<p>If the <code>Reporting-Endpoints</code> header defines no <code>default</code> endpoint, reports of this type will <strong>not</strong>
+be sent (although they will be generated).</p>
+<p>Despite its name, <code>default</code> is <strong>not</strong> a fallback endpoint. For example, if you set up <code>report-to my-endpoint</code> for <code>Document-Policy</code> and omit to define <code>my-endpoint</code> in <code>Reporting-Endpoints</code>,
+<code>Document-Policy</code> violations reports will be generated but will <strong>not</strong> be sent because the browser doesn't know where to send them to.</p>
+</div></aside>
+<h4 id="values-(urls)">Values (URLs) <a class="w-headline-link" href="#values-(urls)">#</a></h4>
+<p>Each value is a URL of your choice, where the reports will be sent to; the URL to set here depends
+on what you've decided in Step 1.</p>
+<p>An endpoint URL:</p>
+<ul>
+<li>Must start with a slash (<code>/</code>). Relative paths are <strong>not</strong> supported.</li>
+<li>Can be cross-origin; but in that case <a href="#credentialed-reports">credentials are not sent with the reports</a>.</li>
+</ul>
+<h4 id="examples">Examples <a class="w-headline-link" href="#examples">#</a></h4>
+<web-copy-code><pre class="language-http"><code class="language-http"><span class="token header-name keyword">Reporting-Endpoints:</span> my-coop-endpoint="https://reports.example/coop", my-csp-endpoint="https://reports.example/csp", default="https://reports.example/default"</code></pre>
+</web-copy-code><p>You can then use each named endpoint in the appropriate policy, or use one single endpoint across all policies.</p>
+<h4 id="where-to-set-the-header">Where to set the header? <a class="w-headline-link" href="#where-to-set-the-header">#</a></h4>
+<p>In the new Reporting API⏤the one that is covered in this post⏤ reports are scoped to <strong>documents</strong>.
+This means that for one given origin, different documents, such as <code>site.example/page1</code> and
+<code>site.example/page2</code>, can send reports to different endpoints.</p>
+<p>To receive report for violations or deprecations take place on any page of your site, set the header as a middleware on all responses.
+Here's an example in Express:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> <span class="token constant">REPORTING_ENDPOINT_BASE</span> <span class="token operator">=</span> <span class="token string">'https://report.example'</span><span class="token punctuation">;</span><br><span class="token keyword">const</span> <span class="token constant">REPORTING_ENDPOINT_MAIN</span> <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span><span class="token constant">REPORTING_ENDPOINT_BASE</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">/main</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span><br><span class="token keyword">const</span> <span class="token constant">REPORTING_ENDPOINT_DEFAULT</span> <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span><span class="token constant">REPORTING_ENDPOINT_BASE</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">/default</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span><br><br>app<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">request<span class="token punctuation">,</span> response<span class="token punctuation">,</span> next</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token comment">// Set up the Reporting API</span><br>  response<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><br>    <span class="token string">'Reporting-Endpoints'</span><span class="token punctuation">,</span><br>    <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">main-endpoint="</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span><span class="token constant">REPORTING_ENDPOINT_MAIN</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">", default="</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span><span class="token constant">REPORTING_ENDPOINT_DEFAULT</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">"</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span><br>  <span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>This is different from the legacy Reporting API (<code>Report-To</code> header), where you could
+set an &quot;ambient&quot; endpoint for one page, and automatically get reports for any page on the same
+origin. If you're migrating from the legacy Reporting API to the new Reporting API, check the
+<a href="/reporting-api-migration">migration guide</a>.</p>
+</div></aside>
+<h3 id="edit-your-policies">Edit your policies <a class="w-headline-link" href="#edit-your-policies">#</a></h3>
+<p>Now that the <code>Reporting-Endpoints</code> header is configured, add a <code>report-to</code> directive to each policy
+header for which you wish to receive violation reports. The value of <code>report-to</code> should be one of
+the named endpoints you've configured.</p>
+<p>You can use the multiple endpoint for multiple policies, or use different endpoints across policies.</p>
+<img     alt="Diagram showing that for each policy, the value of report-to should be one of the named endpoints you&#x27;ve configured."          decoding="async"     height="271"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format"     srcset="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/rqqhNNcLiTfrXXjiEHDU.png?auto=format&w=1600 1600w"          width="800"   />
+<p><code>report-to</code> is not needed for <strong>deprecation</strong>, <strong>intervention</strong> and <strong>crash</strong> reports. These reports
+aren't bound to any policy. They're generated as long as a <code>default</code> endpoint is set up and are sent
+to this <code>default</code> endpoint.</p>
+<h4 id="example">Example <a class="w-headline-link" href="#example">#</a></h4>
+<web-copy-code><pre class="language-http"><code class="language-http"># Content-Security-Policy violations and Document-Policy violations will be sent to main-endpoint<br><span class="token header-name keyword">Content-Security-Policy:</span> script-src 'self'; object-src 'none'; report-to main-endpoint;<br><span class="token header-name keyword">Document-Policy:</span> document-write=?0;report-to=main-endpoint;<br># Deprecation reports don't need an explicit endpoint because these reports are always sent to the default endpoint</code></pre>
+</web-copy-code><div role="banner" class="banner bg-state-warn-bg color-core-text">
+    <div class="banner__content flow">
+       Getting the <code>report-to</code> syntax right can be tricky, because not all policies use
+the same header structure. Depending on the policy, the right syntax may be
+<code>report-to=main-endpoint</code> or <code>report-to main-endpoint</code>. Head over to the
+<a href="https://glitch.com/edit/#!/reporting-api-demo?path=server.js%3A1%3A0">demo</a> for code examples. 
+    </div>
+    </div>
+<h3 id="example-code">Example code <a class="w-headline-link" href="#example-code">#</a></h3>
+<p>To see all this in context, below is an example Node server that uses Express and brings together
+all the pieces discussed in this article. It shows how to configure reporting for several different
+report types and displays the results.</p>
+<div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
+  <iframe
+    src="https://glitch.com/embed/#!/embed/reporting-api-demo?path=server.js&previewSize=0"
+    title="Reporting API demo on Glitch"
+    allow="geolocation; microphone; camera; midi; vr; encrypted-media"
+    style="height: 100%; width: 100%; border: 0;">
+  </iframe>
+</div>
+<h2 id="debug-your-reporting-setup">Debug your reporting setup <a class="w-headline-link" href="#debug-your-reporting-setup">#</a></h2>
+<h3 id="intentionally-generate-reports">Intentionally generate reports <a class="w-headline-link" href="#intentionally-generate-reports">#</a></h3>
+<p>When setting up the Reporting API, you'll likely need to intentionally violate your policies in order to check if reports are generated and sent as expected.
+To
+see example code that violates policies and does other bad things that will generate reports of all
+types, check out the <a href="#demo-and-code">demo</a>.</p>
+<h3 id="save-time">Save time <a class="w-headline-link" href="#save-time">#</a></h3>
+<p>Reports may be sent with a delay⏤about a minute, which is a <em>long</em> time when debugging. 😴 Luckily,
+when debugging in Chrome, you can use the flag <code>--short-reporting-delay</code> to receive reports as soon
+as they're generated.</p>
+<p>Run this command in your terminal to turn on this flag:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash">YOUR_PATH/TO/EXECUTABLE/Chrome --short-reporting-delay</code></pre>
+</web-copy-code><aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>Gotchas</strong></p>
+<div class=" flow">
+<p>This flag is not available via the Chrome UI, it's a command line flag only.
+See <a href="https://www.chromium.org/developers/how-tos/run-chromium-with-flags" rel="noopener">How to run Chromium with
+flags</a>.</p>
+</div></aside>
+<h3 id="use-devtools">Use DevTools <a class="w-headline-link" href="#use-devtools">#</a></h3>
+<p>In Chrome, use DevTools to see the reports that have been sent or will be sent.</p>
+<p>As of October 2021, this feature is experimental. To use it, follow these steps:</p>
+<ol>
+<li>Use Chrome version <strong>96</strong> and newer (check by typing <code>chrome://version</code> in your browser)</li>
+<li>Type or paste <code>chrome://flags/#enable-experimental-web-platform-features</code> in Chrome's URL bar.</li>
+<li>Click <strong>Enabled</strong>.</li>
+<li>Restart your browser.</li>
+<li>Open Chrome DevTools.</li>
+<li>In Chrome DevTools, open the Settings. Under Experiments, click <strong>Enable Reporting API panel in
+the Application panel</strong>.</li>
+<li>Reload DevTools.</li>
+<li>Reload your page. Reports generated by the page DevTools is open in will be listed in Chrome
+DevTools' <strong>Application</strong> panel, under <strong>Reporting API</strong>.</li>
+</ol>
+<figure>
+<img     alt="Screenshot of DevTools listing the reports"          decoding="async"     height="566"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format"     srcset="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/SW8VwLk0GDY26pclz1RH.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption>
+    Chrome DevTools displays the reports generated on your page and their status.
+  </figcaption>
+</figure>
+<h4 id="report-status">Report status <a class="w-headline-link" href="#report-status">#</a></h4>
+<p>The <strong>Status</strong> column tells you if a report has been successfully sent.</p>
+<div>
+  <table>
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>Success</code></td>
+        <td>The browser has sent the report and the endpoint replied with a success code (<code>200</code> or another success response code <code>2xx</code>).</td>
+      </tr>
+      <tr>
+        <td><code>Pending</code></td>
+        <td>The browser is currently making an attempt to send the report.</td>
+      </tr>
+      <tr>
+        <td><code>Queued</code></td>
+        <td>The report has been generated and the browser is not currently trying to send it. A report appears as <code>Queued</code> in one of these two cases:
+        <ul>
+          <li>The report is new and the browser is waiting to see if more reports arrive before trying to send it.</li>
+          <li>The report is not new; the browser has already tried to send this report and has failed, and is waiting before trying again.</li>
+        </ul>
+        </td>
+        </tr>
+        <tr>
+        <td><code>MarkedForRemoval</code></td>
+        <td>After retrying for a while (<code>Queued</code>), the browser has stopped trying to send the report and will soon remove it from its list of reports to send.</td>
+        </tr>
+        </tbody>
+  </table>
+</div>
+<p>Reports are removed after a while, whether or not they're successfully sent.</p>
+<aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>Gotchas</strong></p>
+<div class=" flow">
+<p>The <code>Queued</code> status isn't always informative, because it doesn't precisely indicate whether sending has failed or has not been attempted yet. Using <a href="#save-time">short reporting delays</a> helps: a report that remains <code>Queued</code> in that case likely indicates that sending is failing.</p>
+</div></aside>
+<h3 id="troubleshooting">Troubleshooting <a class="w-headline-link" href="#troubleshooting">#</a></h3>
+<p>Are reports not generated or not sent as expected to your endpoint?
+Here are a few tips to troubleshoot this.</p>
+<h4 id="reports-are-not-generated">Reports are not generated <a class="w-headline-link" href="#reports-are-not-generated">#</a></h4>
+<p>Reports that show up in DevTools have been correctly generated.
+If the report you expect does <strong>not</strong> show up in this list:</p>
+<ul>
+<li>Check <code>report-to</code> in your policies. If this is misconfigured, a
+report won't be generated. Head over to <a href="#edit-your-policies">Edit your policies</a> to
+fix this. An additional way to troubleshoot this is to check the DevTools console in Chrome: if an
+error pops up in the console for the violation you expected, this means your policy is probably
+properly configured.</li>
+<li>Keep in mind that only the reports that were generated for the document DevTools is open in will
+show up in this list. One example: if your site <code>site1.example</code> embeds an iframe <code>site2.example</code>
+that violates a policy and hence generates a report, this report will show up in DevTools only if you open the
+iframe in its own window and open DevTools for that window.</li>
+</ul>
+<h4 id="reports-are-generated-but-not-sent-or-not-received">Reports are generated but not sent or not received <a class="w-headline-link" href="#reports-are-generated-but-not-sent-or-not-received">#</a></h4>
+<p>What if you can see a report in DevTools, but your endpoint doesn't receive it?</p>
+<aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>Gotchas</strong></p>
+<div class=" flow">
+<p>Because the report is sent out-of-band by the browser itself and not by a
+certain site, the <code>POST</code> requests containing the reports are not displayed in the <strong>Network</strong> panel of
+your Developer Tools.</p>
+</div></aside>
+<ul>
+<li>
+<p>Make sure to use <a href="#save-time">short delays</a>. Maybe the reason you can't see a report is because it
+hasn't been sent yet!</p>
+</li>
+<li>
+<p>Check your <code>Reporting-Endpoints</code> header configuration. If there's an issue with it, a report that
+has been generated correctly will not be sent. In DevTools, the report's status will remain
+<code>Queued</code> (it might jump to <code>Pending</code>, and then quickly back to <code>Queued</code> when a delivery attempt is
+made) in this case. Some common mistakes that may cause this:</p>
+<ul>
+<li>
+<p>The endpoint is used but not configured. Example:</p>
+<figure class="compare flow" data-type="worse"><p class="compare__label">Code with a mistake</p>
+<web-copy-code><pre class="language-http"><code class="language-http"><span class="token header-name keyword">Document-Policy:</span> document-write=?0;report-to=endpoint-1;<br><span class="token header-name keyword">Reporting-Endpoints:</span> default="https://reports.example/default"</code></pre>
+</web-copy-code><figcaption class="compare__caption">
+<p>Document-Policy violation reports should be sent to <code>endpoint-1</code>, but this endpoint name isn't configured in
+<code>Reporting-Endpoints</code>.</p>
+</figcaption>
+</figure>
+</li>
+<li>
+<p>The <code>default</code> endpoint is missing. Some reports types, such as deprecation and intervention
+reports, will only be sent to the endpoint named <code>default</code>. Read more in <a href="#configure-the-reporting-endpoints-header">Configure the
+Reporting-Endpoints header</a>.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Look for issues in your policy headers syntax, such as missing quotes. <a href="#configure-the-reporting-endpoints-header">See
+details</a>.</p>
+</li>
+<li>
+<p>Check that your endpoint can handle incoming requests.</p>
+<ul>
+<li>
+<p>Make sure that your endpoint support CORS preflight requests. If it doesn't, it can't receive reports.</p>
+</li>
+<li>
+<p>Test your endpoint's behavior. To do so, instead of generating
+reports manually, you can emulate the browser by sending to your endpoint requests that <em>look like</em>
+what the browser would send. Run the following:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash"><span class="token function">curl</span> --header <span class="token string">"Content-Type: application/reports+json"</span> <span class="token punctuation">\</span><br>  --request POST <span class="token punctuation">\</span><br>  --data <span class="token string">'[{"age":420,"body":{"columnNumber":12,"disposition":"enforce","lineNumber":11,"message":"Document policy violation: document-write is not allowed in this document.","policyId":"document-write","sourceFile":"https://dummy.example/script.js"},"type":"document-policy-violation","url":"https://dummy.example/","user_agent":"xxx"},{"age":510,"body":{"blockedURL":"https://dummy.example/img.jpg","destination":"image","disposition":"enforce","type":"corp"},"type":"coep","url":"https://dummy.example/","user_agent":"xxx"}]'</span> <span class="token punctuation">\</span><br>  YOUR_ENDPOINT</code></pre>
+</web-copy-code><p>Your endpoint should respond with a success code (<code>200</code> or another success response code <code>2xx</code>). If it doesn't,
+there's an issue with its configuration.</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="related-reporting-mechanisms">Related reporting mechanisms <a class="w-headline-link" href="#related-reporting-mechanisms">#</a></h2>
+<h3 id="report-only">Report-Only <a class="w-headline-link" href="#report-only">#</a></h3>
+<p><code>-Report-Only</code> policy headers and the <code>Reporting-Endpoints</code> work together.</p>
+<p>Endpoints configured in <code>Reporting-Endpoints</code> and specified in the <code>report-to</code> field of
+<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Content-Security-Policy" rel="noopener"><code>Content-Security-Policy</code></a>,
+<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy" rel="noopener"><code>Cross-Origin-Embedder-Policy</code></a> and
+<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy" rel="noopener"><code>Cross-Origin-Opener-Policy</code></a>, will receive reports when these policies are violated.</p>
+<p>Endpoints configured in <code>Reporting-Endpoints</code> can also be specified in the <code>report-to</code> field of
+<a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only" rel="noopener"><code>Content-Security-Policy-Report-Only</code></a>,
+<a href="/coop-coep/#:~:text=If%20you%20prefer%20to%20receive%20reports%20without%20blocking%20any%20embedded%20content%20or%20without%20isolating%20a%20popup%20window%2C%20append%20-Report-Only%20to%20respective%20headers"><code>Cross-Origin-Embedder-Policy-Report-Only</code></a> and
+<a href="/coop-coep/#:~:text=If%20you%20prefer%20to%20receive%20reports%20without%20blocking%20any%20embedded%20content%20or%20without%20isolating%20a%20popup%20window%2C%20append%20-Report-Only%20to%20respective%20headers"><code>Cross-Origin-Opener-Policy-Report-Only</code></a>; they'll also receive reports when these policies are violated.</p>
+<p>While reports are sent in both cases, <code>-Report-Only</code> headers do not enforce the policies: nothing will break or actually get blocked, but you will receive reports of what <em>would</em> have broken or been blocked.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>If you're using a <code>-Report-Only</code> header and have configured your reporting endpoints via the legacy header <code>Report-To</code>, migrate to <code>Reporting-Endpoints</code> if you can. Read more in the <a href="/reporting-api-migration">migration guide</a>.</p>
+</div></aside>
+<h3 id="reportingobserver"><code>ReportingObserver</code> <a class="w-headline-link" href="#reportingobserver">#</a></h3>
+<p>The <a href="/reporting-observer"><code>ReportingObserver</code></a> JavaScript API can help you observe client-side
+warnings.</p>
+<p><code>ReportingObserver</code> and the <code>Reporting-Enpoints</code> header generate reports that look the same, but they enable slightly different uses cases.</p>
+<p>Use <code>ReportingObserver</code> if:</p>
+<ul>
+<li>You only want to monitor deprecations and/or browser interventions. <code>ReportingObserver</code> surfaces <strong>client-side warnings</strong> such as deprecations and browser interventions, but unlike <code>Reporting-Endpoints</code>, it doesn't capture any other types of reports such as CSP
+or COOP/COEP violations.</li>
+<li>You need to react to these violations in real-time. <code>ReportingObserver</code> makes it possible to
+<a href="/reporting-observer/#the-api">attach a callback</a> to a violation event.</li>
+<li>You want to attach additional information to a report to aid in debugging, via the custom <a href="/reporting-observer/#the-api">callback</a>.</li>
+</ul>
+<p>Another difference is that <code>ReportingObserver</code> is configured only client-side:
+you can use it even if you have no control over server-side headers and can't set <code>Reporting-Endpoints</code>.</p>
+<h2 id="further-reading">Further reading <a class="w-headline-link" href="#further-reading">#</a></h2>
+<ul>
+<li><a href="/reporting-api-migration">Migration guide from Reporting API v0 to v1</a></li>
+<li><a href="/reporting-observer">ReportingObserver</a></li>
+<li><a href="https://www.w3.org/TR/reporting/" rel="noopener">Specification: legacy Reporting API (v0)</a></li>
+<li><a href="https://w3c.github.io/reporting/" rel="noopener">Specification: new Reporting API (v1)</a></li>
+</ul>
+<p><em>Hero image by <a href="https://unsplash.com/@enka80" rel="noopener">Nine Koepfer / @enka80</a> on
+<a href="https://unsplash.com/photos/iPbwEiWkVMQ" rel="noopener">Unsplash</a>, edited.</em> <em>With many thanks to Ian Clelland,
+Eiji Kitamura and Milica Mihajlija for their reviews and suggestions on this article.</em></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/monitoring/">Monitoring</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/security/">Security</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Oct 19, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/blog/reporting-api/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@maudnals"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

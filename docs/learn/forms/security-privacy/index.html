@@ -1,0 +1,2330 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=8a7637dbcca4e">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=9dccd4433a75b">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Security and privacy</title>
+<meta name="description" content="Learn how to make your forms secure and keep your users' data private. " />
+
+<link rel="canonical" href="https://web.dev/learn/forms/security-privacy/" />
+
+<meta itemprop="name" content="Security and privacy" />
+<meta itemprop="description" content="Learn how to make your forms secure and keep your users' data private. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/n5XVLEqt8NTQQGAANqLJ.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/learn/forms/security-privacy/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Security and privacy" />
+<meta property="og:description" content="Learn how to make your forms secure and keep your users' data private. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/n5XVLEqt8NTQQGAANqLJ.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="course-forms" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Security and privacy" />
+<meta name="twitter:description" content="Learn how to make your forms secure and keep your users' data private. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/n5XVLEqt8NTQQGAANqLJ.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+  
+  <script>
+    /*
+ * Copyright 2021 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * @fileoverview A custom element to track the user's progress using
+ * localstorage, and report progress using analytics.
+ *
+ * We inline this element into the head of the document to avoid FOUC because
+ * it needs to read from localstorage and then modify its children.
+ */
+
+/**
+ * @typedef {object} Course
+ * @property {string[]} pages
+ * @property {string} percent
+ */
+
+/** @type {Course} */
+const initialCourse = {pages: [], percent: '0'};
+
+class CourseLinks extends HTMLElement {
+  constructor() {
+    super();
+
+    // Add a slot that is basically a cheap MutationObserver
+    // We use this to listen for when children are added or removed.
+    this.attachShadow({mode: 'open'});
+    const slot = document.createElement('slot');
+    this.shadowRoot.appendChild(slot);
+    slot.addEventListener('slotchange', this.onSlotChange);
+  }
+
+  /**
+   * Get the user's overall course progress from localstorage.
+   * This returns an object where each string key represents a different course.
+   * Example: {css: {pages: ['intro', ...], percent: 10}, pwa: {...}}
+   * @returns {{[courseName: string]: Course}}
+   */
+  getProgress = () => {
+    let progress;
+    try {
+      progress = JSON.parse(localStorage['webdev_course_progress']);
+    } catch (e) {
+      progress = {};
+    }
+    return progress;
+  };
+
+  /**
+   * Called when the element's children are first parsed.
+   * This will set attributes on the children so they render correctly
+   * and will track the user's progress in GA.
+   */
+  onSlotChange = () => {
+    const children = Array.from(this.querySelectorAll('a'));
+    const currentUrl = this.getAttribute('data-current');
+    const courseKey = this.getAttribute('data-course-key');
+
+    // Get the user's progress from localstorage and update it.
+    const progress = this.getProgress();
+    const course = progress[courseKey] || {...initialCourse};
+    // Find every anchor that the user has already visited and set an attribute
+    // on it so it renders a checkmark.
+    children.forEach((child) => {
+      if (course.pages && course.pages.includes(child.getAttribute('href'))) {
+        child.setAttribute('data-complete', 'true');
+      }
+      return child;
+    });
+
+    this.trackProgress(children, currentUrl, course, courseKey);
+  };
+
+  /**
+   * Update the user's progress in localstorage and fire analytics.
+   * @param {Element[]} children
+   * @param {string} currentUrl
+   * @param {Course} course
+   * @param {string} courseKey
+   */
+  trackProgress = (children, currentUrl, course, courseKey) => {
+    // Add the user's current page to the set of pages already visited.
+    // We use a Set here to avoid duplicate pages.
+    // We'll compare newPages to oldPages to figure out how far they
+    // have progressed.
+    const oldPages = new Set(course.pages);
+    oldPages.add(currentUrl);
+    const newPages = Array.from(oldPages);
+
+    // Bucket the user's progress into increments of 10.
+    // For each 10%+ bucket jump, fire an analytics event.
+    // e.g. If there are 21 modules, and the user is on the 10th module, and
+    // clicks three more modules, the events will look like
+    // this:
+    // Math.floor((10/21) * 10) * 10 == 40
+    // Math.floor((11/21) * 10) * 10 == 50 (fire analytics event)
+    // Math.floor((12/21) * 10) * 10 == 50
+    // Math.floor((13/21) * 10) * 10 == 60 (fire analytics event)
+    // Note we're using integers to represent percents instead of decimals to
+    // avoid issues with floating point arithmetic.
+    const oldPercent = parseInt(course.percent, 10);
+    const newPercent =
+      Math.floor((newPages.length / children.length) * 10) * 10;
+
+    // Fire analytics if there's been a 10%+ bucket jump.
+    if (ga && newPercent - oldPercent >= 10) {
+      ga('send', 'event', {
+        eventCategory: 'Course Events',
+        eventAction: `course: ${courseKey} progress`,
+        eventLabel: newPercent.toString(),
+      });
+    }
+
+    // Write everything back to localstorage using the data-course-key
+    // to identify which course it came from.
+    //
+    // If a user has visited multiple courses, then we need to preserve
+    // their progress, so we merge the new progress with their saved state.
+    let updatedProgress = this.getProgress();
+    updatedProgress = Object.assign({}, updatedProgress, {
+      [courseKey]: {
+        pages: newPages,
+        percent: newPercent,
+      },
+    });
+
+    try {
+      localStorage['webdev_course_progress'] = JSON.stringify(updatedProgress);
+    } catch (e) {
+      // Fail gracefully with a console log.
+      // We don't want to cause a runtime error here and possibly disrupt
+      // the rest of the JS on the page since tracking progress isn't a
+      // critical feature.
+      console.warn(`Failed to write course status to localstorage.`);
+    }
+  };
+}
+
+customElements.define('course-links', CourseLinks);
+
+  </script>
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=690102fd77d53', 'module');
+
+
+
+
+  loadScript('/js/course.js?v=c218ac6daa015', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a class="skip-link button" data-type="primary" href="#main">Skip to main</a>
+
+<div class="course">
+  
+
+<web-header class="cluster gutter-base" role="navigation" style="--course-background: url('/images/courses/forms/background.svg')">
+  <button data-open-drawer-button class="icon-button tooltip" data-alignment="right">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="tooltip__content">Open menu</span>
+  </button>
+
+  <p class="font-brand text-size-2 color-mid-text">Learn Forms!</p>
+</web-header>
+
+
+  <div class="sidebar">
+
+    <div class="course__sidebar">
+      
+
+
+
+<web-navigation-drawer type="standard">
+  <nav data-drawer-container class="course__drawer flow">
+    <div class="course__header" style="--course-background: url('/images/courses/forms/background.svg')">
+      <button data-drawer-close-button class="icon-button tooltip gap-top-base color-dark-text" data-alignment="right">
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+
+      <div class="course__side-title">
+        
+          
+          
+          
+
+
+  <svg role="img" aria-label="Learn Forms!" width="158" height="40" viewBox="0 0 158 40" preserveAspectRatio="xMinYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 10H3.06011V26.6393H11.4481V29.5628H0L0 10Z" fill="#3C4043"/>
+<path d="M19.8798 30C18.5501 30 17.3479 29.6903 16.2733 29.071C15.2168 28.4517 14.388 27.5956 13.7869 26.5027C13.1858 25.3916 12.8853 24.153 12.8853 22.7869C12.8853 21.4754 13.1676 20.2732 13.7323 19.1803C14.3152 18.0692 15.1257 17.1949 16.164 16.5574C17.2022 15.9016 18.3862 15.5738 19.7159 15.5738C21.082 15.5738 22.266 15.8743 23.2678 16.4754C24.2878 17.0765 25.062 17.9144 25.5902 18.9891C26.1184 20.0455 26.3826 21.2659 26.3826 22.6503C26.3826 22.8142 26.3734 22.9781 26.3552 23.1421C26.337 23.306 26.3279 23.3971 26.3279 23.4153H15.8908C15.9818 24.6539 16.4281 25.6102 17.2295 26.2842C18.031 26.9581 18.9418 27.2951 19.9618 27.2951C21.5283 27.2951 22.7305 26.5665 23.5683 25.1093L26.1367 26.3388C25.5356 27.4499 24.6977 28.3424 23.623 29.0164C22.5665 29.6721 21.3188 30 19.8798 30ZM23.3224 21.1202C23.286 20.6831 23.1403 20.2368 22.8853 19.7814C22.6303 19.326 22.2295 18.9435 21.6831 18.6339C21.1549 18.306 20.49 18.1421 19.6886 18.1421C18.796 18.1421 18.0219 18.4153 17.3662 18.9617C16.7286 19.5082 16.2915 20.2277 16.0547 21.1202H23.3224Z" fill="#3C4043"/>
+<path d="M33.4428 30C32.4774 30 31.6031 29.8087 30.8199 29.4262C30.0549 29.0255 29.4447 28.4791 28.9893 27.7869C28.5521 27.0765 28.3335 26.275 28.3335 25.3825C28.3335 23.9617 28.8618 22.8415 29.9182 22.0219C30.9929 21.2022 32.3499 20.7924 33.9893 20.7924C35.4283 20.7924 36.6578 21.0383 37.6778 21.5301V20.9563C37.6778 20.1366 37.3499 19.4627 36.6942 18.9344C36.0567 18.388 35.2825 18.1148 34.3718 18.1148C32.9875 18.1148 31.8763 18.6794 31.0385 19.8087L28.7434 18.224C29.3809 17.3679 30.1733 16.7122 31.1204 16.2568C32.0858 15.8015 33.1696 15.5738 34.3718 15.5738C36.3572 15.5738 37.8873 16.0747 38.962 17.0765C40.0549 18.0601 40.6013 19.4536 40.6013 21.2568V29.5628H37.6778V27.8962H37.5139C37.0767 28.5155 36.5212 29.0255 35.8472 29.4262C35.1733 29.8087 34.3718 30 33.4428 30ZM33.9346 27.5137C34.6086 27.5137 35.2279 27.3497 35.7926 27.0219C36.3754 26.6758 36.8308 26.2295 37.1587 25.6831C37.5048 25.1184 37.6778 24.5173 37.6778 23.8798C36.7124 23.3515 35.6833 23.0874 34.5904 23.0874C33.5886 23.0874 32.8053 23.306 32.2406 23.7432C31.676 24.1803 31.3937 24.7359 31.3937 25.4098C31.3937 26.0291 31.6396 26.5392 32.1314 26.9399C32.6414 27.3224 33.2425 27.5137 33.9346 27.5137Z" fill="#3C4043"/>
+<path d="M43.7743 16.0109H46.6159V18.0328H46.7798C47.0712 17.3406 47.5995 16.7668 48.3645 16.3115C49.1295 15.8379 49.9128 15.6011 50.7142 15.6011C51.37 15.6011 51.9073 15.6922 52.3262 15.8743V19.0164C51.7069 18.7067 51.0148 18.5519 50.2497 18.5519C49.2661 18.5519 48.4374 18.9344 47.7634 19.6995C47.1077 20.4463 46.7798 21.3661 46.7798 22.459V29.5628H43.7743V16.0109Z" fill="#3C4043"/>
+<path d="M54.5272 16.0109H57.3687V17.8142H57.5327C57.9334 17.1585 58.5163 16.6211 59.2813 16.2022C60.0463 15.7832 60.8751 15.5738 61.7676 15.5738C63.4434 15.5738 64.7093 16.0656 65.5654 17.0492C66.4398 18.0328 66.8769 19.3898 66.8769 21.1202V29.5628H63.8715V21.5301C63.8715 19.3989 62.8787 18.3333 60.8933 18.3333C59.8915 18.3333 59.0809 18.7341 58.4616 19.5355C57.8423 20.337 57.5327 21.2842 57.5327 22.3771V29.5628H54.5272V16.0109Z" fill="#3C4043"/>
+<path d="M74.877 29.5628V10H86.7349V12.8415H77.8824V18.5792H85.8606V21.4208H77.8824V29.5628H74.877Z" fill="url(#paint0_linear_274)"/>
+<path d="M95.1907 30C93.7518 30 92.4858 29.6721 91.3929 29.0164C90.3 28.3607 89.4439 27.4772 88.8246 26.3661C88.2053 25.255 87.8957 23.9982 87.8957 22.5956C87.8957 21.2113 88.2053 19.9636 88.8246 18.8525C89.4439 17.7231 90.3 16.8306 91.3929 16.1749C92.4858 15.5191 93.7518 15.1913 95.1907 15.1913C96.6115 15.1913 97.8683 15.5191 98.9612 16.1749C100.054 16.8306 100.91 17.7231 101.53 18.8525C102.149 19.9636 102.458 21.2113 102.458 22.5956C102.458 23.9982 102.149 25.255 101.53 26.3661C100.91 27.4772 100.054 28.3607 98.9612 29.0164C97.8683 29.6721 96.6115 30 95.1907 30ZM95.1907 27.2951C95.9558 27.2951 96.6661 27.1129 97.3219 26.7486C97.9776 26.3661 98.5059 25.8288 98.9066 25.1366C99.3255 24.4262 99.535 23.5792 99.535 22.5956C99.535 21.612 99.3255 20.7741 98.9066 20.082C98.5059 19.3716 97.9776 18.8342 97.3219 18.4699C96.6661 18.0874 95.9558 17.8962 95.1907 17.8962C94.4257 17.8962 93.7062 18.0874 93.0323 18.4699C92.3765 18.8342 91.8392 19.3716 91.4202 20.082C91.0195 20.7741 90.8191 21.612 90.8191 22.5956C90.8191 23.5792 91.0195 24.4262 91.4202 25.1366C91.8392 25.8288 92.3765 26.3661 93.0323 26.7486C93.7062 27.1129 94.4257 27.2951 95.1907 27.2951Z" fill="url(#paint1_linear_274)"/>
+<path d="M104.909 29.5628V15.6284H107.696V17.6776H107.86C108.17 16.9672 108.698 16.3843 109.445 15.929C110.21 15.4554 111.03 15.2186 111.904 15.2186C112.286 15.2186 112.605 15.2459 112.86 15.3005C113.133 15.3552 113.379 15.4189 113.598 15.4918V18.5519C113.252 18.4062 112.897 18.2878 112.532 18.1967C112.186 18.1056 111.822 18.0601 111.439 18.0601C110.747 18.0601 110.128 18.2514 109.582 18.6339C109.053 18.9982 108.634 19.4991 108.325 20.1366C108.015 20.7559 107.86 21.439 107.86 22.1858V29.5628H104.909Z" fill="url(#paint2_linear_274)"/>
+<path d="M115.876 29.5628V15.6284H118.663V17.541H118.827C119.227 16.867 119.81 16.3115 120.575 15.8743C121.34 15.4189 122.187 15.1913 123.116 15.1913C124.154 15.1913 125.038 15.4372 125.766 15.929C126.495 16.4208 127.014 17.0401 127.324 17.7869C127.779 17.0583 128.398 16.4481 129.182 15.9563C129.965 15.4463 130.921 15.1913 132.051 15.1913C133.69 15.1913 134.91 15.6922 135.712 16.694C136.513 17.6776 136.914 18.9891 136.914 20.6284V29.5628H133.99V21.1202C133.99 20.0091 133.745 19.1985 133.253 18.6885C132.779 18.1603 132.114 17.8962 131.258 17.8962C130.584 17.8962 129.992 18.0874 129.482 18.4699C128.972 18.8342 128.572 19.3352 128.28 19.9727C128.007 20.6102 127.87 21.3206 127.87 22.1038V29.5628H124.947V21.1202C124.947 20.0091 124.701 19.1985 124.209 18.6885C123.717 18.1603 123.025 17.8962 122.133 17.8962C121.477 17.8962 120.903 18.0874 120.411 18.4699C119.919 18.8525 119.528 19.3625 119.236 20C118.963 20.6375 118.827 21.3479 118.827 22.1311V29.5628H115.876Z" fill="url(#paint3_linear_274)"/>
+<path d="M145.185 30C143.509 30 142.17 29.6357 141.169 28.9071C140.167 28.1603 139.475 27.2769 139.092 26.2568L141.742 25.1093C142.07 25.8561 142.544 26.4299 143.163 26.8306C143.782 27.2131 144.484 27.4044 145.267 27.4044C145.996 27.4044 146.624 27.2769 147.152 27.0219C147.68 26.7486 147.945 26.3115 147.945 25.7104C147.945 25.1275 147.68 24.6995 147.152 24.4262C146.624 24.153 145.968 23.9162 145.185 23.7158L143.518 23.3333C142.844 23.1694 142.216 22.9144 141.633 22.5683C141.05 22.2222 140.577 21.776 140.212 21.2295C139.848 20.6648 139.666 20.0091 139.666 19.2623C139.666 18.4426 139.912 17.7322 140.404 17.1311C140.895 16.5118 141.542 16.0383 142.343 15.7104C143.163 15.3643 144.047 15.1913 144.994 15.1913C146.287 15.1913 147.416 15.4463 148.382 15.9563C149.365 16.4481 150.085 17.1949 150.54 18.1967L147.999 19.3443C147.671 18.725 147.243 18.2969 146.715 18.0601C146.205 17.8051 145.64 17.6776 145.021 17.6776C144.329 17.6776 143.746 17.8233 143.272 18.1148C142.817 18.4062 142.589 18.7705 142.589 19.2077C142.589 19.6812 142.79 20.0546 143.19 20.3279C143.609 20.6011 144.119 20.8197 144.72 20.9836L146.742 21.4754C148.127 21.8215 149.165 22.3497 149.857 23.0601C150.549 23.7523 150.895 24.5993 150.895 25.6011C150.895 26.4936 150.64 27.2769 150.13 27.9508C149.62 28.6066 148.928 29.1166 148.054 29.4809C147.198 29.827 146.241 30 145.185 30Z" fill="url(#paint4_linear_274)"/>
+<path d="M154.126 23.3333L153.853 16.1475V10H156.804V16.1475L156.503 23.3333H154.126ZM155.329 29.7268C154.746 29.7268 154.254 29.5264 153.853 29.1257C153.452 28.725 153.252 28.2423 153.252 27.6776C153.252 27.1129 153.452 26.6302 153.853 26.2295C154.254 25.8288 154.746 25.6284 155.329 25.6284C155.893 25.6284 156.376 25.8288 156.777 26.2295C157.177 26.6302 157.378 27.1129 157.378 27.6776C157.378 28.2423 157.177 28.725 156.777 29.1257C156.376 29.5264 155.893 29.7268 155.329 29.7268Z" fill="url(#paint5_linear_274)"/>
+<defs>
+<linearGradient id="paint0_linear_274" x1="74.877" y1="30" x2="155.56" y2="4.29442" gradientUnits="userSpaceOnUse">
+<stop offset="0.0677083" stop-color="#3399FF"/>
+<stop offset="0.34375" stop-color="#0066FF"/>
+<stop offset="0.619792" stop-color="#9933FF"/>
+<stop offset="0.911458" stop-color="#FF3399"/>
+</linearGradient>
+<linearGradient id="paint1_linear_274" x1="74.877" y1="30" x2="155.56" y2="4.29442" gradientUnits="userSpaceOnUse">
+<stop offset="0.0677083" stop-color="#3399FF"/>
+<stop offset="0.34375" stop-color="#0066FF"/>
+<stop offset="0.619792" stop-color="#9933FF"/>
+<stop offset="0.911458" stop-color="#FF3399"/>
+</linearGradient>
+<linearGradient id="paint2_linear_274" x1="74.877" y1="30" x2="155.56" y2="4.29442" gradientUnits="userSpaceOnUse">
+<stop offset="0.0677083" stop-color="#3399FF"/>
+<stop offset="0.34375" stop-color="#0066FF"/>
+<stop offset="0.619792" stop-color="#9933FF"/>
+<stop offset="0.911458" stop-color="#FF3399"/>
+</linearGradient>
+<linearGradient id="paint3_linear_274" x1="74.877" y1="30" x2="155.56" y2="4.29442" gradientUnits="userSpaceOnUse">
+<stop offset="0.0677083" stop-color="#3399FF"/>
+<stop offset="0.34375" stop-color="#0066FF"/>
+<stop offset="0.619792" stop-color="#9933FF"/>
+<stop offset="0.911458" stop-color="#FF3399"/>
+</linearGradient>
+<linearGradient id="paint4_linear_274" x1="74.877" y1="30" x2="155.56" y2="4.29442" gradientUnits="userSpaceOnUse">
+<stop offset="0.0677083" stop-color="#3399FF"/>
+<stop offset="0.34375" stop-color="#0066FF"/>
+<stop offset="0.619792" stop-color="#9933FF"/>
+<stop offset="0.911458" stop-color="#FF3399"/>
+</linearGradient>
+<linearGradient id="paint5_linear_274" x1="74.877" y1="30" x2="155.56" y2="4.29442" gradientUnits="userSpaceOnUse">
+<stop offset="0.0677083" stop-color="#3399FF"/>
+<stop offset="0.34375" stop-color="#0066FF"/>
+<stop offset="0.619792" stop-color="#9933FF"/>
+<stop offset="0.911458" stop-color="#FF3399"/>
+</linearGradient>
+</defs>
+</svg>
+
+
+        
+      </div>
+    </div>
+    <web-search class="course__search" results-id="search-course-results" tag="course-forms" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <div class="over-scroll">
+      <course-links data-current="/learn/forms/security-privacy/" data-course-key="forms">
+        <ul class="stack-nav">
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">000</span>
+        <span>Learn Forms</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+    
+    
+    <h3 class="stack-nav__heading">Get started with forms</h3>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/form-element/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">001</span>
+        <span>Use forms to get data from users</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/form-fields/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">002</span>
+        <span>Help users enter data in forms</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/auto/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">003</span>
+        <span>Help users avoid re-entering data in forms</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/validation/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">004</span>
+        <span>Help users enter the right data in forms</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/testing/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">005</span>
+        <span>Test your forms</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    <h3 class="stack-nav__heading">General best practice</h3>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/design-basics/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">006</span>
+        <span>Design basics</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/accessibility/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">007</span>
+        <span>Accessibility</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/internationalization/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">008</span>
+        <span>Internationalization and localization</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel " aria-current="page"  href="/learn/forms/security-privacy/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">009</span>
+        <span>Security and privacy</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/autofill/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">010</span>
+        <span>Autofill</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    <h3 class="stack-nav__heading">Testing and monitoring</h3>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/usability-testing/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">011</span>
+        <span>How to test forms for usability</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/cross-platform-testing/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">012</span>
+        <span>Test forms across devices and platforms</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/data/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">013</span>
+        <span>Gathering data</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    <h3 class="stack-nav__heading">Elements and attributes</h3>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/form/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">014</span>
+        <span>The form element in depth</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/fields/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">015</span>
+        <span>Form fields in depth</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/attributes/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">016</span>
+        <span>Form attributes in depth</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    <h3 class="stack-nav__heading">CSS</h3>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/styling/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">017</span>
+        <span>Styling forms</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/styling-form-controls/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">018</span>
+        <span>Styling form controls</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    <h3 class="stack-nav__heading">JavaScript</h3>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/javascript/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">019</span>
+        <span>JavaScript</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    <h3 class="stack-nav__heading">Specific form types</h3>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/identity/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">020</span>
+        <span>Identity</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/payment/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">021</span>
+        <span>Payment forms</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/address/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">022</span>
+        <span>Address forms</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+    
+    
+    <h3 class="stack-nav__heading">Wrap up</h3>
+  
+
+  
+  
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/forms/conclusion/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">023</span>
+        <span>Conclusion and next steps</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+
+  
+</li>
+        
+        </ul>
+      </course-links>
+    </div>
+    <web-course-search-results class="course__search-results" id="search-course-results"></web-course-search-results>
+  </nav>
+</web-navigation-drawer>
+
+    </div>
+
+    <div class="course__main">
+      
+<nav class="breadcrumbs pad-inline-size-1" aria-label="breadcrumbs">
+  <div class="repel">
+    <ul class="breadcrumbs__list" role="list">
+      <li>
+        <a href="/">
+
+
+  <svg class="breadcrumbs__brand" role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+</a>
+      </li>
+      <li>
+        <a href="/learn/">Learn</a>
+      </li>
+      <li>
+        <a href="/learn/forms">Learn Forms!</a>
+      </li>
+    </ul>
+    <share-action class="gc-analytics-event breadcrumbs__share"
+      authors="@justmarkup"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="share" xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+
+
+
+      <span>Share</span>
+    </share-action>
+  </div>
+</nav>
+
+      <div class="sticky-observer"></div>
+      <div class="gap-top-size-2">
+        <div class="sidebar flex-align-start flex-dir-rev flex-wrap-no">
+          
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#ensure-your-form-is-secure">Ensure your form is secure</a></li><li class="toc__listitem"><a class="toc__anchor" href="#help-users-to-keep-their-data-private">Help users to keep their data private</a></li><li class="toc__listitem"><a class="toc__anchor" href="#ensure-users-can-safely-sign-up-and-sign-in">Ensure users can safely sign up and sign in</a></li><li class="toc__listitem"><a class="toc__anchor" href="#help-users-access-their-personal-data">Help users access their personal data</a></li><li class="toc__listitem"><a class="toc__anchor" href="#ensure-users-can-update-their-personal-data">Ensure users can update their personal data</a></li><li class="toc__listitem"><a class="toc__anchor" href="#ensure-all-data-is-in-good-shape">Ensure all data is in good shape</a></li><li class="toc__listitem"><a class="toc__anchor" href="#ensure-all-submissions-come-from-real-people">Ensure all submissions come from real people</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#a-honeypot">A honeypot</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#resources">Resources</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+          <main id="main">
+            <div class="prose">
+              <div class="course__intro flow">
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                    <div class="eyebrow">009</div>
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                <h1>Security and privacy</h1>
+                
+                <div class="color-mid-text unstyled-code">
+                  
+                  
+                  <p>Learn how to make your forms secure and keep your users' data private.</p>
+
+                </div>
+                
+                
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#ensure-your-form-is-secure">Ensure your form is secure</a></li><li class="toc__listitem"><a class="toc__anchor" href="#help-users-to-keep-their-data-private">Help users to keep their data private</a></li><li class="toc__listitem"><a class="toc__anchor" href="#ensure-users-can-safely-sign-up-and-sign-in">Ensure users can safely sign up and sign in</a></li><li class="toc__listitem"><a class="toc__anchor" href="#help-users-access-their-personal-data">Help users access their personal data</a></li><li class="toc__listitem"><a class="toc__anchor" href="#ensure-users-can-update-their-personal-data">Ensure users can update their personal data</a></li><li class="toc__listitem"><a class="toc__anchor" href="#ensure-all-data-is-in-good-shape">Ensure all data is in good shape</a></li><li class="toc__listitem"><a class="toc__anchor" href="#ensure-all-submissions-come-from-real-people">Ensure all submissions come from real people</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#a-honeypot">A honeypot</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#resources">Resources</a></li></ul></div>
+    </details>
+  </div>
+
+
+              </div>
+            </div>
+            <div class="prose gap-top-size-2">
+              
+              <p>When you create a form, you work with user data.
+Your number one concern should be to ensure that user data is kept private and transferred securely.
+Let's have a look at what can be done.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>A secure form means that all data is encrypted, kept secure, and no unauthorized access can happen.</p>
+<p>To ensure privacy, only save the data you need,
+only save personal data after consent, ensure the user is in full control of their data,
+and never share user data with others without the user's consent.</p>
+</div></aside>
+<h2 id="ensure-your-form-is-secure">Ensure your form is secure <a class="w-headline-link" href="#ensure-your-form-is-secure">#</a></h2>
+<p>As a first step, make sure to request as little data as possible.
+Don't ask for data you don't need,
+and always question whether you need all of the requested data.
+Less data means less risk, less cost, and less liability.
+In addition, reducing the number of fields in a form makes it less complex,
+easier to fill out, and can reduce abandonment rates.</p>
+<p><a href="/secure/#secure-connections-with-https">Always use HTTPS</a>,
+especially for pages that include a form.
+With HTTPS, data is encrypted when coming from the server and when going back to the server.</p>
+<p>Say you're sitting in a café using public Wi-Fi.
+You open an e-commerce site and fill in your credit card information to purchase something.
+If the website uses HTTP, anyone (with the skills to do so)
+on the same public Wi-Fi could see your credit card information.
+If the website uses HTTPS, the data is encrypted and therefore protected from anyone trying to access it.</p>
+<p>On your site, you should also make sure to redirect any HTTP requests to HTTPS.
+Learn more about
+<a href="https://geekflare.com/http-to-https-redirection/" rel="noopener">how to redirect all traffic to HTTPS</a>.</p>
+<h2 id="help-users-to-keep-their-data-private">Help users to keep their data private <a class="w-headline-link" href="#help-users-to-keep-their-data-private">#</a></h2>
+<p>In the <a href="/learn/forms/form-element">first module</a>, you learned about two possible ways to transfer data:
+using a <code>GET</code> request and using a <code>POST</code> request.</p>
+<p>With a <code>GET</code> request, form data is included as a <a href="https://en.wikipedia.org/wiki/Query_string" rel="noopener">query string</a>
+in the request URL. If you submit a form that uses a <code>GET</code> request,
+the browser adds the request URL including form data to your browsing history.
+Convenient if you want to look up past form submissions,
+for example for a search form. Not great at all,
+if sensitive data is submitted,
+and everybody with access to your browser history or local network can see this information.</p>
+<p>Use <code>POST</code> requests for every form where data that's personal or otherwise sensitive may be submitted.
+This way, the data is only visible to the backend script processing it.</p>
+<p>What about saving and processing personal data directly in the browser?
+You could use client storage, for example, <code>localStorage</code> to store personal data in the browser.
+With regard to privacy, this is less than ideal.
+Again, everyone with access to your browser is able to read this information.
+You should only store encrypted values for personal data.</p>
+<h2 id="ensure-users-can-safely-sign-up-and-sign-in">Ensure users can safely sign up and sign in <a class="w-headline-link" href="#ensure-users-can-safely-sign-up-and-sign-in">#</a></h2>
+<p>User account <a href="https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html" rel="noopener">authentication</a>
+is a complex issue in terms of privacy and security.
+It may be better to use a
+<a href="/sign-up-form-best-practices/#federated-login">third-party identity provider</a>,
+instead of building your own secure authentication system.</p>
+<p>Learn more about
+<a href="https://cloud.google.com/blog/products/identity-security/account-authentication-and-password-management-best-practices" rel="noopener">best practices for account authentication, and password management</a>.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>If you do choose to build your own authentication system, make sure to follow best practice for password management:</p>
+<ul>
+<li>Never store or transmit passwords in plain text.
+Make sure to salt and hash passwords—and
+<a href="https://www.schneier.com/blog/archives/2011/04/schneiers_law.html" rel="noopener">don't try to invent your own hashing algorithm</a>.</li>
+<li>Ensure users enter <a href="https://pages.nist.gov/800-63-3/sp800-63b.html#5-authenticator-and-verifier-requirements" rel="noopener">secure passwords</a>.</li>
+<li>Don't allow <a href="/sign-up-form-best-practices/#no-compromised-passwords">compromised passwords</a>.</li>
+<li>Don't force <a href="/sign-up-form-best-practices/#no-forced-password-updates">password updates</a>.</li>
+<li>Make it simple for users to change or reset passwords.</li>
+</ul>
+</div></aside>
+<h2 id="help-users-access-their-personal-data">Help users access their personal data <a class="w-headline-link" href="#help-users-access-their-personal-data">#</a></h2>
+<p>Many regions have laws and regulations regarding data protection and privacy,
+including the
+<a href="https://en.wikipedia.org/wiki/California_Consumer_Privacy_Act" rel="noopener">CCPA</a> in California and the
+<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3244203" rel="noopener">PDPA</a> in India.
+Every website available in the European Union (EU) has to follow
+<a href="https://en.wikipedia.org/wiki/General_Data_Protection_Regulation" rel="noopener">General Data Protection Regulation</a> (GDPR),
+even if the site is not based in the EU.</p>
+<p>GDPR sets guidelines for the collection and processing of personal information from people living in the EU.
+Consent is required to process personal data,
+users can request personal information that you store at any time,
+and you have to officially announce data leaks.
+A good thing for the user, as this helps to ensure that their privacy is respected. Learn more about
+<a href="https://www.smashingmagazine.com/2018/02/gdpr-for-web-developers/" rel="noopener">GDPR</a>.</p>
+<p>Make sure your users know how you plan to process personal data.
+Transparency is the key to trust.
+Users should always be able to access, modify,
+and delete all data you saved for them.</p>
+<h2 id="ensure-users-can-update-their-personal-data">Ensure users can update their personal data <a class="w-headline-link" href="#ensure-users-can-update-their-personal-data">#</a></h2>
+<p>Make it easy for users to update their personal data, including passwords,
+email addresses, and usernames. Notify users about changes to their stored personal data,
+and ensure users can revoke changes.
+For example, send an email to the previous and new email address after users change their email address.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Separate the concept of user account and user identity to simplify implementing third-party identity provision.
+Allow users to change their username and link multiple identities to a single user account,
+for example if they sign up with an email and password, then sign up with a third-party identity provider.</p>
+</div></aside>
+<p>Make it easy for users to delete their account, including all associated data,
+and where relevant, make it possible to download data.
+Account deletion is a
+<a href="https://ec.europa.eu/info/law/law-topic/data-protection_en" rel="noopener">legal requirement</a> in some regions.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Link to your privacy policy on each page with a form,
+especially if personal data is processed.</p>
+</div></aside>
+<p>Require an additional authentication step,
+for example, re-entering the current password,
+to view or change personal information on your site.</p>
+<p>Find out more:
+<a href="https://www.w3.org/TR/app-privacy-bp/" rel="noopener">Web Application Privacy Best Practices</a>.</p>
+<h2 id="ensure-all-data-is-in-good-shape">Ensure all data is in good shape <a class="w-headline-link" href="#ensure-all-data-is-in-good-shape">#</a></h2>
+<p>In a previous module, you learned about <a href="/learn/forms/validation">validation on the frontend</a>.
+Frontend validation is important, but users might still be able to submit invalid data. As a next
+step, you must also validate the data <a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html" rel="noopener">on the backend</a>
+before saving the data in your database. This ensures that no invalid data is saved in your database.</p>
+<p>Validation helps to ensure that the data format is valid,
+but you should still not trust data entered by users.
+How can you safely output the data? To prevent
+<a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html" rel="noopener">Cross Site Scripting</a> (XSS),
+and ensure all data is safe to include in HTML, you must sanitize data before output.</p>
+<p>Learn more about <a href="https://benhoyt.com/writings/dont-sanitize-do-escape/" rel="noopener">sanitizing data before output</a>
+and, where possible, use the <a href="/sanitizer/">Sanitizer API</a>.</p>
+<h2 id="ensure-all-submissions-come-from-real-people">Ensure all submissions come from real people <a class="w-headline-link" href="#ensure-all-submissions-come-from-real-people">#</a></h2>
+<p>To help protect your data, you have various options to prevent spam submissions from
+<a href="https://en.wikipedia.org/wiki/Internet_bot#Malicious_bots" rel="noopener">bots</a>.</p>
+<p>The first option is to use a service such as
+<a href="https://www.google.com/recaptcha/about/" rel="noopener">reCAPTCHA</a>,
+to distinguish between real people and bots.
+This requires you to include a JavaScript snippet on your page,
+and add extra attributes to your <strong>Submit</strong> button.</p>
+<p>reCAPTCHA performs various checks to find out if you are a human.
+For example, it may ask you to identify images.
+Automated software, such as a bot, cannot accomplish these challenges and can't submit the form.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Always make sure your spam protections are accessible.
+Try them out by using a screen reader, and by only using your keyboard.
+The best spam protection is useless if it makes the form unusable for real people.</p>
+</div></aside>
+<h3 id="a-honeypot">A honeypot <a class="w-headline-link" href="#a-honeypot">#</a></h3>
+<div style="height: 400px; width: 100%">
+<iframe
+  allow="camera; clipboard-read; clipboard-write; encrypted-media; geolocation; microphone; midi;"
+  loading="lazy"
+  src="https://codepen.io/web-dot-dev/embed/c8e82763c4ce344eb23dfd3ef621b662?height=400&theme-id=light&default-tab=html%2Cresult&editable=true"
+  style="height: 100%; width: 100%; border: 0;"
+  title="Pen c8e82763c4ce344eb23dfd3ef621b662 by web-dot-dev on Codepen"
+></iframe></div>
+<p>Another option is to use a so-called 'honeypot': a visually hidden form field.
+Humans won't see a honeypot field, but bots will fill it in.
+On the backend, your processing script can check if the field was completed.
+If it was, the submission was probably from a bot, and you can ignore it.</p>
+<aside class="aside flow bg-state-bad-bg color-state-bad-text">
+<p class="cluster color-state-bad-text">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error sign">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm0-10v6h2V7h-2z" />
+</svg></span>
+<strong>Caution</strong></p>
+<div class=" flow">
+<p>Make sure to hide a honeypot field for screen readers, by using the <code>aria-hidden=&quot;true&quot;</code> attribute.</p>
+</div></aside>
+<p>There are also services like
+<a href="https://akismet.com" rel="noopener">Akismet</a>, which can help you with spam protection.
+The Akismet filter works by combining information about spam captured on all participating sites,
+and then using those spam rules to block future spam.
+Akismet is transparent to the user, and catches most spam.</p>
+<html><head></head><body><web-assessment class="w-callout unresolved " aria-label="Check your understanding">   <div class="w-callout__blurb web-assessment__set-leader">     Test your knowledge of security and privacy   </div> <web-tabs class="web-assessment__content unresolved" label="questions for knowledge self check">         <web-question data-label="question">    <web-response-mc cardinality="1" correct-answer="0" data-role="response">      <p data-role="stem">What is the preferred method to transfer personal data using forms?</p>      <span data-role="option">A <code>POST</code> request.</span>      <span data-role="option">A carrier pigeon.</span>      <span data-role="option">A <code>GET</code> request.</span>      <span data-role="option">HTTPS</span>      <div data-role="rationale"><p>🎉</p> </div>      <div data-role="rationale"><p>Try again!</p> </div>      <div data-role="rationale"><p>Try again!</p> </div>      <div data-role="rationale"><p>Try again!</p> </div>    </web-response-mc> </web-question>         <web-question data-label="question">    <web-response-mc cardinality="3" correct-answer="0,1,2" data-role="response">      <p data-role="stem">How can you prevent spam?</p>      <span data-role="option">CAPTCHAS</span>      <span data-role="option">A Honeypot form field.</span>      <span data-role="option">Spam services.</span>      <span data-role="option">Only serve vegetarian forms.</span>      <div data-role="rationale"><p>🎉</p> </div>      <div data-role="rationale"><p>🎉</p> </div>      <div data-role="rationale"><p>🎉</p> </div>      <div data-role="rationale"><p>Try again!</p> </div>    </web-response-mc> </web-question>       </web-tabs> </web-assessment></body></html>
+<h2 id="resources">Resources <a class="w-headline-link" href="#resources">#</a></h2>
+<ul>
+<li><a href="https://pages.nist.gov/800-63-3/sp800-63b.html" rel="noopener">Digital Identity Guidelines</a></li>
+<li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Database_Security_Cheat_Sheet.html" rel="noopener">Database Security Cheat Sheet</a></li>
+</ul>
+
+            </div>
+          </main>
+        </div>
+      </div>
+
+      
+
+
+
+<h2 class="visually-hidden">Next and previous lessons</h2>
+<nav class="preview-pagination gap-top-size-2" aria-label="pagination">
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+      
+        
+        <a class="preview-pagination__item flow" href="/learn/forms/internationalization/" data-dir="prev">
+          <div class="preview-pagination__meta cluster">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="previous" xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+
+
+            <span>Prev</span>
+            <span>008</span>
+          </div>
+          <h3 class="preview-pagination__heading">Internationalization and localization</h3>
+        </a>
+      
+      
+        
+        <a class="preview-pagination__item flow" href="/learn/forms/autofill/" data-dir="next">
+          <div class="preview-pagination__meta cluster">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="next" xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+
+
+
+            <span>Next</span>
+            <span>010</span>
+          </div>
+          <h3 class="preview-pagination__heading">Autofill</h3>
+          <p>Learn all about autofill and the autocomplete attribute.
+</p>
+        </a>
+      
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+</nav>
+
+      <footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+    </div>
+  </div>
+</div>
+
+  </body>
+</html>

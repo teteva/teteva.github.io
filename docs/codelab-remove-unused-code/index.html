@@ -1,0 +1,777 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=8526023fc3552">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Remove unused code</title>
+<meta name="description" content="In this codelab, learn how to improve the performance of an application by removing any unused and unneeded dependencies. " />
+
+<link rel="canonical" href="https://web.dev/codelab-remove-unused-code/" />
+
+<meta itemprop="name" content="Remove unused code" />
+<meta itemprop="description" content="In this codelab, learn how to improve the performance of an application by removing any unused and unneeded dependencies. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/codelab-remove-unused-code/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Remove unused code" />
+<meta property="og:description" content="In this codelab, learn how to improve the performance of an application by removing any unused and unneeded dependencies. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="performance" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Remove unused code" />
+<meta name="twitter:description" content="In this codelab, learn how to improve the performance of an application by removing any unused and unneeded dependencies. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=2c1a387cca53e', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=312cdf302163c', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+    
+<div class="codelab-landing-page">
+  
+    
+    
+    
+  
+  <web-codelab class="web-codelab" glitch="fav-kitties-starter"  >
+    <div class="web-codelab__instructions">
+      
+      <article class="prose legacy-rollout">
+        <header class="flow gap-bottom-size-3">
+
+          <h1 id="remove-unused-code">Remove unused code</h1>
+          
+
+          
+            <div class="flow-space-size-1 color-mid-text text-size-0">
+              <time>Nov 5, 2018</time>
+              
+            </div>
+          
+
+          
+
+          
+            <div class="cluster flow-space-size-2">
+              
+                <div class="w-author">
+  <a href="/authors/houssein/"><img     alt="Houssein Djirdeh"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/houssein/">Houssein Djirdeh</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/hdjirdeh"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/housseindjirdeh">GitHub</a>
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://glitch.com/@housseindjirdeh"
+          >Glitch</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://houssein.me/">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+              
+            </div>
+          
+        </header>
+
+        
+
+        <div class="w-aside w-aside--note">
+<p>This codelab uses Chrome DevTools.
+<a href="https://www.google.com/chrome" rel="noopener">Download Chrome</a> if you don't already have it.</p>
+</div>
+<p>In this codelab, improve the performance of the following application by
+removing any unused and unneeded dependencies.</p>
+<img     alt="App screenshot"          decoding="async"     height="567"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/A6WweLPrgyud8VNCP3Dc.png?auto=format&w=1600 1600w"          width="800"   />
+<h2 id="measure">Measure <a class="w-headline-link" href="#measure">#</a></h2>
+<div class="w-aside w-aside--note">
+<p>Since webpack is used in this application, any changes made to the code will
+trigger a new build which can take a few seconds. Once it completes, you
+should see your changes reflected in the application.</p>
+</div>
+<p>It's always a good idea to first measure how well a website performs before
+adding optimizations.</p>
+<ul>
+<li>To preview the site, press <strong>View App</strong>. Then press
+<strong>Fullscreen</strong>
+<img
+src="/images/glitch/fullscreen.svg"
+alt="fullscreen"
+style="padding: 4px 8px; opacity: .5; border: 1px solid #c3c3c3; border-radius: 5px;"
+/>.</li>
+</ul>
+<p>Go ahead and click on your favorite kitten! Firebase's
+<a href="https://firebase.google.com/products/realtime-database/" rel="noopener">Realtime Database</a> is
+used in this application which is why the score updates in real-time and is
+synchronized with every other person using the application. 🐈</p>
+<ol>
+<li>Press `Control+Shift+J` (or `Command+Option+J` on Mac) to open DevTools.</li>
+<li>Click the <strong>Network</strong> tab.</li>
+<li>Select the <strong>Disable cache</strong> checkbox.</li>
+<li>Reload the app.</li>
+</ol>
+<img     alt="Original bundle size of 992 KB"     class="w-screenshot"     decoding="async"     height="169"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/GnvBzXKQwy2az8Gyxl6D.png?auto=format&w=1600 1600w"          width="800"   />
+<p>Almost 1 MB worth of JavaScript is being shipped to load this simple application!</p>
+<p>Take a look at the project warnings in DevTools.</p>
+<ul>
+<li>Click on the <strong>Console</strong> tab.</li>
+<li>Make sure that <code>Warnings</code> is enabled in the levels dropdown next to the
+<code>Filter</code> input.</li>
+</ul>
+<img     alt="Warnings filter"     class="screenshot"     decoding="async"     height="244"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/DMdUUxzxNMEGZ6HsTd3P.png?auto=format&w=1600 1600w"          width="800"   />
+<ul>
+<li>Take a look at the displayed warning.</li>
+</ul>
+<img     alt="Console warning"     class="screenshot"     decoding="async"     height="295"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/QGn9dHsaWNjTpMCwc0Rc.png?auto=format&w=1600 1600w"          width="800"   />
+<p>Firebase, which is one of the libraries used in this application, is being a
+good samaritan by providing a warning to let developers know to not import its
+entire package but only the components that are used. In other words, there are
+unused libraries that can be removed in this application to make it load
+faster.</p>
+<p>There are also instances when a particular library is used, but where there may be
+a simpler alternative. The concept of removing <strong>unneeded libraries</strong> is
+explored later in this tutorial.</p>
+<h2 id="analyzing-the-bundle">Analyzing the bundle <a class="w-headline-link" href="#analyzing-the-bundle">#</a></h2>
+<p>There are two main dependencies in the application:</p>
+<ul>
+<li><a href="https://firebase.google.com/" rel="noopener">Firebase</a>: a platform that provides a number of
+useful services for iOS, Android or web applications. Here its <a href="https://firebase.google.com/products/realtime-database/" rel="noopener">Realtime
+Database</a> is used to
+store and sync the information for each kitten in real time.</li>
+<li><a href="https://momentjs.com/" rel="noopener">Moment.js</a>: a utility library that makes it easier to
+handle dates in JavaScript. The birth date of each kitten is stored in the
+Firebase database, and <code>moment</code> is used to calculate its age in weeks.</li>
+</ul>
+<p>How can just two dependencies contribute to a bundle size of almost 1 MB? Well,
+one of the reasons is that any dependency can in turn have their own
+dependencies, so there are a lot more than just two if every depth/branch of the
+dependency &quot;tree&quot; is considered. It's easy for an application to become large
+relatively quickly if many dependencies are included.</p>
+<p>Analyze the bundler to get a better idea of what is going. There are a number of
+different community-built tools that can help do this, such as
+<a href="https://www.npmjs.com/package/webpack-bundle-analyzer" rel="noopener"><code>webpack-bundle-analyzer</code></a>.</p>
+<p>The package for this tool is already included in the app as a <code>devDependency</code>.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token string">"devDependencies"</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>  <span class="token comment">//...</span><br>  <span class="token string">"webpack-bundle-analyzer"</span><span class="token operator">:</span> <span class="token string">"^2.13.1"</span><br><span class="token punctuation">}</span><span class="token punctuation">,</span></code></pre>
+</web-copy-code><p>This means that it can be used directly in the webpack configuration file.
+Import it at the very beginning of <code>webpack.config.js</code>:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line"><span class="token keyword">const</span> path <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"path"</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line"></span><br><span class="highlight-line"><span class="token comment">//...</span></span><br><mark class="highlight-line highlight-line-active"><span class="token keyword">const</span> BundleAnalyzerPlugin <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"webpack-bundle-analyzer"</span><span class="token punctuation">)</span></mark><br><span class="highlight-line">  <span class="token punctuation">.</span>BundleAnalyzerPlugin<span class="token punctuation">;</span></span></code></pre>
+</web-copy-code><p>Now add it as a plugin at the very end of the file within the <code>plugins</code> array:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line">module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span></span><br><span class="highlight-line">  <span class="token comment">//...</span></span><br><span class="highlight-line">  plugins<span class="token operator">:</span> <span class="token punctuation">[</span></span><br><span class="highlight-line">    <span class="token comment">//...</span></span><br><mark class="highlight-line highlight-line-active">    <span class="token keyword">new</span> <span class="token class-name">BundleAnalyzerPlugin</span><span class="token punctuation">(</span><span class="token punctuation">)</span></mark><br><span class="highlight-line">  <span class="token punctuation">]</span></span><br><span class="highlight-line"><span class="token punctuation">}</span><span class="token punctuation">;</span></span></code></pre>
+</web-copy-code><p>When the application reloads, you should see a visualization of the entire
+bundle instead of the app itself.</p>
+<img     alt="Webpack Bundle Analyzer"          decoding="async"     height="468"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/QhYbNr23tGbcHwFZGKIQ.png?auto=format&w=1600 1600w"          width="800"   />
+<p>Not as cute as seeing some kittens 🐱, but incredibly helpful nonetheless.
+Hovering over any of the packages shows its size represented in three
+different ways:</p>
+<div class="w-table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th><strong>Stat size</strong></th>
+        <th>Size before any minification or compression.</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Parsed size</strong></td>
+        <td>
+          Size of actual package within the bundle after it has been compiled.
+          Version 4 of webpack (which is used in this application) minifies the
+          compiled files automatically which is why this is smaller than the stat
+          size.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Gzipped size</strong></td>
+        <td>
+          Size of package after it has been compressed with gzip encoding. This
+          topic is covered in a separate guide.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<p>With the webpack-bundle-analyzer tool, it is easier to identify unused or
+unneeded packages that make up a large percentage of the bundle.</p>
+<h2 id="removing-unused-packages">Removing unused packages <a class="w-headline-link" href="#removing-unused-packages">#</a></h2>
+<p>The visualization shows that the <code>firebase</code> package consists of a <em>lot</em> more
+than just a database. It includes additional packages such as:</p>
+<ul>
+<li><code>firestore</code></li>
+<li><code>auth</code></li>
+<li><code>storage</code></li>
+<li><code>messaging</code></li>
+<li><code>functions</code></li>
+</ul>
+<p>These are all amazing services provided by Firebase (and refer to the
+<a href="https://firebase.google.com/docs/web/setup#use_firebase_services" rel="noopener">documentation</a>
+to learn more), but none of them are being used in the application, so there's
+no reason to have them all imported.</p>
+<p>Revert the changes in <code>webpack.config.js</code> to see the application again:</p>
+<ul>
+<li>Remove <code>BundleAnalyzerPlugin</code> in the list of plugins:</li>
+</ul>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line">plugins<span class="token operator">:</span> <span class="token punctuation">[</span></span><br><span class="highlight-line">  <span class="token comment">//...</span></span><br><del class="highlight-line highlight-line-remove">  <span class="token keyword">new</span> <span class="token class-name">BundleAnalyzerPlugin</span><span class="token punctuation">(</span><span class="token punctuation">)</span></del><br><span class="highlight-line"><span class="token punctuation">]</span><span class="token punctuation">;</span></span></code></pre>
+</web-copy-code><ul>
+<li>And now remove the unused import from the top of the file:</li>
+</ul>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line"><span class="token keyword">const</span> path <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">"path"</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><br><span class="highlight-line"></span><br><span class="highlight-line"><span class="token comment">//...</span></span><br><del class="highlight-line highlight-line-remove"><span class="token keyword">const</span> BundleAnalyzerPlugin <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'webpack-bundle-analyzer'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>BundleAnalyzerPlugin<span class="token punctuation">;</span></del></code></pre>
+</web-copy-code><p>The application should load normally now. Modify <code>src/index.js</code> to update the
+Firebase imports.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><del class="highlight-line highlight-line-remove"><span class="token keyword">import</span> firebase <span class="token keyword">from</span> <span class="token string">'firebase'</span><span class="token punctuation">;</span></del><br><ins class="highlight-line highlight-line-add"><span class="token keyword">import</span> firebase <span class="token keyword">from</span> <span class="token string">'firebase/app'</span><span class="token punctuation">;</span></ins><br><ins class="highlight-line highlight-line-add"><span class="token keyword">import</span> <span class="token string">'firebase/database'</span><span class="token punctuation">;</span></ins></code></pre>
+</web-copy-code><p>Now when the app reloads, the DevTools warning does not show. Opening the
+DevTools <strong>Network</strong> panel also shows a <em>nice</em> reduction in bundle size:</p>
+<img     alt="Bundle size reduced to 480 KB"     class="screenshot"     decoding="async"     height="152"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/8agHvjw7351Yj8U1rIla.png?auto=format&w=1600 1600w"          width="800"   />
+<p>More than half the bundle size was removed. Firebase provides many different
+services and gives developers the option to only include those that are actually
+needed. In this application, only <code>firebase/database</code> was used to store and sync
+all of the data. The <code>firebase/app</code> import, which sets up the API surface for
+each of the different services, is always required.</p>
+<p>Many other popular libraries, such as <code>lodash</code>, also allow developers to
+selectively import different parts of their packages. Without doing much work,
+updating library imports in an application to only include what is being used
+can result in significant performance improvements.</p>
+<p>Although the bundle size has been reduced by quite a bit, there's still more
+work to do! 😈</p>
+<h2 id="removing-unneeded-packages">Removing unneeded packages <a class="w-headline-link" href="#removing-unneeded-packages">#</a></h2>
+<p>Unlike Firebase, importing parts of the <code>moment</code> library cannot be done as
+easily, but maybe it can be removed entirely?</p>
+<p>The birthday of each cute kitten is stored in <strong>Unix</strong> format (milliseconds) in
+the Firebase database.</p>
+<img     alt="Birthdates stored in Unix format"     class="screenshot"     decoding="async"     height="236"          loading="lazy"     sizes="(min-width: 560px) 560px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/D1ufo1PdyzW3wFSu9sE1.png?auto=format&w=1120 1120w"          width="560"   />
+<p>This is a timestamp of a particular date and time represented by the number of
+milliseconds that have elapsed since January 1, 1970 00:00 UTC. If the current
+date and time can be calculated in the same format, a small function to find the
+age of each kitten in weeks can probably be constructed.</p>
+<p>Like always, try not to copy and paste as you follow along here. Begin by
+removing <code>moment</code> from the imports in <code>src/index.js</code>.</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="highlight-line"><span class="token keyword">import</span> firebase <span class="token keyword">from</span> <span class="token string">'firebase/app'</span><span class="token punctuation">;</span></span><br><span class="highlight-line"><span class="token keyword">import</span> <span class="token string">'firebase/database'</span><span class="token punctuation">;</span></span><br><del class="highlight-line highlight-line-remove"><span class="token keyword">import</span> <span class="token operator">*</span> <span class="token keyword">as</span> moment <span class="token keyword">from</span> <span class="token string">'moment'</span><span class="token punctuation">;</span></del></code></pre>
+</web-copy-code><p>There is a Firebase event listener that handles value changes in our database:</p>
+<web-copy-code><pre class="language-js"><code class="language-js">favoritesRef<span class="token punctuation">.</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token string">"value"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">snapshot</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span> <span class="token operator">...</span> <span class="token punctuation">}</span><span class="token punctuation">)</span></code></pre>
+</web-copy-code><p>Above this, add a small function to calculate the number of weeks from a
+given date:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">const</span> <span class="token function-variable function">ageInWeeks</span> <span class="token operator">=</span> <span class="token parameter">birthDate</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token keyword">const</span> <span class="token constant">WEEK_IN_MILLISECONDS</span> <span class="token operator">=</span> <span class="token number">1000</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">24</span> <span class="token operator">*</span> <span class="token number">7</span><span class="token punctuation">;</span><br>  <span class="token keyword">const</span> diff <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token function">abs</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span> birthDate<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token keyword">return</span> Math<span class="token punctuation">.</span><span class="token function">floor</span><span class="token punctuation">(</span>diff <span class="token operator">/</span> <span class="token constant">WEEK_IN_MILLISECONDS</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>In this function, the difference in milliseconds between the current date and
+time <code>(new Date).getTime()</code> and the birth date (the <code>birthDate</code> argument, already
+in milliseconds) is calculated and divided by the number of milliseconds in a
+single week.</p>
+<p>Finally, all instances of <code>moment</code> can be removed in the event listener by
+leveraging this function instead:</p>
+<pre>
+favoritesRef.on("value", (snapshot) => {
+  const { kitties, favorites, names, birthDates } = snapshot.val();
+  favoritesScores = favorites;
+
+  kittiesList.innerHTML = kitties.map((kittiePic, index) => {
+    <s>const birthday = moment(birthDates[index]);</s>
+
+    return `
+      &lt;li&gt;
+        &lt;img src=${kittiePic} onclick=&quot;favKittie(${index})&quot;&gt;
+        &lt;div class=&quot;extra&quot;&gt;
+          &lt;div class=&quot;details&quot;&gt;
+            &lt;p class=&quot;name&quot;&gt;${names[index]}&lt;/p&gt;
+            <s>&lt;p class=&quot;age&quot;&gt;${moment().diff(birthday, 'weeks')} weeks old&lt;/p&gt;</s>
+            <strong>&lt;p class=&quot;age&quot;&gt;${ageInWeeks(birthDates[index])} weeks old&lt;/p&gt;</strong>
+          &lt;/div&gt;
+          &lt;p class=&quot;score&quot;&gt;${favorites[index]} ❤&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/li&gt;
+    `})
+});
+</pre>
+<p>Now reload the application and take a look at the <strong>Network</strong> panel once more.</p>
+<img     alt="Bundle size reduced to 225 KB"     class="screenshot"     decoding="async"     height="154"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/ixTpGQBkJimzUmEFBMsR.png?auto=format&w=1600 1600w"          width="800"   />
+<p>The size of our bundle was reduced by more than half again!</p>
+<h2 id="conclusion">Conclusion <a class="w-headline-link" href="#conclusion">#</a></h2>
+<p>With this codelab, you should have a decent understanding of how to analyze a
+particular bundle and why it can be so useful to remove unused or unneeded
+packages. Before you begin optimizing an application with this technique, <strong>it's
+important to know that this can be significantly more complex in larger
+applications</strong>.</p>
+<p>With regards to <strong>removing unused libraries</strong>, try to find out which parts of a
+bundle are being used and which parts are not. For a mysterious looking
+package that looks like it is not being used anywhere, take a step back and check
+which top-level dependencies might need it. Try to find a way to possibly
+decouple them from each other.</p>
+<p>When it comes to <strong>removing unneeded libraries</strong>, things can be a little more
+complicated. It's important to work closely with your team and see if there is
+potential to simplify parts of the codebase. Removing <code>moment</code> in this
+application may look like it would be the right thing to do every time, but what
+if there were time zones and different locales that needed to be handled? Or
+what if there were more complicated date manipulations? Things can get very
+tricky when manipulating and parsing dates/times, and libraries like <code>moment</code>
+and <a href="https://date-fns.org/" rel="noopener"><code>date-fns</code></a> simplify this significantly.</p>
+<p><strong>Everything is a tradeoff, and it's important to gauge whether it's even worth
+the complexity and effort to roll out a custom solution instead of relying on a
+third-party library.</strong></p>
+
+
+        <div class="text-size-0 color-mid-text">
+          <span>
+            
+            Last updated: <time>Nov 5, 2018</time>
+            
+          </span>
+          —
+          <a
+            href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/fast/codelab-remove-unused-code/index.md"
+          >
+            Improve article
+          </a>
+        </div>
+
+        
+          
+          
+        
+
+        
+          <div class="flow-space-size-2">
+            <a href="/remove-unused-code" class="button" data-type="secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+              <span>Return to article</span>
+            </a>
+          </div>
+        
+      </article>
+    </div>
+  </web-codelab>
+</div>
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

@@ -1,0 +1,864 @@
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=f406fefd5fba3">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=36c77ed753526">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Prácticas recomendadas de Referrer-Policy y Referer</title>
+<meta name="description" content="Considere la posibilidad de establecer una Referrer Policy de strict-origin-when-cross-origin. Esto conserva gran parte de las funciones del Referrer, a la vez que mitiga el riesgo de filtrar datos de orígenes cruzados. " />
+
+<link rel="canonical" href="https://web.dev/i18n/es/referrer-best-practices/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/referrer-best-practices/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/referrer-best-practices/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/referrer-best-practices/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/referrer-best-practices/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/referrer-best-practices/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/referrer-best-practices/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/referrer-best-practices/" />
+<meta itemprop="name" content="Prácticas recomendadas de Referrer-Policy y Referer" />
+<meta itemprop="description" content="Considere la posibilidad de establecer una Referrer Policy de strict-origin-when-cross-origin. Esto conserva gran parte de las funciones del Referrer, a la vez que mitiga el riesgo de filtrar datos de orígenes cruzados. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="es_ALL" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/es/referrer-best-practices/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Prácticas recomendadas de Referrer-Policy y Referer" />
+<meta property="og:description" content="Considere la posibilidad de establecer una Referrer Policy de strict-origin-when-cross-origin. Esto conserva gran parte de las funciones del Referrer, a la vez que mitiga el riesgo de filtrar datos de orígenes cruzados. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="security" />
+<meta property="tag" content="privacy" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Prácticas recomendadas de Referrer-Policy y Referer" />
+<meta name="twitter:description" content="Considere la posibilidad de establecer una Referrer Policy de strict-origin-when-cross-origin. Esto conserva gran parte de las funciones del Referrer, a la vez que mitiga el riesgo de filtrar datos de orígenes cruzados. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=70e2eb6446144', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=9ac0e7b9caa2', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Aprender
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Medir
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Cerrar</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt=""     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/kh2IMJFSJ3Cj6Zo8jEv5.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="En esta página">
+    <div class="course-toc__heading font-google-sans weight-medium">En esta página</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#resumen">Resumen</a></li><li class="toc__listitem"><a class="toc__anchor" href="#referer-y-referrer-policy-101">Referer y Referrer-Policy 101</a></li><li class="toc__listitem"><a class="toc__anchor" href="#que-politicas-estan-disponibles-y-en-que-se-diferencian">¿Qué políticas están disponibles y en qué se diferencian?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#referrer-policies-predeterminadas-en-los-navegadores">Referrer Policies predeterminadas en los navegadores</a></li><li class="toc__listitem"><a class="toc__anchor" href="#configuracion-de-su-referrer-policy:-practicas-recomendadas">Configuración de su Referrer Policy: prácticas recomendadas</a></li><li class="toc__listitem"><a class="toc__anchor" href="#como-ver-la-referrer-policy">¿Cómo ver la Referrer Policy?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#que-politica-debe-establecer-en-su-sitio-web">¿Qué política debe establecer en su sitio web?</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#por-que-&quot;explicitamente&quot;">¿Por qué &quot;explícitamente&quot;?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#por-que-strict-origin-when-cross-origin-(o-mas-estricto)">¿Por qué strict-origin-when-cross-origin (o más estricto)?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#que-sucederia-si-strict-origin-when-cross-origin-(o-mas-estricto)-no-se-adapta-a-todos-sus-casos-de-uso">¿Qué sucedería si strict-origin-when-cross-origin (o más estricto) no se adapta a todos sus casos de uso?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#ejemplo:-politica-a-nivel-de-elemento">Ejemplo: política a nivel de elemento</a></li><li class="toc__listitem"><a class="toc__anchor" href="#ejemplo:-politica-de-nivel-de-solicitud">Ejemplo: política de nivel de solicitud</a></li><li class="toc__listitem"><a class="toc__anchor" href="#que-mas-deberia-considerar">¿Qué más debería considerar?</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#uso-de-referrer-en-las-solicitudes-recibidas:-practicas-recomendadas">Uso de Referrer en las solicitudes recibidas: prácticas recomendadas</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#que-hacer-si-la-funcionalidad-de-su-sitio-utiliza-la-url-de-referrer-en-las-solicitudes-recibidas">¿Qué hacer si la funcionalidad de su sitio utiliza la URL de Referrer en las solicitudes recibidas?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#proteccion-contra-la-falsificacion-de-solicitudes-en-sitios-cruzados-(csrf)">Protección contra la falsificación de solicitudes en sitios cruzados (CSRF)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#registro-de-datos">Registro de datos</a></li><li class="toc__listitem"><a class="toc__anchor" href="#pagos">Pagos</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#conclusion">Conclusión</a></li><li class="toc__listitem"><a class="toc__anchor" href="#recursos">Recursos</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="practicas-recomendadas-de-referrer-policy-y-referer">Prácticas recomendadas de Referrer-Policy y Referer</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            Prácticas recomendadas para establecer Referrer-Policy y utilizar Referrer en las solicitudes recibidas.
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Jul 30, 2020</time>
+             — Actualizado <time>Sep 23, 2020</time> 
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/referrer-best-practices/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/referrer-best-practices/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/referrer-best-practices/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/referrer-best-practices/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/referrer-best-practices/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/referrer-best-practices/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/secure"
+          >Seguro y protegido</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/maudn/"> <img     alt="Maud Nalpas"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/maudn/">Maud Nalpas</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/maudnals">Twitter</a>
+               <a href="https://github.com/maudnals">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="En esta página">
+      <summary>
+        En esta página
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#resumen">Resumen</a></li><li class="toc__listitem"><a class="toc__anchor" href="#referer-y-referrer-policy-101">Referer y Referrer-Policy 101</a></li><li class="toc__listitem"><a class="toc__anchor" href="#que-politicas-estan-disponibles-y-en-que-se-diferencian">¿Qué políticas están disponibles y en qué se diferencian?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#referrer-policies-predeterminadas-en-los-navegadores">Referrer Policies predeterminadas en los navegadores</a></li><li class="toc__listitem"><a class="toc__anchor" href="#configuracion-de-su-referrer-policy:-practicas-recomendadas">Configuración de su Referrer Policy: prácticas recomendadas</a></li><li class="toc__listitem"><a class="toc__anchor" href="#como-ver-la-referrer-policy">¿Cómo ver la Referrer Policy?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#que-politica-debe-establecer-en-su-sitio-web">¿Qué política debe establecer en su sitio web?</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#por-que-&quot;explicitamente&quot;">¿Por qué &quot;explícitamente&quot;?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#por-que-strict-origin-when-cross-origin-(o-mas-estricto)">¿Por qué strict-origin-when-cross-origin (o más estricto)?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#que-sucederia-si-strict-origin-when-cross-origin-(o-mas-estricto)-no-se-adapta-a-todos-sus-casos-de-uso">¿Qué sucedería si strict-origin-when-cross-origin (o más estricto) no se adapta a todos sus casos de uso?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#ejemplo:-politica-a-nivel-de-elemento">Ejemplo: política a nivel de elemento</a></li><li class="toc__listitem"><a class="toc__anchor" href="#ejemplo:-politica-de-nivel-de-solicitud">Ejemplo: política de nivel de solicitud</a></li><li class="toc__listitem"><a class="toc__anchor" href="#que-mas-deberia-considerar">¿Qué más debería considerar?</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#uso-de-referrer-en-las-solicitudes-recibidas:-practicas-recomendadas">Uso de Referrer en las solicitudes recibidas: prácticas recomendadas</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#que-hacer-si-la-funcionalidad-de-su-sitio-utiliza-la-url-de-referrer-en-las-solicitudes-recibidas">¿Qué hacer si la funcionalidad de su sitio utiliza la URL de Referrer en las solicitudes recibidas?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#proteccion-contra-la-falsificacion-de-solicitudes-en-sitios-cruzados-(csrf)">Protección contra la falsificación de solicitudes en sitios cruzados (CSRF)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#registro-de-datos">Registro de datos</a></li><li class="toc__listitem"><a class="toc__anchor" href="#pagos">Pagos</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#conclusion">Conclusión</a></li><li class="toc__listitem"><a class="toc__anchor" href="#recursos">Recursos</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <h2 id="resumen">Resumen <a class="w-headline-link" href="#resumen">#</a></h2>
+<ul>
+<li>La filtración inesperada de información de origen cruzado dificulta la privacidad de los usuarios de la web. En este caso puede ayudar una directiva protectora Referrer-Policy.</li>
+<li>Considere la posibilidad de establecer una Referrer-Policy de <code>strict-origin-when-cross-origin</code>. Esto conserva gran parte de las funciones del Referrer, a la vez que mitiga el riesgo de filtrar datos de orígenes cruzados.</li>
+<li>No utilice Referrer para protegerse contra la Falsificación de solicitudes en sitios cruzados (CSRF). En vez de eso utilice <a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#token-based-mitigation" rel="noopener">tokens CSRF</a> y otros encabezados como una capa adicional de seguridad.</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Antes de comenzar:</p>
+<ul>
+<li>Si no está seguro de la diferencia entre &quot;sitio&quot; y &quot;origen&quot;, consulte <a href="/same-site-same-origin/">Cómo comprender &quot;same-site&quot; y &quot;same-origin&quot;</a><a href="/same-site-same-origin/"></a>.</li>
+<li>Al encabezado <code>Referer</code> le falta una R, debido a un error ortográfico de origen en la especificación. El encabezado <code>Referrer-Policy</code> y <code>referrer</code> que son de JavaScript y de DOM se escriben correctamente.</li>
+</ul>
+</div></aside>
+<h2 id="referer-y-referrer-policy-101">Referer y Referrer-Policy 101 <a class="w-headline-link" href="#referer-y-referrer-policy-101">#</a></h2>
+<p>Las solicitudes HTTP pueden incluir el <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referer" rel="noopener">encabezado <code>Referer</code></a> de forma opcional, que indica el origen o la URL de la página web desde la que se realizó la solicitud. El <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referrer-Policy" rel="noopener">encabezado <code>Referrer-Policy</code></a> define qué datos están disponibles en el encabezado <code>Referer</code>.</p>
+<p>En el siguiente ejemplo, el encabezado <code>Referer</code> incluye la URL completa de la página en <code>site-one</code> desde la que se realizó la solicitud.</p>
+<figure><img     alt="Solicitud HTTP que incluye un encabezado Referer"          decoding="async"     height="573"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/cXgqJfmD5OPdzqXl9RNt.jpg?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>El encabezado <code>Referer</code> puede estar presente en diferentes tipos de solicitudes:</p>
+<ul>
+<li>Solicitudes de navegación, cuando un usuario hace clic en un enlace</li>
+<li>Solicitudes de subrecursos, cuando un navegador solicita imágenes, iframes, scripts y otros recursos que necesita una página.</li>
+</ul>
+<p>También se puede acceder a los datos de las navegaciones y los iframes a través de JavaScript utilizando <code>document.referrer</code>.</p>
+<p>El valor de <code>Referer</code> puede ser revelador. Por ejemplo, un servicio de análisis podría utilizar el valor para determinar que el 50% de los visitantes de <code>site-two.example</code> provienen de <code>social-network.example</code>.</p>
+<p>Pero cuando la dirección URL completa, incluyendo la ruta y la cadena de consulta, se envía en el <code>Referer</code> <strong>entre orígenes</strong>, esto puede ser <strong>un obstáculo para la privacidad</strong> y también plantear <strong>riesgos de seguridad</strong>. Eche un vistazo a estas URL:</p>
+<figure><img     alt="URL con rutas, asignadas a diferentes riesgos de privacidad y seguridad"          decoding="async"     height="370"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/oTUtfrwaGYYjlOJ6KRs6.jpg?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>Las URL del #1 al #5 contienen información privada, a veces incluso identificativa o confidencial. Filtrar estos datos de forma silenciosa a través de los orígenes puede comprometer la privacidad de los usuarios en la web.</p>
+<p>La URL #6 es una <a href="https://www.w3.org/TR/capability-urls/" rel="noopener">capability URL</a>. Usted no desea que caiga en manos de nadie que no sea el usuario previsto. Si esto sucede, un ciberdelincuente podría secuestrar la cuenta de este usuario.</p>
+<p><strong>Para restringir los datos del Referrer que están disponibles para las solicitudes de su sitio, puede establecer una Referrer-Policy.</strong></p>
+<h2 id="que-politicas-estan-disponibles-y-en-que-se-diferencian">¿Qué políticas están disponibles y en qué se diferencian? <a class="w-headline-link" href="#que-politicas-estan-disponibles-y-en-que-se-diferencian">#</a></h2>
+<p>Puede seleccionar una de las ocho políticas. Dependiendo de la política, los datos disponibles del encabezado <code>Referer</code> (y de <code>document.referrer</code>) pueden ser:</p>
+<ul>
+<li>No hay datos (el encabezado <code>Referer</code> no está presente)</li>
+<li>Solo el <a href="/same-site-same-origin/#origin">origen</a></li>
+<li>La dirección URL completa: origen, ruta y cadena de consulta</li>
+</ul>
+<figure><img     alt="Datos que pueden estar contenidos en el encabezado Referer y document.referrer"          decoding="async"     height="255"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/UR1U0HRP0BOF1e0XnyWA.jpg?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>Algunas políticas están diseñadas para comportarse de forma diferente dependiendo del <strong>contexto</strong>: solicitud de origen cruzado o del mismo origen, seguridad (si el destino de la solicitud es tan seguro como el origen), o ambos. Esto es útil para limitar la cantidad de información compartida entre orígenes o para orígenes menos seguros, mientras se mantiene la riqueza del Referrer dentro de su propio sitio.</p>
+<p>Aquí se muestra una descripción general de cómo las Referrer Policies restringen los datos de la URL disponibles en el encabezado Referer y <code>document.referrer</code>:</p>
+<figure><img     alt="Diferentes Referrer Policies and their behaviour, según la seguridad y el contexto de origen cruzado"          decoding="async"     height="537"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/BIHWDY60CI317O7IzmQs.jpg?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>MDN proporciona una <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referrer-Policy#Directives" rel="noopener">lista completa de políticas y ejemplos de comportamiento</a>.</p>
+<p>Cosas a tener en cuenta:</p>
+<ul>
+<li>Todas las políticas que tienen en cuenta el esquema (HTTPS vs. HTTP) (<code>strict-origin</code>, <code>no-referrer-when-downgrade</code> y <code>strict-origin-when-cross-origin</code>) tratan las solicitudes desde un origen HTTP a otro origen HTTP de la misma manera que las solicitudes de un origen HTTPS a otro origen HTTPS, incluso si HTTP es menos seguro. Esto se debe a que, para estas políticas, lo que importa es si se produce un <strong>downgrade</strong> de seguridad, es decir, si la solicitud puede exponer los datos de un origen cifrado a uno sin cifrar. Una solicitud HTTP → HTTP no está cifrada todo el tiempo, por lo que no hay downgrade. Las solicitudes HTTPS → HTTP, por el contrario, presentan un downgrade.</li>
+<li>Si una solicitud es <strong>same-origin</strong>, significa que el esquema (HTTPS o HTTP) es el mismo, por lo tanto, no hay ningún downgrade o degradación de seguridad.</li>
+</ul>
+<h2 id="referrer-policies-predeterminadas-en-los-navegadores">Referrer Policies predeterminadas en los navegadores <a class="w-headline-link" href="#referrer-policies-predeterminadas-en-los-navegadores">#</a></h2>
+<p><em>A partir de julio del 2020</em></p>
+<p><strong>Si no se establece ninguna Referrer Policy, se utilizará la política predeterminada del navegador.</strong></p>
+<div>
+  <table>
+    <thead>
+      <tr>
+        <th>Navegador</th>
+        <th>Comportamiento/<code>Referrer-Policy</code> predeterminado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Chrome</td>
+        <td>Se planeó el cambio a <code>strict-origin-when-cross-origin</code> en la <a href="https://developers.google.com/web/updates/2020/07/referrer-policy-new-chrome-default">versión 85</a> (conocida anteriormente como <code>no-referrer-when-downgrade</code>)</td>
+      </tr>
+      <tr>
+        <td>Firefox</td>
+        <td>
+          <ul>
+            <li>
+<code>strict-origin-when-cross-origin</code> (<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1589074">consulte el error cerrado</a>)</li>
+            <li>
+<code>strict-origin-when-cross-origin</code> en navegación privada y para rastreadores</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Edge</td>
+        <td>
+          <ul>
+            <li><code>no-referrer-when-downgrade</code></li>
+            <li>Se hacen <a href="https://github.com/privacycg/proposals/issues/13">pruebas</a> con <code>strict-origin-when-cross-origin</code>
+</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Safari</td>
+        <td>Es similar a <code>strict-origin-when-cross-origin</code>. Consulte <a href="https://webkit.org/blog/9661/preventing-tracking-prevention-tracking/">Prevención del seguimiento</a> para obtener más información.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<h2 id="configuracion-de-su-referrer-policy:-practicas-recomendadas">Configuración de su Referrer Policy: prácticas recomendadas <a class="w-headline-link" href="#configuracion-de-su-referrer-policy:-practicas-recomendadas">#</a></h2>
+<aside class="aside flow bg-state-good-bg color-state-good-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg></span>
+<strong>Objetivo</strong></p>
+<div class=" flow">
+<p>Establezca explícitamente una privacy-enhancing policy, como <code>strict-origin-when-cross-origin</code> (o más estricto).</p>
+</div></aside>
+<p>Hay diferentes maneras de establecer Referrer Policies en su sitio:</p>
+<ul>
+<li>Como un encabezado HTTP</li>
+<li>Dentro de su <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referrer-Policy#Integration_with_HTML" rel="noopener">HTML</a></li>
+<li>Desde JavaScript a las <a href="https://javascript.info/fetch-api#referrer-referrerpolicy" rel="noopener">bases de las solicitudes</a></li>
+</ul>
+<p>Puede establecer diferentes políticas para diferentes páginas, solicitudes o elementos.</p>
+<p>Tanto el encabezado HTTP como el elemento meta están a nivel de página. El orden de precedencia al determinar la política efectiva de un elemento es:</p>
+<ol>
+<li>Política a nivel de elemento</li>
+<li>Política de nivel de página</li>
+<li>Navegador predeterminado</li>
+</ol>
+<p><strong>Ejemplo:</strong></p>
+<p><code>index.html</code> :</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>referrer<span class="token punctuation">"</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>strict-origin-when-cross-origin<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>...<span class="token punctuation">"</span></span> <span class="token attr-name">referrerpolicy</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>no-referrer-when-downgrade<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>La imagen se solicitará con una política <code>no-referrer-when-downgrade</code>, mientras que todas las demás solicitudes de recursos secundarios de esta página seguirán la política <code>strict-origin-when-cross-origin</code>.</p>
+<h2 id="como-ver-la-referrer-policy">¿Cómo ver la Referrer Policy? <a class="w-headline-link" href="#como-ver-la-referrer-policy">#</a></h2>
+<p><a href="https://securityheaders.com/" rel="noopener">securityheaders.com</a> es útil para determinar la política que utiliza un sitio o una página específica.</p>
+<p>También puede utilizar las herramientas para desarrolladores de Chrome, Edge o Firefox para ver la Referrer Policy que se utilizó en una solicitud específica. En el momento de escribir este artículo, Safari no muestra la <code>Referrer-Policy</code> pero sí muestra la <code>Referer</code> que se envió.</p>
+<figure><img     alt="Una captura de pantalla del panel la red de Chrome DevTools, que muestra Referer y Referrer-Policy"          decoding="async"     height="416"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/8Qlu6ZzSVgL2f9iYIplJ.jpg?auto=format&w=1600 1600w"          width="800"   /> <figcaption>Chrome DevTools, panel de la <b>red</b> con una solicitud seleccionada.</figcaption></figure>
+<h2 id="que-politica-debe-establecer-en-su-sitio-web">¿Qué política debe establecer en su sitio web? <a class="w-headline-link" href="#que-politica-debe-establecer-en-su-sitio-web">#</a></h2>
+<p>Resumen: establezca explícitamente una política de mejora de la privacidad como <code>strict-origin-when-cross-origin</code> (o más estricta).</p>
+<h3 id="por-que-&quot;explicitamente&quot;">¿Por qué &quot;explícitamente&quot;? <a class="w-headline-link" href="#por-que-&quot;explicitamente&quot;">#</a></h3>
+<p>Si no se establece una Referrer Policy, se utilizará la política por predeterminada del navegador, de hecho, los sitios web normalmente aceptan la política predeterminada del navegador. Pero esto no es lo ideal, porque:</p>
+<ul>
+<li>Las políticas predeterminadas de los navegadores son <code>no-referrer-when-downgrade</code>, <code>strict-origin-when-cross-origin</code> o más estrictas, según el navegador y el modo (privado/incógnito). Por lo tanto, su sitio web no se comportará de manera predecible en todos los navegadores.</li>
+<li>Los navegadores están adoptando valores predeterminados más estrictos, como <code>strict-origin-when-cross-origin</code> y los mecanismos como cuando <a href="https://github.com/privacycg/proposals/issues/13" rel="noopener">referrer hace trimming</a> en las solicitudes de origen cruzado. Opte explícitamente por una política de mejora de la privacidad antes de que cambien los valores predeterminados del navegador le da el control y le ayuda a ejecutar las pruebas como mejor le parezca.</li>
+</ul>
+<h3 id="por-que-strict-origin-when-cross-origin-(o-mas-estricto)">¿Por qué <code>strict-origin-when-cross-origin</code> (o más estricto)? <a class="w-headline-link" href="#por-que-strict-origin-when-cross-origin-(o-mas-estricto)">#</a></h3>
+<p>Necesita una política que sea segura, que mejore la privacidad y que sea útil, lo que significa &quot;útil&quot; depende de lo que desee del referrer:</p>
+<ul>
+<li><strong>Seguro</strong>: si su sitio web utiliza HTTPS (<a href="/why-https-matters/">si no es así, hágalo prioritario</a>), no desea que las URL de su sitio web se filtren en solicitudes que no sean HTTPS. Dado que cualquiera en la red puede verlos, esto expondría a sus usuarios a ataques de persona en el medio. Las políticas <code>no-referrer-when-downgrade</code>, <code>strict-origin-when-cross-origin</code>, <code>no-referrer</code> y <code>strict-origin</code> resuelven este problema.</li>
+<li><strong>Mejora de la privacidad</strong>: para una solicitud de origen cruzado, <code>no-referrer-when-downgrade</code> comparte la URL completa, esto no mejora la privacidad. <code>strict-origin-when-cross-origin</code> y <code>strict-origin</code> solo comparten el origen, y <code>no-referrer</code> no comparte nada. Esto le deja con <code>strict-origin-when-cross-origin</code> <code>strict-origin</code> y <code>no-referrer</code> como opciones para mejorar la privacidad.</li>
+<li><strong>Útil</strong>: <code>no-referrer</code> y <code>strict-origin</code> nunca comparten la URL completa, ni siquiera para las solicitudes del mismo origen, así que si necesita esto, <code>strict-origin-when-cross-origin</code> es una mejor opción.</li>
+</ul>
+<p>Todo esto significa que <strong><code>strict-origin-when-cross-origin</code></strong> es generalmente una opción sensata.</p>
+<p><strong>Ejemplo: establecer una política de <code>strict-origin-when-cross-origin</code></strong></p>
+<p><code>index.html</code> :</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>referrer<span class="token punctuation">"</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>strict-origin-when-cross-origin<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>O del lado del servidor, por ejemplo en Express:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> helmet <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'helmet'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>app<span class="token punctuation">.</span><span class="token function">use</span><span class="token punctuation">(</span>helmet<span class="token punctuation">.</span><span class="token function">referrerPolicy</span><span class="token punctuation">(</span><span class="token punctuation">{</span>policy<span class="token operator">:</span> <span class="token string">'strict-origin-when-cross-origin'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><h3 id="que-sucederia-si-strict-origin-when-cross-origin-(o-mas-estricto)-no-se-adapta-a-todos-sus-casos-de-uso">¿Qué sucedería si <code>strict-origin-when-cross-origin</code> (o más estricto) no se adapta a todos sus casos de uso? <a class="w-headline-link" href="#que-sucederia-si-strict-origin-when-cross-origin-(o-mas-estricto)-no-se-adapta-a-todos-sus-casos-de-uso">#</a></h3>
+<p>En este caso, adopte un <strong>enfoque progresivo</strong> : establezca una política de protección como <code>strict-origin-when-cross-origin</code> para su sitio web y, si es necesario, una política más permisiva para solicitudes específicas o elementos HTML.</p>
+<h3 id="ejemplo:-politica-a-nivel-de-elemento">Ejemplo: política a nivel de elemento <a class="w-headline-link" href="#ejemplo:-politica-a-nivel-de-elemento">#</a></h3>
+<p><code>index.html</code> :</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="highlight-line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">  <span class="token comment">&lt;!-- document-level policy: strict-origin-when-cross-origin --></span></span><br><span class="highlight-line">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>referrer<span class="token punctuation">"</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>strict-origin-when-cross-origin<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></span><br><span class="highlight-line">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">      <span class="token comment">&lt;!-- policy on this &lt;a> element: no-referrer-when-downgrade --></span></span><br><mark class="highlight-line highlight-line-active">      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>…<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>…<span class="token punctuation">"</span></span> <span class="token attr-name">referrerpolicy</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>no-referrer-when-downgrade<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span></mark><br><span class="highlight-line">      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span></span><br><span class="highlight-line">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span></span><br><span class="highlight-line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span></span></code></pre>
+</web-copy-code><p>Tenga en cuenta que Safari/WebKit puede limitar <code>document.referrer</code> o el encabezado <code>Referer</code> para solicitudes <a href="/same-site-same-origin/#same-site-cross-site">cross-site</a>. Consulte <a href="https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/" rel="noopener">detalles</a>.</p>
+<h3 id="ejemplo:-politica-de-nivel-de-solicitud">Ejemplo: política de nivel de solicitud <a class="w-headline-link" href="#ejemplo:-politica-de-nivel-de-solicitud">#</a></h3>
+<p><code>script.js</code> :</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token function">fetch</span><span class="token punctuation">(</span>url<span class="token punctuation">,</span> <span class="token punctuation">{</span>referrerPolicy<span class="token operator">:</span> <span class="token string">'no-referrer-when-downgrade'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><h3 id="que-mas-deberia-considerar">¿Qué más debería considerar? <a class="w-headline-link" href="#que-mas-deberia-considerar">#</a></h3>
+<p>Su política debe depender de su sitio web y de los casos de uso, esto depende de usted, su equipo y su empresa. Si algunas URL contienen datos de identificación o confidenciales, establezca una política de protección.</p>
+<aside class="aside flow bg-state-warn-bg color-core-text">
+<p class="cluster ">
+<span class="aside__icon box-block color-state-warn-text"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Warning sign" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M23 21L12 2 1 21h22zm-12-3v-2h2v2h-2zm0-4h2v-4h-2v4z" />
+</svg></span>
+<strong>Advertencia</strong></p>
+<div class=" flow">
+<p>Los datos que pueden no parecer sensibles para usted, pueden serlo para sus usuarios, o simplemente no son datos que ellos quieran o esperen que se filtren silenciosamente de origen cruzado.</p>
+</div></aside>
+<h2 id="uso-de-referrer-en-las-solicitudes-recibidas:-practicas-recomendadas">Uso de Referrer en las solicitudes recibidas: prácticas recomendadas <a class="w-headline-link" href="#uso-de-referrer-en-las-solicitudes-recibidas:-practicas-recomendadas">#</a></h2>
+<h3 id="que-hacer-si-la-funcionalidad-de-su-sitio-utiliza-la-url-de-referrer-en-las-solicitudes-recibidas">¿Qué hacer si la funcionalidad de su sitio utiliza la URL de Referrer en las solicitudes recibidas? <a class="w-headline-link" href="#que-hacer-si-la-funcionalidad-de-su-sitio-utiliza-la-url-de-referrer-en-las-solicitudes-recibidas">#</a></h3>
+<h4 id="proteja-los-datos-de-los-usuarios">Proteja los datos de los usuarios <a class="w-headline-link" href="#proteja-los-datos-de-los-usuarios">#</a></h4>
+<p><code>Referer</code> puede contener datos privados, personales o de identificación, así que asegúrese de tratarlos como tales.</p>
+<h4 id="tenga-en-cuenta-que-el-referer-que-recibe-puede-cambiar">Tenga en cuenta que el <code>Referer</code> que recibe puede cambiar <a class="w-headline-link" href="#tenga-en-cuenta-que-el-referer-que-recibe-puede-cambiar">#</a></h4>
+<p>El uso de Referrer de las solicitudes entrantes de origen cruzado tiene algunas limitaciones:</p>
+<ul>
+<li>Si no tiene control sobre la implementación del emisor de solicitudes, no puede hacer suposiciones sobre el encabezado <code>Referer</code> (y <code>document.referrer</code>) que recibe. El emisor de la solicitud puede decidir en cualquier momento cambiar a una política <code>non-referrer</code>, o de manera más general a una política más estricta que la que usaba antes, lo que significa que obtendrá menos datos mediante <code>Referer</code> que antes.</li>
+<li>Los navegadores utilizan cada vez más la Referrer-Policy de <code>strict-origin-when-cross-origin</code> de forma predeterminada. Esto significa que ahora puede recibir solo el origen (en vez de la URL de Referrer completa) en las solicitudes recibidas de origen cruzado, si el sitio que las envía no tiene ninguna política establecida.</li>
+<li>Los navegadores pueden cambiar la forma en que administran <code>Referer</code>. Por ejemplo, en el futuro, es posible que decidan los referrers siempre hagan trim a los orígenes en las solicitudes de subrecursos de origen cruzado, con el fin de proteger la privacidad del usuario.</li>
+<li>El encabezado <code>Referer</code> (y <code>document.referrer</code>) puede contener más datos de los que necesita, por ejemplo una URL completa cuando solo desea saber si la solicitud es de origen cruzado.</li>
+</ul>
+<h4 id="alternativas-a-referer">Alternativas a <code>Referer</code> <a class="w-headline-link" href="#alternativas-a-referer">#</a></h4>
+<p>Es posible que deba considerar alternativas si:</p>
+<ul>
+<li>Una función esencial de su sitio utiliza la URL de referrer de las solicitudes entrantes de origen cruzado</li>
+<li>Y/o si su sitio ya no recibe la parte de la URL de Referrer que necesita en una solicitud de origen cruzado. Esto sucede cuando el emisor de la solicitud cambió su política o cuando no tiene una política establecida y la política predeterminada del navegador cambió (como en <a href="https://developers.google.com/web/updates/2020/07/referrer-policy-new-chrome-default" rel="noopener">Chrome 85</a>).</li>
+</ul>
+<p>Para definir las alternativas, analice primero qué parte de referrer está utilizando.</p>
+<p><strong>Si solo necesita el origen ( <code>https://site-one.example</code> ):</strong></p>
+<ul>
+<li>Si está utilizando el referrer en un script que tiene acceso de nivel superior a la página, <code>window.location.origin</code> es una alternativa.</li>
+<li>Si están disponibles, los encabezados como <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Origin" rel="noopener"><code>Origin</code></a> y <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Sec-Fetch-Site" rel="noopener"><code>Sec-Fetch-Site</code></a> le dan el <code>Origin</code> o describen si la solicitud es de origen cruzado, que puede ser exactamente lo que necesita.</li>
+</ul>
+<p><strong>Si necesita otros elementos de la URL (ruta, parámetros de consulta…):</strong></p>
+<ul>
+<li>Los parámetros de solicitud pueden abordar su caso de uso y esto le ahorra el trabajo de analizar el referrer.</li>
+<li>Si está utilizando el referrer en un script que tiene acceso de nivel superior a la página, <code>window.location.pathname</code> puede ser una alternativa. Extraiga solo la sección de la ruta de acceso de la URL y emítala como argumento, de modo que no se transmita ninguna información potencialmente sensible de los parámetros de la URL.</li>
+</ul>
+<p><strong>Si no puede utilizar estas alternativas:</strong></p>
+<ul>
+<li>Verifique si sus sistemas pueden cambiarse para esperar que el emisor de solicitudes ( <code>site-one.example</code> ) establezca explícitamente la información que necesita en una configuración de algún tipo. Ventaja: más explícito, más preservación de la privacidad para los usuarios de <code>site-one.example</code> Contra: potencialmente más trabajo de su lado o para los usuarios de su sistema.</li>
+<li>Verifique si el sitio que emite las solicitudes puede aceptar establecer una Referrer-Policy of <code>no-referrer-when-downgrade</code> por elemento o por solicitud. Contra: potencialmente menos preservación de la privacidad para <code>site-one.example</code>, potencialmente no es compatible con todos los navegadores.</li>
+</ul>
+<h3 id="proteccion-contra-la-falsificacion-de-solicitudes-en-sitios-cruzados-(csrf)">Protección contra la falsificación de solicitudes en sitios cruzados (CSRF) <a class="w-headline-link" href="#proteccion-contra-la-falsificacion-de-solicitudes-en-sitios-cruzados-(csrf)">#</a></h3>
+<p>Tenga en cuenta que un emisor de solicitudes siempre puede decidir no enviar el referrer estableciendo una política <code>no-referrer</code> (y un actor malintencionado podría incluso falsificar el referrer).</p>
+<p>Utilice <a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#token-based-mitigation" rel="noopener">Tokens CSRF</a> como protección principal. Para una protección adicional, utilice <a href="/samesite-cookie-recipes/#%22unsafe%22-requests-across-sites">SameSite</a> y en lugar de <code>Referer</code>, utilice encabezados como <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Origin" rel="noopener"><code>Origin</code></a> (disponible en solicitudes POST y CORS) y <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Sec-Fetch-Site" rel="noopener"><code>Sec-Fetch-Site</code></a> (si está disponible).</p>
+<h3 id="registro-de-datos">Registro de datos <a class="w-headline-link" href="#registro-de-datos">#</a></h3>
+<p>Asegúrese de proteger los datos personales o confidenciales de los usuarios que puedan estar en el <code>Referer</code>.</p>
+<p>Si solo está utilizando el origen, verifique si el <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Origin" rel="noopener"><code>Origin</code></a> podría ser una alternativa. Esto puede brindarle la información que necesita para fines de depuración de una manera más simple y sin necesidad de analizar al Referrer.</p>
+<h3 id="pagos">Pagos <a class="w-headline-link" href="#pagos">#</a></h3>
+<p>Los proveedores de pago pueden confiar en el <code>Referer</code> de las solicitudes recibidas para controles de seguridad.</p>
+<p>Por ejemplo:</p>
+<ul>
+<li>El usuario hace clic en un botón <strong>Comprar</strong> <code>online-shop.example/cart/checkout</code>.</li>
+<li><code>online-shop.example</code> redirecciona a <code>payment-provider.example</code> para administrar la transacción.</li>
+<li><code>payment-provider.example</code> verifica el <code>Referer</code> de esta solicitud con una lista de <code>Referer</code> permitidos establecidos por los comerciantes. Si no coincide con ninguna entrada de la lista, <code>payment-provider.example</code> rechaza la solicitud. Si coincide, el usuario puede continuar con la transacción.</li>
+</ul>
+<h4 id="practicas-recomendadas-para-los-controles-de-seguridad-del-flujo-de-pagos">Prácticas recomendadas para los controles de seguridad del flujo de pagos <a class="w-headline-link" href="#practicas-recomendadas-para-los-controles-de-seguridad-del-flujo-de-pagos">#</a></h4>
+<p><strong>Resumen: como proveedor de pagos, puede utilizar el <code>Referer</code> como un control básico contra ataques naive, pero definitivamente debería tener otro método de verificación más confiable.</strong></p>
+<p>El encabezado <code>Referer</code> por sí solo no es una base confiable para una verificación: el sitio solicitante, ya sea o no un comerciante legítimo, puede establecer una política <code>no-referrer</code> que hará que la información de <code>Referer</code> no esté disponible para el proveedor de pagos. Sin embargo, como proveedor de pagos, observar el <code>Referer</code> puede ayudarle a atrapar a los atacantes ingenuos que no establecieron una política <code>no-referrer</code>. De modo que puede decidir utilizar <code>Referer</code> como primera verificación básica. Si lo hace:</p>
+<ul>
+<li><strong>No espere que el <code>Referer</code> siempre esté presente, y si está presente solo compruebe con el dato que incluirá como mínimo: el origen</strong>. Al establecer la lista de valores <code>Referer</code> permitidos, asegúrese de que no se incluya ninguna ruta, sino solo el origen. Ejemplo: los valores <code>Referer</code> permitidos de <code>online-shop.example</code> deben estar <code>online-shop.example</code> , no <code>online-shop.example/cart/checkout</code>. ¿Por qué? Debido a que al no esperar ningún <code>Referer</code> o un valor de <code>Referer</code> que sea el origen del sitio web solicitante, se evitan errores inesperados ya que <strong>no está haciendo suposiciones sobre la <code>Referrer-Policy</code></strong> que el comerciante ha establecido o sobre el comportamiento del navegador si el comerciante no tiene una política establecida. Tanto el sitio como el navegador podrían eliminar el <code>Referer</code> enviado en la solicitud entrante solo al origen o no enviar al <code>Referer</code> en absoluto.</li>
+<li>Si el <code>Referer</code> está ausente o si está presente y su verificación básica de origen de <code>Referer</code> fue exitosa: puede pasar a su otro método de verificación más confiable (ver más abajo).</li>
+</ul>
+<p><strong>¿Cuál es un método de verificación más confiable?</strong></p>
+<p>Un método de verificación confiable es permitir que el solicitante <strong>codifique los parámetros de la solicitud</strong> junto con una clave única. Como proveedor de pagos, puede <strong>calcular el mismo hash de su lado</strong> y solo aceptar la solicitud si coincide con su cálculo.</p>
+<p><strong>¿Qué sucede con el <code>Referer</code> cuando un sitio de comerciante HTTP sin una Referrer Policy redirecciona a un proveedor de pago HTTPS?</strong></p>
+<p>Ningún <code>Referer</code> será visible en la solicitud para el proveedor de pago HTTPS, porque la <a href="#default-referrer-policies-in-browsers">mayoría de los navegadores</a> usan <code>strict-origin-when-cross-origin</code> o <code>no-referrer-when-downgrade</code> de categoría de forma predeterminada cuando un sitio web no tiene una política establecida. También tenga en cuenta que el <a href="https://developers.google.com/web/updates/2020/07/referrer-policy-new-chrome-default" rel="noopener">cambio de Chrome a una nueva política predeterminada</a> no cambiará este comportamiento.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Si su sitio web utiliza HTTP, <a href="/why-https-matters/">migre a HTTPS</a>.</p>
+</div></aside>
+<h2 id="conclusion">Conclusión <a class="w-headline-link" href="#conclusion">#</a></h2>
+<p>Una Referrer Policy protectora es una excelente manera de brindar a sus usuarios más privacidad.</p>
+<p>Para obtener más información sobre las diferentes técnicas para proteger a sus usuarios, consulte la colección <a href="/secure/">Safe and secure</a> de web.dev.</p>
+<p><em>Muchas gracias por las contribuciones y comentarios a todos los revisores, especialmente a Kaustubha Govind, David Van Cleve, Mike West, Sam Dutton, Rowan Merewood, Jxck y Kayce Basques.</em></p>
+<h2 id="recursos">Recursos <a class="w-headline-link" href="#recursos">#</a></h2>
+<ul>
+<li><a href="/same-site-same-origin/">Entender &quot;mismo sitio&quot; y &quot;mismo origen&quot;</a></li>
+<li><a href="https://scotthelme.co.uk/a-new-security-header-referrer-policy/" rel="noopener">Un nuevo encabezado de seguridad: Referrer Policy (2017)</a></li>
+<li><a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Referrer-Policy" rel="noopener">Referrer Policy en MDN</a></li>
+<li><a href="https://developer.mozilla.org/docs/Web/Security/Referer_header:_privacy_and_security_concerns" rel="noopener">Encabezado del referer: preocupaciones de privacidad y seguridad en MDN</a></li>
+<li><a href="https://groups.google.com/a/chromium.org/d/msg/blink-dev/aBtuQUga1Tk/n4BLwof4DgAJ" rel="noopener">Cambio de Chrome: intento de implementación de Blink</a></li>
+<li><a href="https://groups.google.com/a/chromium.org/forum/#!topic/blink-dev/lqFuqwZDDR8" rel="noopener">Cambio de Chrome: intención de envío de Blink</a></li>
+<li><a href="https://www.chromestatus.com/feature/6251880185331712" rel="noopener">Cambio de Chrome: entrada de estado</a></li>
+<li><a href="https://blog.chromium.org/2020/07/chrome-85-upload-streaming-human.html" rel="noopener">Cambio de Chrome: publicación de blog de la versión 85</a></li>
+<li><a href="https://github.com/privacycg/proposals/issues/13" rel="noopener">Referrer hace trimming en el procesador de GitHub: lo que hacen los diferentes navegadores</a></li>
+<li><a href="https://w3c.github.io/webappsec-referrer-policy/#referrer-policy-delivery" rel="noopener">Especificación de Referrer-Policy</a></li>
+</ul>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/security/">Seguridad</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/privacy/">Privacidad</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Última actualización: <time>Sep 23, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/es/blog/referrer-best-practices/index.md"
+        >
+          Mejorar el artículo
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@maudnals"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Compartir</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Presentar un error
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Ver fuente
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contenido relevante</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome Actualizaciones
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Conectar</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          Todos los productos
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="es"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Condiciones y privacidad
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Principios de la Comunidad
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

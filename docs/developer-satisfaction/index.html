@@ -1,0 +1,612 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=05c2fbd435d0e">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Web Developer Satisfaction</title>
+<meta name="description" content="Web Developer Satisfaction is a Google project to gather information about the needs of web developers. The goal is a more reliable, predictable and interoperable web platform, enabling developers to invest in and trust it, and adopt and use new features to grow the platform and their business." />
+
+<link rel="canonical" href="https://web.dev/developer-satisfaction/" />
+
+<meta itemprop="name" content="Web Developer Satisfaction" />
+<meta itemprop="description" content="Web Developer Satisfaction is a Google project to gather information about the needs of web developers. The goal is a more reliable, predictable and interoperable web platform, enabling developers to invest in and trust it, and adopt and use new features to grow the platform and their business." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/developer-satisfaction/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Web Developer Satisfaction" />
+<meta property="og:description" content="Web Developer Satisfaction is a Google project to gather information about the needs of web developers. The goal is a more reliable, predictable and interoperable web platform, enabling developers to invest in and trust it, and adopt and use new features to grow the platform and their business." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Web Developer Satisfaction" />
+<meta name="twitter:description" content="Web Developer Satisfaction is a Google project to gather information about the needs of web developers. The goal is a more reliable, predictable and interoperable web platform, enabling developers to invest in and trust it, and adopt and use new features to grow the platform and their business." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=1be285e8361', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=b6cc4b51d874f', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#web-developer-satisfaction" class="w-toc__header--link">
+        Web Developer Satisfaction
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#ongoing-research-to-understand-developer-needs">Ongoing research to understand developer needs</a></li><li><a href="#2021-focus-on-compatibility">2021 focus on compatibility</a><ol><li><a href="#the-five-top-compat-focus-areas-in-2021">The five top compat focus areas in 2021</a></li><li><a href="#contributing-and-following-along">Contributing and following along</a></li></ol></li><li><a href="#testing-on-the-web">Testing on the web</a></li><li><a href="#follow-this-space!">Follow this space!</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors=""
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Share</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="web-developer-satisfaction" class="w-article-header__headline">Web Developer Satisfaction</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Mar 22, 2021</time>
+           <span class="w-author__separator">•</span> Updated <time>Mar 23, 2021</time> 
+        </div>
+      
+
+      
+      
+
+      
+
+      
+    </header>
+
+    
+
+    <p>Web Developer Satisfaction, shortened DevSAT, is a Google project to gather
+information about the needs of web developers. Our goal is to make sure
+developers are being heard, know what's happening with their feedback, and see
+issues being addressed. DevSAT is how we ensure we are focusing on the right
+areas with our Engineering and Developer Relations work. The goal is a more
+reliable, predictable, and interoperable web platform, enabling developers to
+invest in and trust it, and to adopt and use new features to grow the platform and
+their business.</p>
+<h2 id="ongoing-research-to-understand-developer-needs">Ongoing research to understand developer needs <a class="w-headline-link" href="#ongoing-research-to-understand-developer-needs">#</a></h2>
+<ul>
+<li><a href="https://insights.developer.mozilla.org/" rel="noopener">MDN DNA (Developer Needs Assessment) surveys</a></li>
+<li><a href="https://insights.developer.mozilla.org/reports/mdn-browser-compatibility-report-2020.html" rel="noopener">MDN Browser Compatibility Report 2020</a></li>
+<li>MDN Web Testing Research is in progress, results will be announced soon</li>
+</ul>
+<h2 id="2021-focus-on-compatibility">2021 focus on compatibility <a class="w-headline-link" href="#2021-focus-on-compatibility">#</a></h2>
+<p>Compatibility on the web has always been a big challenge for developers. The
+goal in 2021 is to eliminate browser compatibility problems in five key focus areas
+so developers can confidently rely on these areas not having bugs. This effort
+is called <a href="https://twitter.com/search?q=%23compat2021&amp;src=typed_query&amp;f=live" rel="noopener">#Compat2021</a>.</p>
+<p>You can follow along with the process in the Compat 2021 dashboard to see how
+each major browser engine is doing in the five areas:</p>
+<iframe src="https://wpt.fyi/compat2021?embedded"
+frameborder="0" style="height: 1000px; width: 100%;"></iframe>
+<p>The dashboard and all related bugs are listed at
+<a href="https://wpt.fyi/compat2021" rel="noopener">wpt.fyi/compat2021</a>.</p>
+<h3 id="the-five-top-compat-focus-areas-in-2021">The five top compat focus areas in 2021 <a class="w-headline-link" href="#the-five-top-compat-focus-areas-in-2021">#</a></h3>
+<p>Here are the areas which are committed to being fixed in 2021, and they are
+outlined in more detail in <a href="/compat2021">Compat2021: Eliminating five top
+compatibility pain points on the web</a>.</p>
+<ul>
+<li>CSS Flexbox</li>
+<li>CSS Grid</li>
+<li>CSS <code>position: sticky</code></li>
+<li>CSS <code>aspect-ratio</code> property</li>
+<li>CSS transforms</li>
+</ul>
+<h3 id="contributing-and-following-along">Contributing and following along <a class="w-headline-link" href="#contributing-and-following-along">#</a></h3>
+<p>Follow any updates on <a href="https://twitter.com/ChromiumDev" rel="noopener">@ChromiumDev</a> or through
+the <a href="https://groups.google.com/g/compat2021" rel="noopener">Compat 2021 public mailing list</a>.
+Make sure bugs exist, or <a href="/how-to-file-a-good-bug/">file them</a>
+for issues you have been experiencing, and if there's anything missing, reach
+out through the above channels.</p>
+<h2 id="testing-on-the-web">Testing on the web <a class="w-headline-link" href="#testing-on-the-web">#</a></h2>
+<p>In both
+<a href="https://insights.developer.mozilla.org/reports/mdn-web-developer-needs-assessment-2019.html" rel="noopener">MDN DNA 2019</a>
+and
+<a href="https://insights.developer.mozilla.org/reports/mdn-web-developer-needs-assessment-2020.html" rel="noopener">2020</a>,
+testing across browsers stood out among the top pain points. To understand this
+area better, we're collaborating with MDN on further research. The results of
+this will be published on
+<a href="https://insights.developer.mozilla.org/" rel="noopener">https://insights.developer.mozilla.org/</a>
+at the end of March 2021.</p>
+<p>We're already working together with all browser vendors on <a href="https://w3c.github.io/webdriver-bidi/" rel="noopener">WebDriver
+BiDi</a>, a new protocol for browser
+automation, and on using WebDriver BiDi in
+<a href="https://github.com/puppeteer/puppeteer" rel="noopener">Puppeteer</a>. This will allow Puppeteer
+to support more browsers on more platforms, and will enable other popular test
+and automation tools to do the same. We believe this is a crucial first step to
+making it easier to test all browsers you need to support. To follow and
+contribute to this work, consider joining the <a href="https://www.w3.org/testing/browser/" rel="noopener">Browser Testing and Tools Working
+Group</a>.</p>
+<h2 id="follow-this-space!">Follow this space! <a class="w-headline-link" href="#follow-this-space!">#</a></h2>
+<p>We will continually update this page to share more efforts and work as they are
+underway!</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Mar 23, 2021</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/developer-satisfaction/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

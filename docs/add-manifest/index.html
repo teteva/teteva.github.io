@@ -1,0 +1,909 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=a0bd92ce9431">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Add a web app manifest</title>
+<meta name="description" content="The web app manifest is a simple JSON file that tells the browser about your web application and how it should behave when installed on the user's mobile device or desktop. " />
+
+<link rel="canonical" href="https://web.dev/add-manifest/" />
+
+<meta itemprop="name" content="Add a web app manifest" />
+<meta itemprop="description" content="The web app manifest is a simple JSON file that tells the browser about your web application and how it should behave when installed on the user's mobile device or desktop. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/add-manifest/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Add a web app manifest" />
+<meta property="og:description" content="The web app manifest is a simple JSON file that tells the browser about your web application and how it should behave when installed on the user's mobile device or desktop. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="progressive-web-apps" />
+<meta property="tag" content="web-app-manifest" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Add a web app manifest" />
+<meta name="twitter:description" content="The web app manifest is a simple JSON file that tells the browser about your web application and how it should behave when installed on the user's mobile device or desktop. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=68a952d01674a', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=555caf3a90166', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#add-a-web-app-manifest" class="w-toc__header--link">
+        Add a web app manifest
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#create">Create the manifest file</a><ol><li><a href="#manifest-properties">Key manifest properties</a></li></ol></li><li><a href="#link-manifest">Add the web app manifest to your pages</a></li><li><a href="#test-manifest">Test your manifest</a></li><li><a href="#splash-screen">Splash screens on mobile</a></li><li><a href="#further-reading">Further reading</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@petele | François Beaufort | @tomayac"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Share</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="add-a-web-app-manifest" class="w-article-header__headline">Add a web app manifest</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Nov 5, 2018</time>
+           <span class="w-author__separator">•</span> Updated <time>Oct 21, 2021</time> 
+        </div>
+      
+
+      
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/progressive-web-apps"
+          >Progressive Web Apps</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/petelepage/"><img     alt="Pete LePage"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/petelepage/">Pete LePage</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/petele"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/petele">GitHub</a>
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://glitch.com/@petele"
+          >Glitch</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://petelepage.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+            <div class="w-author">
+  <a href="/authors/beaufortfrancois/"><img     alt="François Beaufort"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/mXjY3z3JmrispGtu9yn6.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/mXjY3z3JmrispGtu9yn6.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/mXjY3z3JmrispGtu9yn6.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/mXjY3z3JmrispGtu9yn6.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/mXjY3z3JmrispGtu9yn6.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/mXjY3z3JmrispGtu9yn6.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/beaufortfrancois/">François Beaufort</a>
+    </cite>
+    <ul class="w-author__link-list">
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/beaufortfrancois">GitHub</a>
+      </li>
+      
+      
+    </ul>
+  </div>
+</div>
+          
+            <div class="w-author">
+  <a href="/authors/thomassteiner/"><img     alt="Thomas Steiner"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/thomassteiner/">Thomas Steiner</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/tomayac"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/tomayac">GitHub</a>
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://glitch.com/@tomayac"
+          >Glitch</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://blog.tomayac.com/">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <p>The web app manifest is a JSON file that tells the browser about your
+Progressive Web App and how it should behave when installed on the user's
+desktop or mobile device. A typical manifest file includes the app name, the
+icons the app should use, and the URL that should be opened when the
+app is launched.</p>
+<p>Manifest files are <a href="https://developer.mozilla.org/docs/Web/Manifest#Browser_compatibility" rel="noopener">supported</a> in Chrome, Edge, Firefox, UC Browser, Opera,
+and the Samsung browser. Safari has partial support.</p>
+<h2 id="create">Create the manifest file <a class="w-headline-link" href="#create">#</a></h2>
+<p>The manifest file can have any name, but is commonly named <code>manifest.json</code> and
+served from the root (your website's top-level directory). The specification
+suggests the extension should be <code>.webmanifest</code>, but browsers also support
+<code>.json</code> extensions, which is may be easier for developers to understand.</p>
+<web-copy-code><pre class="language-json"><code class="language-json"><span class="token punctuation">{</span><br>  <span class="token property">"short_name"</span><span class="token operator">:</span> <span class="token string">"Weather"</span><span class="token punctuation">,</span><br>  <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Weather: Do I need an umbrella?"</span><span class="token punctuation">,</span><br>  <span class="token property">"icons"</span><span class="token operator">:</span> <span class="token punctuation">[</span><br>    <span class="token punctuation">{</span><br>      <span class="token property">"src"</span><span class="token operator">:</span> <span class="token string">"/images/icons-vector.svg"</span><span class="token punctuation">,</span><br>      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"image/svg+xml"</span><span class="token punctuation">,</span><br>      <span class="token property">"sizes"</span><span class="token operator">:</span> <span class="token string">"512x512"</span><br>    <span class="token punctuation">}</span><span class="token punctuation">,</span><br>    <span class="token punctuation">{</span><br>      <span class="token property">"src"</span><span class="token operator">:</span> <span class="token string">"/images/icons-192.png"</span><span class="token punctuation">,</span><br>      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"image/png"</span><span class="token punctuation">,</span><br>      <span class="token property">"sizes"</span><span class="token operator">:</span> <span class="token string">"192x192"</span><br>    <span class="token punctuation">}</span><span class="token punctuation">,</span><br>    <span class="token punctuation">{</span><br>      <span class="token property">"src"</span><span class="token operator">:</span> <span class="token string">"/images/icons-512.png"</span><span class="token punctuation">,</span><br>      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"image/png"</span><span class="token punctuation">,</span><br>      <span class="token property">"sizes"</span><span class="token operator">:</span> <span class="token string">"512x512"</span><br>    <span class="token punctuation">}</span><br>  <span class="token punctuation">]</span><span class="token punctuation">,</span><br>  <span class="token property">"start_url"</span><span class="token operator">:</span> <span class="token string">"/?source=pwa"</span><span class="token punctuation">,</span><br>  <span class="token property">"background_color"</span><span class="token operator">:</span> <span class="token string">"#3367D6"</span><span class="token punctuation">,</span><br>  <span class="token property">"display"</span><span class="token operator">:</span> <span class="token string">"standalone"</span><span class="token punctuation">,</span><br>  <span class="token property">"scope"</span><span class="token operator">:</span> <span class="token string">"/"</span><span class="token punctuation">,</span><br>  <span class="token property">"theme_color"</span><span class="token operator">:</span> <span class="token string">"#3367D6"</span><span class="token punctuation">,</span><br>  <span class="token property">"shortcuts"</span><span class="token operator">:</span> <span class="token punctuation">[</span><br>    <span class="token punctuation">{</span><br>      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"How's weather today?"</span><span class="token punctuation">,</span><br>      <span class="token property">"short_name"</span><span class="token operator">:</span> <span class="token string">"Today"</span><span class="token punctuation">,</span><br>      <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"View weather information for today"</span><span class="token punctuation">,</span><br>      <span class="token property">"url"</span><span class="token operator">:</span> <span class="token string">"/today?source=pwa"</span><span class="token punctuation">,</span><br>      <span class="token property">"icons"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span> <span class="token property">"src"</span><span class="token operator">:</span> <span class="token string">"/images/today.png"</span><span class="token punctuation">,</span> <span class="token property">"sizes"</span><span class="token operator">:</span> <span class="token string">"192x192"</span> <span class="token punctuation">}</span><span class="token punctuation">]</span><br>    <span class="token punctuation">}</span><span class="token punctuation">,</span><br>    <span class="token punctuation">{</span><br>      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"How's weather tomorrow?"</span><span class="token punctuation">,</span><br>      <span class="token property">"short_name"</span><span class="token operator">:</span> <span class="token string">"Tomorrow"</span><span class="token punctuation">,</span><br>      <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"View weather information for tomorrow"</span><span class="token punctuation">,</span><br>      <span class="token property">"url"</span><span class="token operator">:</span> <span class="token string">"/tomorrow?source=pwa"</span><span class="token punctuation">,</span><br>      <span class="token property">"icons"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span> <span class="token property">"src"</span><span class="token operator">:</span> <span class="token string">"/images/tomorrow.png"</span><span class="token punctuation">,</span> <span class="token property">"sizes"</span><span class="token operator">:</span> <span class="token string">"192x192"</span> <span class="token punctuation">}</span><span class="token punctuation">]</span><br>    <span class="token punctuation">}</span><br>  <span class="token punctuation">]</span><span class="token punctuation">,</span><br>  <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"Weather forecast information"</span><span class="token punctuation">,</span><br>  <span class="token property">"screenshots"</span><span class="token operator">:</span> <span class="token punctuation">[</span><br>    <span class="token punctuation">{</span><br>      <span class="token property">"src"</span><span class="token operator">:</span> <span class="token string">"/images/screenshot1.png"</span><span class="token punctuation">,</span><br>      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"image/png"</span><span class="token punctuation">,</span><br>      <span class="token property">"sizes"</span><span class="token operator">:</span> <span class="token string">"540x720"</span><br>    <span class="token punctuation">}</span><span class="token punctuation">,</span><br>    <span class="token punctuation">{</span><br>      <span class="token property">"src"</span><span class="token operator">:</span> <span class="token string">"/images/screenshot2.jpg"</span><span class="token punctuation">,</span><br>      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"image/jpg"</span><span class="token punctuation">,</span><br>      <span class="token property">"sizes"</span><span class="token operator">:</span> <span class="token string">"540x720"</span><br>    <span class="token punctuation">}</span><br>  <span class="token punctuation">]</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><h3 id="manifest-properties">Key manifest properties <a class="w-headline-link" href="#manifest-properties">#</a></h3>
+<h4 id="name"><code>short_name</code> and/or <code>name</code> <a class="w-headline-link" href="#name">#</a></h4>
+<p>You must provide at least the <code>short_name</code> or <code>name</code> property. If both are
+provided, <code>short_name</code> is used on the user's home screen, launcher, or other
+places where space may be limited. <code>name</code> is used when the app is installed.</p>
+<div class="w-aside w-aside--note">
+<p>Operating systems usually expect to have a title for each app window. This
+title is displayed in various window-switching surfaces such as
+<kbd>alt</kbd>+<kbd>tab</kbd>, overview mode, and the shelf window list.</p>
+<p>For PWAs running in standalone mode, Chromium will prepend the <code>short_name</code>
+(or, if <code>short_name</code> is not set, alternatively the <code>name</code>) to what is
+specified in the <code>&lt;title&gt;</code> of the HTML document to prevent disguies attacks
+where standalone apps might try to be mistaken, for example, for operating
+system dialogs.</p>
+<p>In consequence, developers should <em>not</em> repeat the
+application name in the <code>&lt;title&gt;</code> when the app is running in standalone mode.</p>
+</div>
+<h4 id="icons"><code>icons</code> <a class="w-headline-link" href="#icons">#</a></h4>
+<p>When a user installs your PWA, you can define a set of icons for the browser
+to use on the home screen, app launcher, task switcher, splash screen, and so on.</p>
+<p>The <code>icons</code> property is an array of image objects. Each object must
+include the <code>src</code>, a <code>sizes</code> property, and the <code>type</code> of image. To use
+<a href="/maskable-icon/">maskable icons</a>, sometimes referred to as adaptive
+icons on Android, you'll also need to add <code>&quot;purpose&quot;: &quot;any maskable&quot;</code> to the
+<code>icon</code> property.</p>
+<p>For Chromium, you must provide at least a 192x192 pixel icon, and a 512x512
+pixel icon. If only those two icon sizes are provided, Chrome will
+automatically scale the icons to fit the device. If you'd prefer to scale your
+own icons, and adjust them for pixel-perfection, provide icons in increments
+of 48dp.</p>
+<div class="w-aside w-aside--note">
+<p>Chromium-based browsers also support SVG icons that can be scaled arbitrarily
+without looking pixelated and that support advanced features like
+<a href="https://blog.tomayac.com/2021/07/21/dark-mode-web-app-manifest-app-icons/" rel="noopener">being responsive to <code>prefers-color-scheme</code></a>,
+with the important caveat that the icons do not update live, but remain in the
+state they were in at install time.</p>
+<p>To be on the safe side, you should always specify a rasterized icon as a
+fallback for browsers that do not support SVG icons.</p>
+</div>
+<h4 id="start-url"><code>start_url</code> <a class="w-headline-link" href="#start-url">#</a></h4>
+<p>The <code>start_url</code> is required and tells the browser where your application
+should start when it is launched, and prevents the app from starting on
+whatever page the user was on when they added your app to their home screen.</p>
+<p>Your <code>start_url</code> should direct the user straight into your app, rather than
+a product landing page. Think about what the user will want to do once
+they open your app, and place them there.</p>
+<h4 id="background-color"><code>background_color</code> <a class="w-headline-link" href="#background-color">#</a></h4>
+<p>The <code>background_color</code> property is used on the splash screen when the
+application is first launched on mobile.</p>
+<h4 id="display"><code>display</code> <a class="w-headline-link" href="#display">#</a></h4>
+<p>You can customize what browser UI is shown when your app is launched. For
+example, you can hide the address bar and browser chrome. Games can even
+be made to launch full screen.</p>
+<div class="w-table-wrapper">
+  <table id="display-params">
+    <thead>
+      <tr>
+        <th><strong>Property</strong></th>
+        <th><strong>Use</strong></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>fullscreen</code></td>
+        <td>
+          Opens the web application without any browser UI and takes
+          up the entirety of the available display area.
+        </td>
+      </tr>
+      <tr>
+        <td><code>standalone</code></td>
+        <td>
+          Opens the web app to look and feel like a standalone
+          app. The app runs in its own window, separate from the browser, and
+          hides standard browser UI elements like the URL bar.
+          <figure class="w-figure">
+            <img     alt="An example of a PWA window with standalone display."     class="w-screenshot"     decoding="async"     height="196"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/XdBsDeRZozIyXyiXA59n.png?auto=format&w=1600 1600w"          width="800"   />
+          </figure>
+        </td>
+      </tr>
+      <tr>
+        <td><code>minimal-ui</code></td>
+        <td>
+          This mode is similar to <code>standalone</code>, but provides the
+          user a minimal set of UI elements for controlling navigation (such
+          as back and reload).
+          <figure class="w-figure">
+            <img     alt="An example of a PWA window with minimal-ui display."     class="w-screenshot"     decoding="async"     height="196"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/trPwjcMio7tBKGBNoT9u.png?auto=format&w=1600 1600w"          width="800"   />
+          </figure>
+        </td>
+      </tr>
+      <tr>
+        <td><code>browser</code></td>
+        <td>A standard browser experience.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<h4 id="display-override"><code>display_override</code> <a class="w-headline-link" href="#display-override">#</a></h4>
+<p>Web apps can choose how they are displayed by setting a <code>display</code> mode in their manifest as
+<a href="#display">explained above</a>. Browsers are <em>not</em> required to support all display modes, but they
+<em>are</em> required to support the
+<a href="https://w3c.github.io/manifest/#dfn-fallback-display-mode" rel="noopener">spec-defined fallback chain</a>
+(<code>&quot;fullscreen&quot;</code> → <code>&quot;standalone&quot;</code> → <code>&quot;minimal-ui&quot;</code> → <code>&quot;browser&quot;</code>). If they don't support a given
+mode, they fall back to the next display mode in the chain. This inflexible behavior can be
+problematic in rare cases, for example, a developer cannot request <code>&quot;minimal-ui&quot;</code> without being
+forced back into the <code>&quot;browser&quot;</code> display mode when <code>&quot;minimal-ui&quot;</code> is not supported.
+Another problem is that the current behavior makes it impossible to introduce new display
+modes in a backward compatible way, since explorations like tabbed application mode don't have a
+natural place in the fallback chain.</p>
+<p>These problems are solved by the <code>display_override</code> property, which the browser considers <em>before</em>
+the <code>display</code> property. Its value is a sequence of strings that are considered in the listed order, and the
+first supported display mode is applied. If none are supported, the browser falls back to evaluating
+the <code>display</code> field.</p>
+<p>In the example below, the display mode fallback chain would be as follows.
+(The details of <code>&quot;window-control-overlay&quot;</code> are out-of-scope for this article.)</p>
+<ol>
+<li><code>&quot;window-control-overlay&quot;</code> (First, look at <code>display_override</code>.)</li>
+<li><code>&quot;minimal-ui&quot;</code></li>
+<li><code>&quot;standalone&quot;</code> (When <code>display_override</code> is exhausted, evaluate <code>display</code>.)</li>
+<li><code>&quot;minimal-ui&quot;</code> (Finally, use the <code>display</code> fallback chain.)</li>
+<li><code>&quot;browser&quot;</code></li>
+</ol>
+<web-copy-code><pre class="language-json"><code class="language-json"><span class="token punctuation">{</span><br>  <span class="token property">"display_override"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"window-control-overlay"</span><span class="token punctuation">,</span> <span class="token string">"minimal-ui"</span><span class="token punctuation">]</span><span class="token punctuation">,</span><br>  <span class="token property">"display"</span><span class="token operator">:</span> <span class="token string">"standalone"</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><div class="w-aside w-aside--note">
+<p>The browser will not consider <code>display_override</code> unless <code>display</code> is also present.</p>
+</div>
+<h4 id="scope"><code>scope</code> <a class="w-headline-link" href="#scope">#</a></h4>
+<p>The <code>scope</code> defines the set of URLs that the browser considers to be within your
+app, and is used to decide when the user has left the app. The <code>scope</code>
+controls the URL structure that encompasses all the entry and exit points in
+your web app. Your <code>start_url</code> must reside within the <code>scope</code>.</p>
+<div class="w-aside w-aside--caution">
+<p><strong>Caution</strong>:
+If the user clicks a link in your app that navigates outside of the
+<code>scope</code>, the link will open and render within the existing PWA window. If
+you want the link to open in a browser tab, you must add <code>target=&quot;_blank&quot;</code>
+to the <code>&lt;a&gt;</code> tag. On Android, links with <code>target=&quot;_blank&quot;</code> will open in a
+<a href="https://developer.chrome.com/multidevice/android/customtabs" rel="noopener">Chrome Custom Tab</a>.</p>
+</div>
+<p>A few other notes on <code>scope</code>:</p>
+<ul>
+<li>If you don't include a <code>scope</code> in your manifest, then the default implied
+<code>scope</code> is the directory that your web app manifest is served from.</li>
+<li>The <code>scope</code> attribute can be a relative path (<code>../</code>), or any higher level
+path (<code>/</code>) which would allow for an increase in coverage of navigations
+in your web app.</li>
+<li>The <code>start_url</code> must be in the scope.</li>
+<li>The <code>start_url</code> is relative to the path defined in the <code>scope</code> attribute.</li>
+<li>A <code>start_url</code> starting with <code>/</code> will always be the root of the origin.</li>
+</ul>
+<h4 id="theme-color"><code>theme_color</code> <a class="w-headline-link" href="#theme-color">#</a></h4>
+<p>The <code>theme_color</code> sets the color of the tool bar, and may be reflected in
+the app's preview in task switchers. The <code>theme_color</code> should match the
+<code>meta</code> theme color specified in your document head.</p>
+<figure class="w-figure">
+  <img     alt="An example of a PWA window with custom theme_color."     class="w-screenshot"     decoding="async"     height="196"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/8mkBdT3O0FZLo0PUppvv.png?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>As of Chromium 93 and Safari 15, you can adjust this color based on a
+media query with the <code>media</code> attribute of the <code>meta</code> theme color element. The
+first one that matches will be picked. For example, you could have one color for
+light mode and another one for dark mode. At the time of writing, you can't
+define those in your manifest. See <a href="https://github.com/w3c/manifest/issues/975" rel="noopener">w3c/manifest#975 GitHub
+issue</a>.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>theme-color<span class="token punctuation">"</span></span> <span class="token attr-name">media</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>(prefers-color-scheme: light)<span class="token punctuation">"</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>white<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>theme-color<span class="token punctuation">"</span></span> <span class="token attr-name">media</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>(prefers-color-scheme: dark)<span class="token punctuation">"</span></span>  <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>black<span class="token punctuation">"</span></span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><h4 id="shortcuts"><code>shortcuts</code> <a class="w-headline-link" href="#shortcuts">#</a></h4>
+<p>The <code>shortcuts</code> property is an array of <a href="/app-shortcuts">app shortcut</a> objects
+whose goal is to provide quick access to key tasks within your app. Each member
+is a dictionary that contains at least a <code>name</code> and a <code>url</code>.</p>
+<h4 id="description"><code>description</code> <a class="w-headline-link" href="#description">#</a></h4>
+<p>The <code>description</code> property describes the purpose of your app.</p>
+<h4 id="screenshots"><code>screenshots</code> <a class="w-headline-link" href="#screenshots">#</a></h4>
+<p>The <code>screenshots</code> property is an array of image objects, representing your app
+in common usage scenarios. Each object must include the <code>src</code>, a <code>sizes</code>
+property, and the <code>type</code> of image.</p>
+<p>In Chrome, the image must respond to certain criteria:</p>
+<ul>
+<li>Width and height must be at least 320px and at most 3840px.</li>
+<li>The maximum dimension can't be more than 2.3 times as long as the minimum
+dimension.</li>
+<li>Screenshots must have the same aspect ratio.</li>
+<li>Only JPEG and PNG image formats are supported.</li>
+</ul>
+<div class="w-aside w-aside--gotchas"><strong>Gotchas!</strong>
+<p>The <code>description</code> and <code>screenshots</code> properties are currently used only in Chrome
+for Android when a user wants to install your app.</p>
+</div>
+<h2 id="link-manifest">Add the web app manifest to your pages <a class="w-headline-link" href="#link-manifest">#</a></h2>
+<p>After creating the manifest, add a <code>&lt;link&gt;</code> tag to all the pages of your
+Progressive Web App. For example:</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>manifest<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/manifest.json<span class="token punctuation">"</span></span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><div class="w-aside w-aside--gotchas"><strong>Gotchas!</strong>
+<p>The request for the manifest is made <strong>without</strong> credentials (even if it's
+on the same domain), thus if the manifest requires credentials, you must
+include <code>crossorigin=&quot;use-credentials&quot;</code> in the manifest tag.</p>
+</div>
+<h2 id="test-manifest">Test your manifest <a class="w-headline-link" href="#test-manifest">#</a></h2>
+<p>To verify your manifest is setup correctly, use the <strong>Manifest</strong> pane in the
+<strong>Application</strong> panel of Chrome DevTools.</p>
+<figure class="w-figure">
+  <img     alt="The application panel in Chrome Devtools with the manifest tab selected."     class="w-screenshot w-screenshot--filled"     decoding="async"     height="601"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/FpIOY0Ak6FAA5xMuB9IT.png?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>This pane provides a human-readable version of many of your manifest's
+properties, and makes it easy to verify that all of the images are loading
+properly.</p>
+<h2 id="splash-screen">Splash screens on mobile <a class="w-headline-link" href="#splash-screen">#</a></h2>
+<p>When your app first launches on mobile, it can take a moment for the browser
+to spin up, and the initial content to begin rendering. Instead of showing a
+white screen that may look to the user like the app is stalled, the browser
+will show a splash screen until the first paint.</p>
+<p>Chrome automatically creates the splash screen from the manifest
+properties, specifically:</p>
+<ul>
+<li><code>name</code></li>
+<li><code>background_color</code></li>
+<li><code>icons</code></li>
+</ul>
+<p>The <code>background_color</code> should be the same color as the load page, to provide
+a smooth transition from the splash screen to your app.</p>
+<p>Chrome will choose the icon that closely matches the device resolution for the
+device. Providing 192px and 512px icons is sufficient for most cases, but
+you can provide additional icons for pixel perfection.</p>
+<div class="w-clearfix">&nbsp;</div>
+<h2 id="further-reading">Further reading <a class="w-headline-link" href="#further-reading">#</a></h2>
+<p>There are several additional properties that can be added to the web app
+manifest. Refer to the <a href="https://developer.mozilla.org/docs/Web/Manifest" rel="noopener">MDN Web App Manifest documentation</a>
+for more information.
+You can learn more about <code>display_override</code> in the
+<a href="https://github.com/WICG/display-override/blob/master/explainer.md" rel="noopener">explainer</a>.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/progressive-web-apps/">Progressive Web Apps</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/web-app-manifest/">Web App Manifest</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Oct 21, 2021</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/progressive-web-apps/add-manifest/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/progressive-web-apps"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

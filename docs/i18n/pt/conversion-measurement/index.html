@@ -1,0 +1,1006 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=1c862d22b39b8">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=ed56c109ed25e">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Uma forma de medir as conversões de anúncios com mais privacidade, a Event Conversion Measurement API</title>
+<meta name="description" content="" />
+
+<link rel="canonical" href="https://web.dev/i18n/pt/conversion-measurement/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/conversion-measurement/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/conversion-measurement/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/conversion-measurement/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/conversion-measurement/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/conversion-measurement/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/conversion-measurement/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/conversion-measurement/" />
+<meta itemprop="name" content="Uma forma de medir as conversões de anúncios com mais privacidade, a Event Conversion Measurement API" />
+<meta itemprop="description" content="" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="pt_BR" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/pt/conversion-measurement/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Uma forma de medir as conversões de anúncios com mais privacidade, a Event Conversion Measurement API" />
+<meta property="og:description" content="" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="privacy" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Uma forma de medir as conversões de anúncios com mais privacidade, a Event Conversion Measurement API" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=0e842dfea972', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=fed3b43a02524', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Aprender
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Medir
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        Sobre
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Fechar</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt=""     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/wRrDtHNikUNqgdDewvYG.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="Nesta página">
+    <div class="course-toc__heading font-google-sans weight-medium">Nesta página</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#glossario">Glossário</a></li><li class="toc__listitem"><a class="toc__anchor" href="#quem-precisa-saber-sobre-esta-api:-plataformas-adtech-anunciantes-e-editores">Quem precisa saber sobre esta API: plataformas adtech, anunciantes e editores</a></li><li class="toc__listitem"><a class="toc__anchor" href="#visao-geral-da-api">Visão geral da API</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#por-que-ela-e-necessaria">Por que ela é necessária?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#uma-primeira-iteracao">Uma primeira iteração</a></li><li class="toc__listitem"><a class="toc__anchor" href="#apenas-cliques">Apenas cliques</a></li><li class="toc__listitem"><a class="toc__anchor" href="#como-funciona">Como funciona</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#suporte-dos-navegadores-e-apis-semelhantes">Suporte dos navegadores e APIs semelhantes</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#suporte-dos-navegadores">Suporte dos navegadores</a></li><li class="toc__listitem"><a class="toc__anchor" href="#padronizacao">Padronização</a></li><li class="toc__listitem"><a class="toc__anchor" href="#apis-semelhantes">APIs semelhantes</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#como-esta-api-preserva-a-privacidade-do-usuario">Como esta API preserva a privacidade do usuário</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#limites-de-dados">Limites de dados</a></li><li class="toc__listitem"><a class="toc__anchor" href="#introducao-de-ruido-em-dados-de-conversao">Introdução de ruído em dados de conversão</a></li><li class="toc__listitem"><a class="toc__anchor" href="#programacao-de-relatorios">Programação de relatórios</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#exemplo">Exemplo</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#clique-no-anuncio-(etapas-1-a-5)">Clique no anúncio (etapas 1 a 5)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#conversao-e-programacao-de-relatorios-(etapas-6-a-9)">Conversão e programação de relatórios (etapas 6 a 9)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#enviando-o-relatorio-(etapas-10-e-11)">Enviando o relatório (etapas 10 e 11)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#conversoes-subsequentes-e-expiracao">Conversões subsequentes e expiração</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#casos-de-uso">Casos de uso</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#o-que-e-atualmente-suportado">O que é atualmente suportado</a></li><li class="toc__listitem"><a class="toc__anchor" href="#o-que-nao-e-suportado-nesta-iteracao">O que não é suportado nesta iteração</a></li><li class="toc__listitem"><a class="toc__anchor" href="#o-que-mais-pode-mudar-em-iteracoes-futuras">O que mais pode mudar em iterações futuras</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#experimente">Experimente</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#demo">Demo</a></li><li class="toc__listitem"><a class="toc__anchor" href="#experimente-a-api">Experimente a API</a></li><li class="toc__listitem"><a class="toc__anchor" href="#compartilhe-seu-feedback">Compartilhe seu feedback</a></li><li class="toc__listitem"><a class="toc__anchor" href="#fique-de-olho">Fique de olho</a></li></ul></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="uma-forma-de-medir-as-conversoes-de-anuncios-com-mais-privacidade-a-event-conversion-measurement-api">Uma forma de medir as conversões de anúncios com mais privacidade, a Event Conversion Measurement API</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            Uma nova API web disponível como teste de origem mede quando o clique num anúncio leva a uma conversão, sem usar identificadores entre sites (cross-site).
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Oct 6, 2020</time>
+             — Atualizado <time>May 4, 2020</time> 
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/conversion-measurement/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/conversion-measurement/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/conversion-measurement/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/conversion-measurement/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/conversion-measurement/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/conversion-measurement/">
+      English</a></span>
+        </div>
+        
+
+        
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/maudn/"> <img     alt="Maud Nalpas"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/O2RNUyVSLubjvENAT3e7JSdqSOx1/9ORwve80jFiyYnPvNcWF.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/maudn/">Maud Nalpas</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/maudnals">Twitter</a>
+               <a href="https://github.com/maudnals">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/samdutton/"> <img     alt="Sam Dutton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/wPss4TJX9IJ1CJza7iFY.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/wPss4TJX9IJ1CJza7iFY.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/wPss4TJX9IJ1CJza7iFY.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/wPss4TJX9IJ1CJza7iFY.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/wPss4TJX9IJ1CJza7iFY.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/wPss4TJX9IJ1CJza7iFY.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/samdutton/">Sam Dutton</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/sw12">Twitter</a>
+               <a href="https://github.com/samdutton">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="Nesta página">
+      <summary>
+        Nesta página
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#glossario">Glossário</a></li><li class="toc__listitem"><a class="toc__anchor" href="#quem-precisa-saber-sobre-esta-api:-plataformas-adtech-anunciantes-e-editores">Quem precisa saber sobre esta API: plataformas adtech, anunciantes e editores</a></li><li class="toc__listitem"><a class="toc__anchor" href="#visao-geral-da-api">Visão geral da API</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#por-que-ela-e-necessaria">Por que ela é necessária?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#uma-primeira-iteracao">Uma primeira iteração</a></li><li class="toc__listitem"><a class="toc__anchor" href="#apenas-cliques">Apenas cliques</a></li><li class="toc__listitem"><a class="toc__anchor" href="#como-funciona">Como funciona</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#suporte-dos-navegadores-e-apis-semelhantes">Suporte dos navegadores e APIs semelhantes</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#suporte-dos-navegadores">Suporte dos navegadores</a></li><li class="toc__listitem"><a class="toc__anchor" href="#padronizacao">Padronização</a></li><li class="toc__listitem"><a class="toc__anchor" href="#apis-semelhantes">APIs semelhantes</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#como-esta-api-preserva-a-privacidade-do-usuario">Como esta API preserva a privacidade do usuário</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#limites-de-dados">Limites de dados</a></li><li class="toc__listitem"><a class="toc__anchor" href="#introducao-de-ruido-em-dados-de-conversao">Introdução de ruído em dados de conversão</a></li><li class="toc__listitem"><a class="toc__anchor" href="#programacao-de-relatorios">Programação de relatórios</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#exemplo">Exemplo</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#clique-no-anuncio-(etapas-1-a-5)">Clique no anúncio (etapas 1 a 5)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#conversao-e-programacao-de-relatorios-(etapas-6-a-9)">Conversão e programação de relatórios (etapas 6 a 9)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#enviando-o-relatorio-(etapas-10-e-11)">Enviando o relatório (etapas 10 e 11)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#conversoes-subsequentes-e-expiracao">Conversões subsequentes e expiração</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#casos-de-uso">Casos de uso</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#o-que-e-atualmente-suportado">O que é atualmente suportado</a></li><li class="toc__listitem"><a class="toc__anchor" href="#o-que-nao-e-suportado-nesta-iteracao">O que não é suportado nesta iteração</a></li><li class="toc__listitem"><a class="toc__anchor" href="#o-que-mais-pode-mudar-em-iteracoes-futuras">O que mais pode mudar em iterações futuras</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#experimente">Experimente</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#demo">Demo</a></li><li class="toc__listitem"><a class="toc__anchor" href="#experimente-a-api">Experimente a API</a></li><li class="toc__listitem"><a class="toc__anchor" href="#compartilhe-seu-feedback">Compartilhe seu feedback</a></li><li class="toc__listitem"><a class="toc__anchor" href="#fique-de-olho">Fique de olho</a></li></ul></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <div role="banner" class="banner bg-state-bad-bg color-core-text">
+    <div class="banner__content flow">
+       A Conversion Measurement API será renomeada para <em>Attribution Reporting API</em> e oferecerá mais recursos.
+<ul>
+<li>
+<p>Se você estiver experimentando a <a href="https://github.com/WICG/conversion-measurement-api/blob/3e0ef7d3cee8d7dc5a4b953e70cb027b0e13943b/README.md">Conversion Measurement API</a> no <a href="https://chromestatus.com/features/schedule">Chrome 91</a> ou menos, leia este artigo para encontrar mais detalhes, casos de uso e instruções sobre como usar a API.</p>
+</li>
+<li>
+<p>Se você estiver interessado na próxima iteração desta API (Attribution Reporting), que estará disponível para experimentação no Chrome (ensaio de origem), <a href="https://groups.google.com/u/1/a/chromium.org/g/attribution-reporting-api-dev">participe da lista de e-mail</a> para ser informado de novidades sobre os experimentos disponíveis.</p>
+  </div>
+  </div>
+</li>
+</ul>
+<p>Para medir a eficácia das campanhas publicitárias, os anunciantes e editores precisam saber quando um clique ou visualização no anúncio leva a uma <a href="/digging-into-the-privacy-sandbox/#conversion">conversão</a>, como uma compra ou inscrição. Historicamente, isto é feito com <strong>cookies de terceiros</strong>. Agora, a Event Conversion Measurement API permite a correlação de um evento no site de um editor com uma conversão subsequente no site de um anunciante, sem envolver mecanismos que poderiam ser usados para reconhecer um usuário entre sites.</p>
+<div role="banner" class="banner bg-state-info-bg color-core-text">
+    <div class="banner__content flow">
+       <strong>Esta proposta precisa de seu feedback!</strong> Se você quiser enviar comentários, <a href="https://github.com/WICG/conversion-measurement-api/issues/">crie um issue</a> no repositório da proposta de API. 
+    </div>
+    </div>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Esta API é parte do Privacy Sandbox, uma série de propostas para satisfazer os casos de uso de terceiros sem cookies de terceiros ou outros mecanismos de rastreamento cross-site. Veja <a href="/digging-into-the-privacy-sandbox">Explorando a Privacy Sandbox</a> para uma visão geral de todas as propostas.</p>
+</div></aside>
+<h2 id="glossario">Glossário <a class="w-headline-link" href="#glossario">#</a></h2>
+<ul>
+<li><strong>Plataformas Adtech</strong>: empresas que fornecem software e ferramentas para permitir que marcas ou agências direcionem, entreguem e analisem sua publicidade digital.</li>
+<li><strong>Anunciantes</strong>: empresas que pagam por publicidade.</li>
+<li><strong>Editores</strong>: empresas que exibem anúncios em seus sites.</li>
+<li><strong>Conversão click-through</strong>: conversão que é atribuída a um clique num anúncio.</li>
+<li><strong>Conversão view-through</strong>: conversão que é atribuída a uma impressão de anúncio (quando o usuário não interage com o anúncio, mas posteriormente converte).</li>
+</ul>
+<h2 id="quem-precisa-saber-sobre-esta-api:-plataformas-adtech-anunciantes-e-editores">Quem precisa saber sobre esta API: plataformas adtech, anunciantes e editores <a class="w-headline-link" href="#quem-precisa-saber-sobre-esta-api:-plataformas-adtech-anunciantes-e-editores">#</a></h2>
+<ul>
+<li><strong>Plataformas Adtech</strong>, tais como as <strong><a href="https://en.wikipedia.org/wiki/Demand-side_platform" rel="noopener">plataformas de demanda,</a></strong> provavelmente terão interesse em usar essa API para oferecer suporte à funcionalidade que atualmente depende de cookies de terceiros. Se você estiver trabalhando em sistemas de medição de conversão: <a href="#demo">experimente rodar a demonstração</a>, <a href="#experiment-with-the-api">experimente com a API</a> e <a href="#share-your-feedback">compartilhe sua experiência</a>.</li>
+<li><strong>Anunciantes e editores que dependem de código personalizado para publicidade ou medição de conversão</strong> podem, da mesma forma, estar interessados em usar essa API para substituir as técnicas existentes.</li>
+<li><strong>Anunciantes e editores que contam com plataformas adtech para publicidade ou medição de conversão</strong> não precisam usar a API diretamente, mas a <a href="#why-is-this-needed">justificativa para esta API</a> pode ser de interesse, especialmente se você estiver trabalhando com plataformas adtech que poderão integrar a API.</li>
+</ul>
+<h2 id="visao-geral-da-api">Visão geral da API <a class="w-headline-link" href="#visao-geral-da-api">#</a></h2>
+<h3 id="por-que-ela-e-necessaria">Por que ela é necessária? <a class="w-headline-link" href="#por-que-ela-e-necessaria">#</a></h3>
+<p>Hoje, a medição de conversão de anúncios geralmente depende <a href="https://developer.mozilla.org/docs/Web/HTTP/Cookies#Third-party_cookies" rel="noopener">de cookies de terceiros</a>. <strong>Mas os navegadores estão restringindo o acesso a eles.</strong></p>
+<p>O Chrome planeja <a href="https://blog.chromium.org/2020/01/building-more-private-web-path-towards.html" rel="noopener">descontinuar o suporte para cookies de terceiros</a> e <a href="https://support.google.com/chrome/answer/95647?co=GENIE.Platform%3DDesktop&amp;hl=en" rel="noopener">oferece maneiras para que os usuários os bloqueiem, se desejarem</a>. O Safari <a href="https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/" rel="noopener">bloqueia cookies de terceiros</a>, o Firefox <a href="https://blog.mozilla.org/blog/2019/09/03/todays-firefox-blocks-third-party-tracking-cookies-and-cryptomining-by-default" rel="noopener">bloqueia cookies de rastreamento de terceiros conhecidos</a> e o Edge <a href="https://support.microsoft.com/en-us/help/4533959/microsoft-edge-learn-about-tracking-prevention?ocid=EdgePrivacySettings-TrackingPrevention" rel="noopener">oferece prevenção de rastreamento</a>.</p>
+<p>Os cookies de terceiros estão se tornando uma solução legada. <strong>Novas APIs criadas para fins específicos</strong>, como esta, estão surgindo para lidar com os casos de uso resolvidos por cookies de terceiros de uma forma que preserve a privacidade dos usuários.</p>
+<p><strong>Como a Event Conversion Measurement API se compara aos cookies de terceiros?</strong></p>
+<ul>
+<li>Ela foi <strong>construída com um propósito</strong> que é medir as conversões, ao contrário dos cookies. Isto, por sua vez, pode permitir que os navegadores apliquem melhores proteções de privacidade.</li>
+<li>Tem <strong>mais privacidade</strong>: ela dificulta o reconhecimento de um usuário entre dois sites de nível superior diferentes, para por exemplo vincular perfis de usuário do lado do editor e do lado do anunciante. Veja como em <a href="#how-this-api-preserves-user-privacy">Como esta API preserva a privacidade do usuário</a>.</li>
+</ul>
+<h3 id="uma-primeira-iteracao">Uma primeira iteração <a class="w-headline-link" href="#uma-primeira-iteracao">#</a></h3>
+<p>Esta API está num <strong>estágio experimental inicial</strong>. O que está disponível como um ensaio de origem é a <strong>primeira iteração</strong> da API. Ela pode mudar substancialmente em <a href="#use-cases">iterações futuras</a> .</p>
+<h3 id="apenas-cliques">Apenas cliques <a class="w-headline-link" href="#apenas-cliques">#</a></h3>
+<p>Esta iteração da API só oferece suporte <strong>à medição de conversões click-through</strong>, mas a <a href="https://github.com/WICG/conversion-measurement-api/blob/main/event_attribution_reporting.md" rel="noopener">medição de conversões view-through</a> está sob incubação pública.</p>
+<h3 id="como-funciona">Como funciona <a class="w-headline-link" href="#como-funciona">#</a></h3>
+<figure>
+  <img     alt="Diagrama: visão geral das etapas da API de medição de conversão"          decoding="async"     height="496"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/Xn96AVosulGisR6Hoj4J.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>Esta API pode ser usada com dois tipos de links (elementos <code>&lt;a&gt;</code>) usados para publicidade:</p>
+<ul>
+<li>Links em um contexto <strong>primário</strong>, como anúncios em uma rede social ou página de resultados de busca;</li>
+<li>Links em um <strong>iframe de terceiros</strong>, como em um site de editor que usa um provedor adtech de terceiros.</li>
+</ul>
+<p>Com esta API, esses links externos podem ser configurados com atributos que são específicos para conversões de anúncios:</p>
+<ul>
+<li>Dados personalizados para anexar a um clique de anúncio no lado do editor, por exemplo, um ID de clique ou ID de campanha.</li>
+<li>O site para o qual uma conversão é esperada para este anúncio.</li>
+<li>O endpoint de relatório que deve ser notificado sobre conversões bem-sucedidas.</li>
+<li>A data e hora de corte para quando as conversões não puderem mais ser contadas para este anúncio.</li>
+</ul>
+<p>Quando o usuário clica num anúncio, o navegador - no dispositivo local do usuário - registra esse evento, junto com a configuração de conversão e os dados de clique especificados pelos atributos de Mensuração de Conversão no elemento <code>&lt;a&gt;</code></p>
+<p>Posteriormente, o usuário pode visitar o site do anunciante e executar uma ação que o anunciante ou seu provedor de adtech categoriza como uma <strong>conversão</strong>. Se isto acontecer, o clique no anúncio e o evento de conversão serão correspondidos pelo navegador do usuário.</p>
+<p>O navegador finalmente programa um <strong>relatório de conversão</strong> a ser enviado ao endpoint especificado nos atributos do elemento <code>&lt;a&gt;</code>. Este relatório inclui dados sobre o clique no anúncio que levou a essa conversão, bem como dados sobre a conversão.</p>
+<p>Se várias conversões forem registradas para um determinado clique no anúncio, tantos relatórios correspondentes serão programados para serem enviados (até no máximo três por clique no anúncio).</p>
+<p>Os relatórios são enviados após um atraso: dias ou às vezes semanas após a conversão (veja o porquê em <a href="#report-timing">Programação de relatórios</a> ).</p>
+<h2 id="suporte-dos-navegadores-e-apis-semelhantes">Suporte dos navegadores e APIs semelhantes <a class="w-headline-link" href="#suporte-dos-navegadores-e-apis-semelhantes">#</a></h2>
+<h3 id="suporte-dos-navegadores">Suporte dos navegadores <a class="w-headline-link" href="#suporte-dos-navegadores">#</a></h3>
+<p>A API Event Conversion Measurement pode ser suportada:</p>
+<ul>
+<li>Como <a href="/origin-trials/">ensaio de origem</a>. Os ensaios de origem habilitam a API para <strong>todos os visitantes</strong> de uma determinada <a href="/same-site-same-origin/#origin">origem</a>. <strong>Você precisa registrar sua origem para o ensaio de origem para testar a API com os usuários finais</strong>. Veja <a href="/using-conversion-measurement">Usando a API de medição de conversão</a> para detalhes sobre o ensaio de origem.</li>
+<li>Ativando sinalizadores (flags), no Chrome 86 e posterior. Os sinalizadores habilitam a API no navegador de <strong>um único usuário.</strong> <strong>Os sinalizadores são úteis ao desenvolver localmente</strong>.</li>
+</ul>
+<p>Veja os detalhes sobre o status atual na <a href="https://chromestatus.com/features/6412002824028160" rel="noopener">Chrome feature entry</a>.</p>
+<h3 id="padronizacao">Padronização <a class="w-headline-link" href="#padronizacao">#</a></h3>
+<p>Esta API está sendo desenvolvida de forma aberta, no Web Platform Incubator Community Group (<a href="https://www.w3.org/community/wicg/" rel="noopener">WICG</a>). Ela está disponível para experimentação no Chrome.</p>
+<h3 id="apis-semelhantes">APIs semelhantes <a class="w-headline-link" href="#apis-semelhantes">#</a></h3>
+<p>O WebKit, mecanismo de navegador usado pelo Safari, tem uma proposta com objetivos semelhantes, a <a href="https://github.com/privacycg/private-click-measurement" rel="noopener">Private Click Measurement</a>. Ela está sendo desenvolvida no Privacy Community Group (<a href="https://www.w3.org/community/privacycg/" rel="noopener">PrivacyCG</a>).</p>
+<h2 id="como-esta-api-preserva-a-privacidade-do-usuario">Como esta API preserva a privacidade do usuário <a class="w-headline-link" href="#como-esta-api-preserva-a-privacidade-do-usuario">#</a></h2>
+<p>Com esta API, as conversões podem ser medidas ao mesmo tempo em que protege a privacidade dos usuários: os usuários não podem ser reconhecidos nos sites. Isto é possível devido a <strong>limites de dados</strong>, <strong>introdução de ruído em dados de conversão</strong> e mecanismos de <strong>programação de relatórios.</strong></p>
+<p>Vamos dar uma olhada mais de perto em como esses mecanismos funcionam e o que eles significam na prática.</p>
+<h3 id="limites-de-dados">Limites de dados <a class="w-headline-link" href="#limites-de-dados">#</a></h3>
+<p>A seguir, os dados de <strong>tempo de clique (click-time) ou tempo de visualização (view-time)</strong> são dados disponíveis para <code>adtech.example</code> quando o anúncio é servido para o usuário e, em seguida, clicado ou visualizado. Os dados de quando uma conversão aconteceu são <strong>dados do tempo de conversão (conversion-time)</strong>.</p>
+<p>Vejamos um <strong>editor</strong> <code>news.example</code> e um <strong>anunciante</strong> <code>shoes.example</code>. Scripts de terceiros da <strong>plataforma adtech</strong> <code>adtech.example</code> estão presentes no site do editor <code>news.example</code> para incluir anúncios para o anunciante <code>shoes.example</code>. <code>shoes.example</code> inclui <code>adtech.example</code> também, para detectar conversões.</p>
+<p>Quanto <code>adtech.example</code> pode aprender sobre os usuários da web?</p>
+<h4 id="com-cookies-de-terceiros">Com cookies de terceiros <a class="w-headline-link" href="#com-cookies-de-terceiros">#</a></h4>
+<figure>
+  <img     alt="Diagrama: como cookies de terceiros permitem o reconhecimento de usuário entre sites"          decoding="async"     height="860"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/kRpuY2r7ZSPtADz7e1P5.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p><code>adtech.example</code> depende de um <strong>cookie de terceiros usado como identificador único entre sites</strong> para <strong>reconhecer um usuário entre sites</strong>. Além disso, <code>adtech.example</code> pode acessar <strong>ambos</strong> os tipos de dados em detalhes: tempo de clique (click-time) ou de visualização (view-time) e tempo de conversão (conversion-time), e vinculá-los.</p>
+<p>Como resultado, <code>adtech.example</code> pode rastrear o comportamento de um único usuário nos sites, entre uma exibição do anúncio, clique e conversão.</p>
+<p>Como <code>adtech.example</code> está provavelmente presente num grande número de sites de editores e anunciantes, e não apenas em <code>news.example</code> e <code>shoes.example</code>, o comportamento de um  usuário pode ser rastreado por toda a web.</p>
+<h4 id="com-a-api-event-conversion-measurement">Com a API Event Conversion Measurement <a class="w-headline-link" href="#com-a-api-event-conversion-measurement">#</a></h4>
+<figure>
+  <img     alt="Diagrama: como a API permite a medição de conversão sem reconhecimento de usuário entre sites"          decoding="async"     height="643"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/X6sfyeKGncVm0LJSYJva.jpg?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption>"Ad ID" no diagrama de cookies e "Click ID" são ambos identificadores que permitem o mapeamento para dados detalhados. Neste diagrama, é chamado de "Click ID" porque ele suporta apenas a medição de conversão do tipo click-through.</figcaption>
+</figure>
+<p><code>adtech.example</code> não pode usar um identificador cross-site e, portanto, <strong>não é capaz de reconhecer um usuário entre sites</strong>.</p>
+<ul>
+<li>Um identificador de 64 bits pode ser anexado a um clique no anúncio.</li>
+<li>Apenas 3 bits de dados de conversão podem ser anexados ao evento de conversão. 3 bits podem ajustar um valor inteiro de 0 a 7. Isto não é muito, mas é o suficiente para que os anunciantes possam aprender como tomar boas decisões sobre onde gastar seu orçamento de publicidade no futuro (por exemplo, treinando modelos de dados).</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Os dados de clique e de conversão nunca são expostos a um ambiente JavaScript no mesmo contexto.</p>
+</div></aside>
+<h4 id="sem-uma-alternativa-aos-cookies-de-terceiros">Sem uma alternativa aos cookies de terceiros <a class="w-headline-link" href="#sem-uma-alternativa-aos-cookies-de-terceiros">#</a></h4>
+<p>Sem uma alternativa para cookies de terceiros, como a Event Conversion Measurement API, as conversões não podem ser atribuídas: se <code>adtech.example</code> estiver presente no site do editor e do anunciante, ele pode acessar os dados de tempo de clique (click-time) ou de conversão (conversion-time), mas não pode vinculá-los de forma alguma.</p>
+<p>Nesse caso, a privacidade do usuário é preservada, mas os anunciantes não podem otimizar seus gastos com publicidade. É por isso que uma alternativa como a Event Conversion Measurement API é necessária.</p>
+<h3 id="introducao-de-ruido-em-dados-de-conversao">Introdução de ruído em dados de conversão <a class="w-headline-link" href="#introducao-de-ruido-em-dados-de-conversao">#</a></h3>
+<p>Os 3 bits coletados no momento da conversão são <strong>ruídos</strong>.</p>
+<p>Por exemplo, na implementação do Chrome, o ruído de dados funciona da seguinte maneira: 5% do tempo, a API relata um valor aleatório de 3 bits em vez dos dados de conversão reais.</p>
+<p>Isto protege os usuários de ataques de privacidade. Um ator que tenta usar indevidamente os dados de várias conversões para criar um identificador não terá total confiança nos dados que recebe - tornando esses tipos de ataques mais complicados.</p>
+<p>Observe que é possível <a href="/using-conversion-measurement/#(optional)-recover-the-corrected-conversion-count">recuperar a contagem de conversões verdadeira</a>.</p>
+<p>A tabela a seguir resume os dados de clique (click-data) e de conversão (conversion-data):</p>
+<div>
+  <table data-alignment="top">
+    <thead>
+      <tr>
+        <th>Dados</th>
+        <th>Tamanho</th>
+        <th>Exemplo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Dados de clique (atributo <code>impressiondata</code>
+</td>
+        <td>64 bits</td>
+        <td>Um ID de anúncio ou ID de clique</td>
+      </tr>
+      <tr>
+        <td>Dados de conversão</td>
+        <td>3 bits, com ruído</td>
+        <td>Um número inteiro de 0 a 7 que pode ser mapeado para um tipo de conversão: inscrição, checkout completo, etc.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<h3 id="programacao-de-relatorios">Programação de relatórios <a class="w-headline-link" href="#programacao-de-relatorios">#</a></h3>
+<p>Se várias conversões forem registradas para um determinado clique de anúncio, <strong>um relatório correspondente é enviado para cada conversão, até um máximo de três por clique</strong> .</p>
+<p>Para evitar que o tempo de conversão seja usado para obter mais informações do lado da conversão e, portanto, prejudicar a privacidade dos usuários, esta API especifica que os relatórios de conversão não são enviados imediatamente após a ocorrência de uma conversão. Após o clique inicial no anúncio, é iniciada uma programação de <strong>janelas de relatório</strong> associadas a esse clique. Cada janela de relatório tem um prazo, e as conversões registradas antes desse prazo serão enviadas ao final dessa janela.</p>
+<p>Os relatórios podem não ser enviados exatamente nessas datas e horários programados: se o navegador não estiver em execução quando um relatório estiver programado para ser enviado, o relatório será enviado na inicialização do navegador - o que pode ocorrer dias ou semanas após o horário programado.</p>
+<p>Após a expiração (tempo de clique + <code>impressionexpiry</code>), nenhuma conversão é contada<code>impressionexpiry</code> é a data e hora de corte depois da qual as conversões não podem mais ser contadas para este anúncio.</p>
+<p>No Chrome, a programação de relatórios funciona da seguinte maneira:</p>
+<div>
+  <table data-alignment="top">
+    <thead>
+      <tr>
+        <th><code>impressionexpiry</code></th>
+        <th>Dependendo do tempo de conversão, um relatório de conversão é enviado (se o navegador estiver aberto) ...</th>
+        <th>Número de janelas de relatórios</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>30 dias, o valor default e máximo</td>
+        <td>
+          <ul>
+            <li>2 dias depois que o anúncio foi clicado</li>
+            <li>ou 7 dias após o clique no anúncio</li>
+            <li>ou <code>impressionexpiry</code> = 30 dias após o clique no anúncio.</li>
+          </ul>
+        </td>
+        <td>3</td>
+      </tr>
+      <tr>
+        <td>
+<code>impressionexpiry</code> é entre 7 e 30 dias</td>
+        <td>
+          <ul>
+            <li>2 dias após o clique no anúncio</li>
+            <li>ou 7 dias após o clique no anúncio</li>
+            <li>ou <code>impressionexpiry</code> após o clique no anúncio.</li>
+          </ul>
+        </td>
+        <td>3</td>
+      </tr>
+      <tr>
+        <td>
+<code>impressionexpiry</code> é entre 2 e 7 dias</td>
+        <td>
+          <ul>
+            <li>2 dias após o clique no anúncio</li>
+            <li>ou <code>impressionexpiry</code> após o clique no anúncio.</li>
+          </ul>
+        </td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td>
+<code>impressionexpiry</code> é inferior a 2 dias</td>
+        <td>
+          <li>2 dias após o clique no anúncio</li>
+        </td>
+        <td>1</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<figure>
+  <img     alt="Cronologia de quais relatórios são enviados quando"          decoding="async"     height="462"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/bgkpW6Nuqs5q1ddyMG8X.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>Consulte <a href="https://github.com/WICG/conversion-measurement-api#sending-scheduled-reports" rel="noopener">Envio de relatórios programados</a> para obter mais detalhes sobre a programação.</p>
+<h2 id="exemplo">Exemplo <a class="w-headline-link" href="#exemplo">#</a></h2>
+<div role="banner" class="banner bg-state-info-bg color-core-text">
+    <div class="banner__content flow">
+       Para ver este exemplo em ação, experimente a <a href="https://goo.gle/demo-event-level-conversion-measurement-api">demo</a> ⚡️ e veja o <a href="https://github.com/GoogleChromeLabs/trust-safety-demo/tree/main/conversion-measurement">código</a> correspondente. 
+    </div>
+    </div>
+<p>Veja como a API registra e relata uma conversão. Observe que é dessa forma que um fluxo click-to-convert funcionaria com a API atual. As iterações futuras desta API <a href="#use-cases">podem ser diferentes</a> .</p>
+<h3 id="clique-no-anuncio-(etapas-1-a-5)">Clique no anúncio (etapas 1 a 5) <a class="w-headline-link" href="#clique-no-anuncio-(etapas-1-a-5)">#</a></h3>
+<figure><img     alt="Diagrama: clique no anúncio e armazenamento de cliques"          decoding="async"     height="694"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/FvbacJL6u37XHuvQuUuO.jpg?auto=format&w=1600 1600w"          width="800"   /></figure>
+<p>Um elemento <code>&lt;a&gt;</code> de anúncio é carregado no site de um editor por <code>adtech.example</code> dentro de um iframe.</p>
+<p>Os desenvolvedores da plataforma adtech configuraram o elemento <code>&lt;a&gt;</code> com atributos de mensuração de conversão:</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span><br>  <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>ad<span class="token punctuation">"</span></span><br>  <span class="token attr-name">impressiondata</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>200400600<span class="token punctuation">"</span></span><br>  <span class="token attr-name">conversiondestination</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://advertiser.example<span class="token punctuation">"</span></span><br>  <span class="token attr-name">reportingorigin</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://adtech.example<span class="token punctuation">"</span></span><br>  <span class="token attr-name">impressionexpiry</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>864000000<span class="token punctuation">"</span></span><br>  <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://advertiser.example/shoes07<span class="token punctuation">"</span></span><br><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/images/shoe.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>shoe<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>Este código especifica o seguinte:</p>
+<div>
+  <table data-alignment="top">
+    <thead>
+      <tr>
+        <th>Atributo</th>
+        <th>Valor padrão, máximo, mínimo</th>
+        <th>Exemplo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+<code>impressiondata</code> (obrigatório): um <b>identificador de 64 bits</b> para anexar a um clique no anúncio.</td>
+        <td>(nenhum padrão)</td>
+        <td>Um ID de clique gerado dinamicamente, como um número inteiro de 64 bits: <code>200400600</code>
+</td>
+      </tr>
+      <tr>
+        <td>
+<code>conversiondestination</code> (obrigatório): o <b><a href="/same-site-same-origin/#site" noopener="">eTLD + 1</a></b> onde uma conversão é esperada para este anúncio.</td>
+        <td>(nenhum default)</td>
+        <td>
+<code>https://advertiser.example</code>.<br> Se o <code>conversiondestination</code> for <code>https://advertiser.example</code>, as conversões em <code>https://advertiser.example</code> e <code>https://shop.advertiser.example</code> serão atribuídas.<br> O mesmo acontece se o <code>conversiondestination</code> for <code>https://shop.advertiser.example</code>: serão atribuídas conversões em <code>https://advertiser.example</code> e <code>https://shop.advertiser.example</code>
+</td>
+      </tr>
+      <tr>
+        <td>
+<code>impressionexpiry</code> (opcional): em milissegundos, o tempo limite para quando as conversões podem ser atribuídas a este anúncio.</td>
+        <td>
+<code>2592000000</code> = 30 dias (em milissegundos).<br><br> Máximo: 30 dias (em milissegundos).<br><br> Mínimo: 2 dias (em milissegundos).</td>
+        <td>Dez dias após o clique: <code>864000000</code>
+</td>
+      </tr>
+      <tr>
+        <td>
+<code>reportingorigin</code> (opcional): o destino para relatórios de conversões confirmadas.</td>
+        <td>Origem de nível superior da página onde o elemento de link é adicionado.</td>
+        <td><code>https://adtech.example</code></td>
+      </tr>
+      <tr>
+        <td>
+<code>href</code> : o destino pretendido do clique no anúncio.</td>
+        <td><code>/</code></td>
+        <td><code>https://advertiser.example/shoes07</code></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Algumas observações sobre o exemplo:</p>
+<ul>
+<li>Você encontrará o termo &quot;impression&quot; usado nos atributos da API ou na proposta da API, embora apenas cliques sejam suportados por enquanto. Os nomes podem ser atualizados em iterações futuras da API.</li>
+<li>O anúncio não precisa estar num iframe, mas é nisto que este exemplo se baseia.</li>
+</ul>
+</div></aside>
+<aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>Pegadinhas</strong></p>
+<div class=" flow">
+<ul>
+<li>Fluxos baseados na navegação por <code>window.open</code> ou <code>window.location</code> não serão elegíveis para atribuição.</li>
+</ul>
+</div></aside>
+<p>Quando o usuário toca ou clica no anúncio, ele navega até o site do anunciante. Depois que a navegação é confirmada, o navegador armazena um objeto que inclui <code>impressiondata</code>, <code>conversiondestination</code>, <code>reportingorigin</code> e <code>impressionexpiry</code>:</p>
+<web-copy-code><pre class="language-json"><code class="language-json"><span class="token punctuation">{</span><br>  <span class="token property">"impression-data"</span><span class="token operator">:</span> <span class="token string">"200400600"</span><span class="token punctuation">,</span><br>  <span class="token property">"conversion-destination"</span><span class="token operator">:</span> <span class="token string">"https://advertiser.example"</span><span class="token punctuation">,</span><br>  <span class="token property">"reporting-origin"</span><span class="token operator">:</span> <span class="token string">"https://adtech.example"</span><span class="token punctuation">,</span><br>  <span class="token property">"impression-expiry"</span><span class="token operator">:</span> <span class="token number">864000000</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><h3 id="conversao-e-programacao-de-relatorios-(etapas-6-a-9)">Conversão e programação de relatórios (etapas 6 a 9) <a class="w-headline-link" href="#conversao-e-programacao-de-relatorios-(etapas-6-a-9)">#</a></h3>
+<figure>
+  <img     alt="Diagrama: conversão e programação de relatório"          decoding="async"     height="639"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/2fFVvAwyiXSaSDp8XVXo.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>Logo depois de clicar no anúncio ou mais tarde - por exemplo, no dia seguinte - o usuário visita o <code>advertiser.example</code>, procura por calçados esportivos, encontra um par que deseja comprar e prossegue com a finalização da compra. O <code>advertiser.example</code> incluiu um pixel na página de checkout:</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span><br>  <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1<span class="token punctuation">"</span></span><br>  <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1<span class="token punctuation">"</span></span><br>  <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://adtech.example/conversion?model=shoe07&amp;type=checkout&amp;…<span class="token punctuation">"</span></span><br><span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p><code>adtech.example</code> recebe essa solicitação e decide que ela se qualifica como uma conversão. Eles agora precisam solicitar ao navegador para registrar uma conversão. <code>adtech.example</code> compacta todos os dados de conversão em 3 bits - um número inteiro entre 0 e 7. Por exemplo, eles podem mapear uma ação de <strong>Checkout</strong> para um valor de conversão de 2.</p>
+<p><code>adtech.example</code> então envia um redirecionamento de conversão de registro específico para o navegador:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">const</span> conversionValues <span class="token operator">=</span> <span class="token punctuation">{</span><br>  signup<span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span><br>  checkout<span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span><span class="token punctuation">;</span><br><br>app<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'/conversion'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">req<span class="token punctuation">,</span> res</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token keyword">const</span> conversionData <span class="token operator">=</span> conversionValues<span class="token punctuation">[</span>req<span class="token punctuation">.</span>query<span class="token punctuation">.</span>conversiontype<span class="token punctuation">]</span><span class="token punctuation">;</span><br>  res<span class="token punctuation">.</span><span class="token function">redirect</span><span class="token punctuation">(</span><br>    <span class="token number">302</span><span class="token punctuation">,</span><br>    <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">/.well-known/register-conversion?conversion-data=</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>conversionData<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span><br>  <span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>URLs <code>.well-known</code> são URLs especiais. Elas ajudam as ferramentas de software e servidores descobrirem informações ou recursos que são frequentemente necessários para um site, por exemplo, a página na qual um usuário pode <a href="/change-password-url/">alterar sua senha</a>. Aqui, <code>.well-known</code> é usado apenas para que o navegador reconheça isso como uma solicitação de conversão especial. Na verdade, essa solicitação é cancelada internamente pelo navegador.</p>
+</div></aside>
+<p>O navegador recebe esta solicitação. Ao detectar a <code>.well-known/register-conversion</code>, o navegador:</p>
+<ul>
+<li>Pesquisa todos os cliques em anúncios no armazenamento que correspondem a este <code>conversiondestination</code> (porque está recebendo essa conversão em uma URL que foi registrada como uma <code>conversiondestination</code> quando o usuário clicou no anúncio). Ele encontra o clique do anúncio que ocorreu no site do editor um dia antes.</li>
+<li>Registra uma conversão para este clique no anúncio.</li>
+</ul>
+<p>Vários cliques no anúncio podem corresponder a uma conversão: o usuário pode ter clicado num anúncio para <code>shoes.example</code> em ambos <code>news.example</code> e <code>weather.example</code>. Neste caso, várias conversões são registradas.</p>
+<p>Agora, o navegador sabe que precisa informar o servidor adtech sobre essa conversão - mais especificamente, o navegador precisa informar a origem do <code>reportingorigin</code> que é especificada no elemento <code>&lt;a&gt;</code> e na solicitação do pixel (<code>adtech.example</code>).</p>
+<p>Para isto, o navegador programa o envio de um <strong>relatório de conversão</strong>, um blob de dados contendo os dados de clique (do site do editor) e os dados de conversão (do site do anunciante). Para este exemplo, o usuário converteu um clique no dia seguinte. Portanto, o relatório está programado para ser enviado no dia seguinte, na marca de dois dias após o clique, se o navegador estiver em execução.</p>
+<h3 id="enviando-o-relatorio-(etapas-10-e-11)">Enviando o relatório (etapas 10 e 11) <a class="w-headline-link" href="#enviando-o-relatorio-(etapas-10-e-11)">#</a></h3>
+<figure>
+  <img     alt="Diagrama: navegador enviando o relatório"          decoding="async"     height="533"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/Er48gVzK5gHUGdDHWHz1.jpg?auto=format&w=1600 1600w"          width="800"   />
+</figure>
+<p>Uma vez atingido o horário programado para enviar o relatório, o navegador envia o <strong>relatório de conversão</strong>: ele envia um HTTP POST para a origem do relatório que foi especificada no elemento <code>&lt;a&gt;</code> <code>adtech.example</code>). Por exemplo:</p>
+<p><code>https://adtech.example/.well-known/register-conversion?impression-data=200400600&amp;conversion-data=2&amp;credit=100</code></p>
+<p>Incluídos como parâmetros estão:</p>
+<ul>
+<li>Os dados associados ao clique no anúncio original ( <code>impression-data</code> ).</li>
+<li>Os dados associados a uma conversão, <a href="#noising-of-conversion-data">potencialmente com ruído</a> .</li>
+<li>O crédito de conversão atribuído ao clique. Esta API segue um modelo de atribuição de <strong>último clique</strong>: o clique em anúncio correspondente mais recente recebe um crédito de 100; todos os outros cliques em anúncios correspondentes recebem um crédito de 0.</li>
+</ul>
+<p>Conforme o servidor adtech recebe essa solicitação, ele pode extrair os <code>impression-data</code> e <code>conversion-data</code>, ou seja, o relatório de conversão:</p>
+<web-copy-code><pre class="language-json"><code class="language-json"><span class="token punctuation">{</span><span class="token property">"impression-data"</span><span class="token operator">:</span> <span class="token string">"200400600"</span><span class="token punctuation">,</span> <span class="token property">"conversion-data"</span><span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span> <span class="token property">"credit"</span><span class="token operator">:</span> <span class="token number">100</span><span class="token punctuation">}</span></code></pre>
+</web-copy-code><h3 id="conversoes-subsequentes-e-expiracao">Conversões subsequentes e expiração <a class="w-headline-link" href="#conversoes-subsequentes-e-expiracao">#</a></h3>
+<p>Mais tarde, o usuário pode converter novamente - por exemplo, comprando uma raquete de tênis no <code>advertiser.example</code>. Um fluxo semelhante acontece:</p>
+<ul>
+<li>O servidor adtech envia uma solicitação de conversão ao navegador.</li>
+<li>O navegador faz a correspondência dessa conversão com o clique no anúncio, programa um relatório e o envia ao servidor adtech posteriormente.</li>
+</ul>
+<p>Após a <code>impressionexpiry</code>, as conversões para esse clique no anúncio param de ser contadas e o clique no anúncio é excluído do armazenamento do navegador.</p>
+<h2 id="casos-de-uso">Casos de uso <a class="w-headline-link" href="#casos-de-uso">#</a></h2>
+<h3 id="o-que-e-atualmente-suportado">O que é atualmente suportado <a class="w-headline-link" href="#o-que-e-atualmente-suportado">#</a></h3>
+<ul>
+<li>Mensuração das conversões de clique: determine quais cliques em anúncios levam a conversões e acesse informações gerais sobre a conversão.</li>
+<li>Obtenção de dados para otimizar a seleção de anúncios, por exemplo, treinando modelos de aprendizado de máquina.</li>
+</ul>
+<h3 id="o-que-nao-e-suportado-nesta-iteracao">O que não é suportado nesta iteração <a class="w-headline-link" href="#o-que-nao-e-suportado-nesta-iteracao">#</a></h3>
+<p>Os seguintes recursos não são suportados, mas podem estar em iterações futuras desta API ou em relatórios <a href="https://github.com/WICG/conversion-measurement-api/blob/master/AGGREGATE.md" rel="noopener">agregados:</a></p>
+<ul>
+<li>Mensuração de conversão do tipo view-through.</li>
+<li><a href="https://github.com/WICG/conversion-measurement-api/issues/29" rel="noopener">Múltiplos endpoints de relatório</a>.</li>
+<li><a href="https://github.com/WICG/conversion-measurement-api/issues/54" rel="noopener">Conversões web que começam em aplicativo iOS/Android</a> .</li>
+<li>Medição de aumento de conversão / incrementalidade: medição de diferenças causais no comportamento de conversão, medindo a diferença entre um grupo de teste que viu um anúncio e um grupo de controle que não viu.</li>
+<li>Modelos de atribuição que não são de último clique (last-click).</li>
+<li>Casos de uso que requerem grandes quantidades de informações sobre o evento de conversão. Por exemplo, valores de compra granulares ou categorias de produtos.</li>
+</ul>
+<p>Antes que esses recursos e outros possam ser suportados, <strong>mais proteções de privacidade</strong> (ruído, menos bits ou outras limitações) devem ser adicionadas à API.</p>
+<p>A discussão de possíveis recursos adicionais ocorre de forma aberta, no <a href="https://github.com/WICG/conversion-measurement-api/issues" rel="noopener">repositório de propostas de <strong>issues</strong></a> da API.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Seu caso de uso está faltando? Você tem comentários sobre a API? <a href="#share-your-feedback">Compartilhe</a>.</p>
+</div></aside>
+<h3 id="o-que-mais-pode-mudar-em-iteracoes-futuras">O que mais pode mudar em iterações futuras <a class="w-headline-link" href="#o-que-mais-pode-mudar-em-iteracoes-futuras">#</a></h3>
+<ul>
+<li>Esta API está em um estágio experimental inicial. Em iterações futuras, esta API poderá sofrer alterações substanciais, incluindo, mas não se limitando às listadas abaixo. Seu objetivo é medir as conversões e, ao mesmo tempo, preservar a privacidade do usuário, e qualquer mudança que ajude a lidar melhor com esse caso de uso será feita.</li>
+<li>API e nomenclatura de atributos podem evoluir.</li>
+<li>Os dados de clique e os dados de conversão podem não exigir codificação.</li>
+<li>O limite de 3 bits para dados de conversão pode ser aumentado ou diminuído.</li>
+<li><a href="#what-is-not-supported-in-this-iteration">Mais recursos podem ser adicionados</a> e <strong>mais proteções de privacidade</strong> (ruído / menos bits / outras limitações) se forem necessários para oferecer suporte a esses novos recursos.</li>
+</ul>
+<p>Para acompanhar e participar de discussões sobre novos recursos, acompanhe o <a href="https://github.com/WICG/conversion-measurement-api/issues" rel="noopener">repositório GitHub</a> da proposta e envie ideias.</p>
+<h2 id="experimente">Experimente <a class="w-headline-link" href="#experimente">#</a></h2>
+<h3 id="demo">Demo <a class="w-headline-link" href="#demo">#</a></h3>
+<p>Experimente a <a href="https://goo.gle/demo-event-level-conversion-measurement-api" rel="noopener">demo</a>. Certifique-se de seguir as instruções &quot;Antes de começar&quot;.</p>
+<p>Envie tweets para <a href="https://twitter.com/maudnals?lang=en" rel="noopener">@maudnals</a> ou <a href="https://twitter.com/ChromiumDev" rel="noopener">@ChromiumDev</a> com qualquer pergunta sobre a demo!</p>
+<h3 id="experimente-a-api">Experimente a API <a class="w-headline-link" href="#experimente-a-api">#</a></h3>
+<p>Se você planeja experimentar a API (localmente ou com usuários finais), consulte <a href="/using-conversion-measurement">Usando a API de mensuração de conversão</a>.</p>
+<h3 id="compartilhe-seu-feedback">Compartilhe seu feedback <a class="w-headline-link" href="#compartilhe-seu-feedback">#</a></h3>
+<p><strong>Seu feedback é crucial</strong> para que novas APIs de medição de conversão possam oferecer suporte a seus casos de uso e fornecer uma boa experiência de desenvolvedor.</p>
+<ul>
+<li>Para relatar um bug na implementação do Chrome, <a href="https://bugs.chromium.org/p/chromium/issues/entry?status=Unconfirmed&amp;components=Internals%3EConversionMeasurement&amp;description=Chrome%20Version%3A%20%28copy%20from%20chrome%3A%2F%2Fversion%29%0AOS%3A%20%28e.g.%20Win10%2C%20MacOS%2010.12%2C%20etc...%29%0AURLs%20%28if%20applicable%29%20%3A%0A%0AWhat%20steps%20will%20reproduce%20the%20problem%3F%0A%281%29%0A%282%29%0A%283%29%0A%0AWhat%20is%20the%20expected%20result%3F%0A%0A%0AWhat%20happens%20instead%3F%0A%0AIf%20applicable%2C%20include%20screenshots%2Finfo%20from%20chrome%3A%2F%2Fconversion-internals%20or%20relevant%20devtools%20errors.%0A" rel="noopener">registre um bug</a> .</li>
+<li>Para compartilhar feedback e discutir casos de uso na API do Chrome, crie um novo issue ou envolva-se com os issues existentes no <a href="https://github.com/WICG/conversion-measurement-api/issues" rel="noopener">repositório de propostas de API</a>. Da mesma forma, você pode discutir a API WebKit/Safari e seus casos de uso no <a href="https://github.com/privacycg/private-click-measurement/issues" rel="noopener">repositório de propostas de API</a> .</li>
+<li>Para discutir casos de uso de publicidade e discutir visões com especialistas do setor: participe do <a href="https://www.w3.org/community/web-adv/" rel="noopener">Improving Web Advertising Business Group</a>. Participe do <a href="https://www.w3.org/community/privacycg/" rel="noopener">Privacy Community Group</a> para discussões sobre a API WebKit/Safari.</li>
+</ul>
+<h3 id="fique-de-olho">Fique de olho <a class="w-headline-link" href="#fique-de-olho">#</a></h3>
+<ul>
+<li>À medida em que recebemos feedback dos desenvolvedores e os casos de uso, a API Event Conversion Measurement irá evoluir com o tempo. Acompanhe o <a href="https://github.com/WICG/conversion-measurement-api/" rel="noopener">repositório GitHub</a> da proposta.</li>
+<li>Acompanhe a evolução da <a href="https://github.com/WICG/conversion-measurement-api/blob/master/AGGREGATE.md" rel="noopener">API Aggregate Conversion Measurement</a> que complementará esta API.</li>
+</ul>
+<p><em>Com muitos agradecimentos por contribuições e feedback a todos os revisores - especialmente Charlie Harrison, John Delaney, Michael Kleber e Kayce Basques.</em></p>
+<p><em>Imagem hero por William Warby / @wawarby em <a href="https://unsplash.com/photos/WahfNoqbYnM" rel="noopener">Unsplash</a>, editada.</em></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/privacy/">Privacidade</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>May 4, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/pt/blog/conversion-measurement/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@maudnals | @sw12"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Compartilhar</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Registrar um bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Visualizar código-fonte
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Conteúdo relacionado</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Atualizações do Chrome
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Estudos de caso
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Conectar</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          Todos os produtos
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="pt"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Termos e privacidade
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Diretrizes da comunidade
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

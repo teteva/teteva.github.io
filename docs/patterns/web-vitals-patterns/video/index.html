@@ -1,0 +1,825 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=78421ccee4fe1">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Video</title>
+<meta name="description" content="Performant Video" />
+
+<link rel="canonical" href="https://web.dev/patterns/web-vitals-patterns/video/" />
+
+<meta itemprop="name" content="Video" />
+<meta itemprop="description" content="Performant Video" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/patterns/web-vitals-patterns/video/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Video" />
+<meta property="og:description" content="Performant Video" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Video" />
+<meta name="twitter:description" content="Performant Video" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=b989388f4f678', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=25204dc9d6128', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+  
+  
+
+
+<section class="w-layout-container--wide">
+  
+  
+  
+  
+
+<ul class="w-breadcrumbs">
+  <li class="w-breadcrumbs__crumb">
+    <a
+      class="w-breadcrumbs__link w-breadcrumbs__link--left-justify gc-analytics-event"
+      data-category="web.dev"
+      data-label="post, home breadcrumb"
+      data-action="click"
+      href="/"
+    >
+      Home
+    </a>
+  </li>
+
+  
+    <svg
+      class="w-breadcrumbs__icon"
+      xmlns="http://www.w3.org/2000/svg"
+      height="24"
+      viewBox="0 0 24 24"
+      width="24"
+      aria-hidden="true"
+    >
+      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+    </svg>
+    <li class="w-breadcrumbs__crumb">
+      <a
+        class="w-breadcrumbs__link gc-analytics-event"
+        data-category="web.dev"
+        data-label="post, path breadcrumb"
+        data-action="click"
+        href="/patterns/"
+      >
+        All patterns
+      </a>
+    </li>
+  
+    <svg
+      class="w-breadcrumbs__icon"
+      xmlns="http://www.w3.org/2000/svg"
+      height="24"
+      viewBox="0 0 24 24"
+      width="24"
+      aria-hidden="true"
+    >
+      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+    </svg>
+    <li class="w-breadcrumbs__crumb">
+      <a
+        class="w-breadcrumbs__link gc-analytics-event"
+        data-category="web.dev"
+        data-label="post, path breadcrumb"
+        data-action="click"
+        href="/patterns/web-vitals-patterns"
+      >
+        Web Vitals patterns
+      </a>
+    </li>
+  
+</ul>
+
+</section>
+
+<header class="w-masthead-patterns">
+  <div class="w-masthead-patterns__container w-layout-container--wide">
+    <div class="w-masthead-patterns__left">
+      <h1 class="w-headline--two">
+        Web Vitals patterns
+      </h1>
+      <p>
+        A collection of common UX patterns optimized for Core Web Vitals. This collection includes patterns that are often tricky to implement without hurting your Core Web Vitals scores. You can use the code in these examples to help ensure your projects stay on the right track.
+      </p>
+    </div>
+    <div class="w-masthead-patterns__right">
+      <img     alt="Collection cover image"     class="w-masthead-path__image"     decoding="async"     height="220"          loading="lazy"          src="https://web-dev.imgix.net/image/j2RDdG43oidUy6AL6LovThjeX9c2/NcqmhRbQCFP5twoNcOHg.svg"               width="330"   />
+    </div>
+  </div>
+</header>
+
+<hr>
+
+<section class="w-layout-container--wide code-patterns-nav--top">
+  <nav class="code-patterns-nav__sets">
+    
+      
+    
+      
+    
+      
+    
+      
+        
+          <a href="/patterns/web-vitals-patterns/carousels">Carousels</a>
+        
+      
+    
+      
+        
+          <a href="/patterns/web-vitals-patterns/fonts">Fonts</a>
+        
+      
+    
+      
+        
+          <a href="/patterns/web-vitals-patterns/images">Images</a>
+        
+      
+    
+      
+        
+          <a href="/patterns/web-vitals-patterns/infinite-scroll">Infinite scroll</a>
+        
+      
+    
+      
+        
+          <a href="/patterns/web-vitals-patterns/notices-pattern-set">Banners and notices</a>
+        
+      
+    
+      
+        
+          <a href="/patterns/web-vitals-patterns/placeholders">Placeholders</a>
+        
+      
+    
+      
+        
+          <a class="selected" href="/patterns/web-vitals-patterns/video">Video</a>
+        
+      
+    
+  </nav>
+  <div class="code-patterns-nav__filter">
+    
+  </div>
+</section>
+
+<section class="w-layout-container--wide code-patterns-main">
+  <div>
+    
+    
+      <h2 class="w-headline--two">Video</h2>
+      <p>Video can impact Web Vitals by being a source of <a href="/debug-layout-shifts/">layout
+shifts</a>. In addition, in some scenarios
+large video files can delay LCP by monopolizing network resources and delaying
+the loading of other page resources.</p>
+
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+          
+  <details class="w-details" >
+
+
+    <summary class="w-details__summary">
+  <h3 class="w-details__header">
+    Video
+  </h3>
+  
+</summary>
+    <div class="code-pattern">
+    <div class="code-pattern__content">
+      <div class="code-pattern__demo" style="min-height: 500px">
+        <iframe src="/patterns/web-vitals-patterns/video/video/demo.html" title="Demo" height="500"></iframe>
+      </div>
+      <div class="code-pattern__assets" style="height: 500px">
+        <web-tabs><web-tab title="html" data-label="html">
+          <pre><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>video</span> <span class="token attr-name">controls</span> <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>960<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>540<span class="token punctuation">"</span></span> <span class="token attr-name">poster</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>flower-960-poster.png<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>flower-960.mp4<span class="token punctuation">"</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>video/mp4<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>video</span><span class="token punctuation">></span></span></code></pre>
+        </web-tab>
+<web-tab title="css" data-label="css">
+          <pre><code class="language-css"><span class="token selector">video</span> <span class="token punctuation">{</span>
+    <span class="token property">max-width</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+    <span class="token property">height</span><span class="token punctuation">:</span> auto<span class="token punctuation">;</span>
+<span class="token punctuation">}</span></code></pre>
+        </web-tab></web-tabs>
+      </div>
+    </div>
+    <div class="code-pattern__meta">
+      <a
+        href="/patterns/web-vitals-patterns/video/video/demo.html"
+        target="_blank"
+        class="code-pattern__icon"
+        data-icon="open_in_new"
+      >Open demo</a>
+    </div>
+  </div>
+    
+      <p class="code-patterns__description">This video loads without causing layout shifts and displays a poster image.</p>
+    
+    <p class="code-patterns__more"><a href="/patterns/web-vitals-patterns/video/video">Learn more</a></p>
+  </details>
+
+        
+      
+        
+          
+  <details class="w-details" >
+
+
+    <summary class="w-details__summary">
+  <h3 class="w-details__header">
+    GIF-style video
+  </h3>
+  
+</summary>
+    <div class="code-pattern">
+    <div class="code-pattern__content">
+      <div class="code-pattern__demo" style="min-height: 500px">
+        <iframe src="/patterns/web-vitals-patterns/video/video-gif/demo.html" title="Demo" height="500"></iframe>
+      </div>
+      <div class="code-pattern__assets" style="height: 500px">
+        <web-tabs><web-tab title="html" data-label="html">
+          <pre><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>video</span> <span class="token attr-name">autoplay</span> <span class="token attr-name">loop</span> <span class="token attr-name">muted</span> <span class="token attr-name">playsinline</span> <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>320<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>240<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dog.mp4<span class="token punctuation">"</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>video/mp4<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>video</span><span class="token punctuation">></span></span></code></pre>
+        </web-tab></web-tabs>
+      </div>
+    </div>
+    <div class="code-pattern__meta">
+      <a
+        href="/patterns/web-vitals-patterns/video/video-gif/demo.html"
+        target="_blank"
+        class="code-pattern__icon"
+        data-icon="open_in_new"
+      >Open demo</a>
+    </div>
+  </div>
+    
+      <p class="code-patterns__description">This &ltvideo&gt; tag looks and feels like a GIF but is far more performant.</p>
+    
+    <p class="code-patterns__more"><a href="/patterns/web-vitals-patterns/video/video-gif">Learn more</a></p>
+  </details>
+
+        
+      
+
+    
+  </div>
+
+  <div class="code-patterns-nav--side">
+    <div class="code-patterns-nav__filter">
+      
+    </div>
+    <nav class="code-patterns-nav__sets">
+      
+        <a href="/patterns/web-vitals-patterns">All</a>
+      
+      
+        
+      
+        
+      
+        
+      
+        
+          
+            <a href="/patterns/web-vitals-patterns/carousels">Carousels</a>
+          
+        
+      
+        
+          
+            <a href="/patterns/web-vitals-patterns/fonts">Fonts</a>
+          
+        
+      
+        
+          
+            <a href="/patterns/web-vitals-patterns/images">Images</a>
+          
+        
+      
+        
+          
+            <a href="/patterns/web-vitals-patterns/infinite-scroll">Infinite scroll</a>
+          
+        
+      
+        
+          
+            <a href="/patterns/web-vitals-patterns/notices-pattern-set">Banners and notices</a>
+          
+        
+      
+        
+          
+            <a href="/patterns/web-vitals-patterns/placeholders">Placeholders</a>
+          
+        
+      
+        
+          
+            <a class="selected" href="/patterns/web-vitals-patterns/video">Video</a>
+          
+        
+      
+    </nav>
+
+  </div>
+</section>
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

@@ -1,0 +1,769 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=8d764160dbb04">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Assessing loading performance in the field with Navigation Timing and Resource Timing</title>
+<meta name="description" content="Learn the basics of using the Navigation and Resource Timing APIs to assess loading performance in the field." />
+
+<link rel="canonical" href="https://web.dev/navigation-and-resource-timing/" />
+
+<meta itemprop="name" content="Assessing loading performance in the field with Navigation Timing and Resource Timing" />
+<meta itemprop="description" content="Learn the basics of using the Navigation and Resource Timing APIs to assess loading performance in the field." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/navigation-and-resource-timing/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Assessing loading performance in the field with Navigation Timing and Resource Timing" />
+<meta property="og:description" content="Learn the basics of using the Navigation and Resource Timing APIs to assess loading performance in the field." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="A photo of a fallow field in late fall, with many hay bales strewn about." />
+<meta property="tag" content="performance" />
+<meta property="tag" content="javascript" />
+<meta property="tag" content="metrics" />
+<meta property="tag" content="network" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Assessing loading performance in the field with Navigation Timing and Resource Timing" />
+<meta name="twitter:description" content="Learn the basics of using the Navigation and Resource Timing APIs to assess loading performance in the field." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=7d42a7e2ae61e', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=4a14c37440bbe', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+    <img     alt="A photo of a fallow field in late fall, with many hay bales strewn about."     class="w-hero w-hero--cover"     decoding="auto"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/MUBswEscMLnKkCODccWz.jpg?auto=format&w=1600 1600w"          width="1600"   />
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#assessing-loading-performance-in-the-field-with-navigation-timing-and-resource-timing" class="w-toc__header--link">
+        Assessing loading performance in the field with Navigation Timing and Resource Timing
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#apis-to-help-you-assess-loading-performance-in-the-field">APIs to help you assess loading performance in the field</a></li><li><a href="#the-life-and-timings-of-a-network-request">The life and timings of a network request</a><ol><li><a href="#dns-lookup">DNS lookup</a></li><li><a href="#connection-negotiation">Connection negotiation</a></li><li><a href="#requests-and-responses">Requests and responses</a></li><li><a href="#other-measurements-you-can-make">Other measurements you can make</a></li></ol></li><li><a href="#acquiring-timings-in-application-code">Acquiring timings in application code</a></li><li><a href="#phoning-home">Phoning home</a></li><li><a href="#wrapping-up">Wrapping up</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@malchata"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Share</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+        
+        <div class="w-post-breadcrumbs">
+          <ul class="w-breadcrumbs">
+  <li class="w-breadcrumbs__crumb">
+    <a
+      class="w-breadcrumbs__link w-breadcrumbs__link--left-justify gc-analytics-event"
+      data-category="web.dev"
+      data-label="post, home breadcrumb"
+      data-action="click"
+      href="/"
+    >
+      Home
+    </a>
+  </li>
+
+  <svg
+    class="w-breadcrumbs__icon"
+    xmlns="http://www.w3.org/2000/svg"
+    height="24"
+    viewBox="0 0 24 24"
+    width="24"
+    aria-hidden="true"
+  >
+    <path d="M0 0h24v24H0V0z" fill="none" />
+    <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+  </svg>
+
+  <li class="w-breadcrumbs__crumb">
+    <a
+      class="w-breadcrumbs__link gc-analytics-event"
+      data-category="web.dev"
+      data-label="post, path breadcrumb"
+      data-action="click"
+      href=/blog
+    >
+      All articles
+    </a>
+  </li>
+</ul>
+        </div>
+      
+
+      <h1 id="assessing-loading-performance-in-the-field-with-navigation-timing-and-resource-timing" class="w-article-header__headline">Assessing loading performance in the field with Navigation Timing and Resource Timing</h1>
+      
+        <p class="w-article-header__subhead w-mb--non">
+          Learn the basics of using the Navigation and Resource Timing APIs to assess loading performance in the field.
+        </p>
+      
+
+      
+        <div class="w-author__published">
+          <time>Oct 8, 2021</time>
+          
+        </div>
+      
+
+      
+      
+
+      
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/jlwagner/"><img     alt="Jeremy Wagner"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/2qO19NkWfYnvHe2zLkhG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/2qO19NkWfYnvHe2zLkhG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/2qO19NkWfYnvHe2zLkhG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/2qO19NkWfYnvHe2zLkhG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/2qO19NkWfYnvHe2zLkhG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/2qO19NkWfYnvHe2zLkhG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/jlwagner/">Jeremy Wagner</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/malchata"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/malchata">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://jeremy.codes/">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <p>If you've used connection throttling in the network panel in a browser's developer tools (or <a href="https://developers.google.com/web/tools/lighthouse" rel="noopener">Lighthouse</a> in Chrome) to assess loading performance, you know how convenient those tools are for performance tuning. You can quickly measure the impact of performance optimizations with a consistent and stable baseline connection speed. The only problem is that this is synthetic testing, which yields <a href="/lab-and-field-data-differences/#lab-data">lab data</a>, not <a href="/lab-and-field-data-differences/#field-data">field data</a>.</p>
+<p>Synthetic testing isn't inherently <em>bad</em>, but it's not representative of how fast your website is loading for real users. That requires field data, which you can collect from the Navigation Timing and Resource Timing APIs.</p>
+<h2 id="apis-to-help-you-assess-loading-performance-in-the-field">APIs to help you assess loading performance in the field <a class="w-headline-link" href="#apis-to-help-you-assess-loading-performance-in-the-field">#</a></h2>
+<p>Navigation Timing and Resource Timing are two similar APIs with significant overlap that measure two distinct things:</p>
+<ul>
+<li><a href="https://w3c.github.io/navigation-timing/" rel="noopener">Navigation Timing</a> measures the speed of requests for HTML documents (that is, navigation requests).</li>
+<li><a href="https://w3c.github.io/resource-timing/" rel="noopener">Resource Timing</a> measures the speed of requests for document-dependent resources such as CSS, JavaScript, images, and so on.</li>
+</ul>
+<p>These APIs expose their data in a <em>performance entry buffer</em>, which can be accessed in the browser with JavaScript. There are multiple ways to query a performance buffer, but a common way is by using <a href="https://developer.mozilla.org/docs/Web/API/Performance/getEntriesByType" rel="noopener"><code>performance.getEntriesByType</code></a>:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Get Navigation Timing entries:</span><br>performance<span class="token punctuation">.</span><span class="token function">getEntriesByType</span><span class="token punctuation">(</span><span class="token string">'navigation'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// Get Resource Timing entries:</span><br>performance<span class="token punctuation">.</span><span class="token function">getEntriesByType</span><span class="token punctuation">(</span><span class="token string">'resource'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p><code>performance.getEntriesByType</code> accepts a string describing the type of entries you want to retrieve from the performance entry buffer. <code>'navigation'</code> and <code>'resource'</code> retrieve timings for the Navigation Timing and Resource Timing APIs, respectively.</p>
+<div class="w-aside w-aside--note">
+<p>Try loading a website and then enter either of the commands in the above code snippet in your browser's console to see actual timings captured by your browser.</p>
+</div>
+<p>The amount of information these APIs provide can be overwhelming, but they're your key to measuring loading performance in the field, as you can gather these timings from users as they visit your website.</p>
+<h2 id="the-life-and-timings-of-a-network-request">The life and timings of a network request <a class="w-headline-link" href="#the-life-and-timings-of-a-network-request">#</a></h2>
+<p>Gathering and analyzing navigation and resource timings is sort of like archeology in that you're reconstructing the fleeting life of a network request after the fact. Sometimes it helps to visualize concepts, and where network requests are concerned, your browser's developer tools can help.</p>
+<figure class="w-figure">
+<img     alt="A diagram of network timings as shown in Chrome&#x27;s DevTools. The timings depicted are for request queueing, connection negotiation, the request itself, and the response in color-coded bars."          decoding="async"     height="583"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format"     srcset="https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/jL3OLOhcWUQDnR4XjewLBx4e3PC3/BxgZyzAEyFnk846wvzNa.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption>A visualization of a network request in the <a href="https://developer.chrome.com/docs/devtools/network/" rel="noopener">network panel of Chrome's DevTools</a></figcaption>
+</figure>
+<p>The life of a network request has distinct phases, such as DNS lookup, connection establishment, TLS negotiation, and so on. These timings are represented as a <a href="https://developer.mozilla.org/docs/Web/API/DOMHighResTimeStamp" rel="noopener"><code>DOMHighResTimestamp</code></a>. Depending on your browser, the granularity of timings may be down to the microsecond, or be rounded up to milliseconds. Let's examine these phases in detail, and how they relate to Navigation Timing and Resource Timing.</p>
+<div class="w-aside w-aside--note">
+<p>As you read this guide, <a href="https://www.w3.org/TR/navigation-timing-2/#processing-model" rel="noopener">this diagram</a> for both Navigation Timing and Resource Timing may help you to visualize the order of the timings they provide.</p>
+</div>
+<h3 id="dns-lookup">DNS lookup <a class="w-headline-link" href="#dns-lookup">#</a></h3>
+<p>When a user goes to a URL, the Domain Name System (DNS) is queried to translate a domain to an IP address. This process may take significant time—time you'll want to measure in the field, even. Navigation Timing and Resource Timing expose two DNS-related timings:</p>
+<ul>
+<li><code>domainLookupStart</code> is when DNS lookup begins.</li>
+<li><code>domainLookupEnd</code> is when DNS lookup ends.</li>
+</ul>
+<p>Calculating total DNS lookup time can be done by subtracting the start metric from the end metric:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Measuring DNS lookup time</span><br><span class="token keyword">const</span> <span class="token punctuation">[</span>pageNav<span class="token punctuation">]</span> <span class="token operator">=</span> performance<span class="token punctuation">.</span><span class="token function">getEntriesByType</span><span class="token punctuation">(</span><span class="token string">'navigation'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">const</span> totalLookupTime <span class="token operator">=</span> pageNav<span class="token punctuation">.</span>domainLookupEnd <span class="token operator">-</span> pageNav<span class="token punctuation">.</span>domainLookupStart<span class="token punctuation">;</span></code></pre>
+</web-copy-code><div class="w-aside w-aside--caution">
+<p><strong>Caution</strong>:
+You can't <em>always</em> rely on timings to be populated. Timings provided in both APIs will have a value of <code>0</code> in some cases. For example, a DNS lookup may be served by a local cache. Additionally, any timings for cross-origin requests may be unavailable if those origins don't set a <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Timing-Allow-Origin" rel="noopener"><code>Timing-Allow-Origin</code> response header</a>.</p>
+</div>
+<h3 id="connection-negotiation">Connection negotiation <a class="w-headline-link" href="#connection-negotiation">#</a></h3>
+<p>Another contributing factor to loading performance is connection negotiation, which is latency incurred when connecting to a web server. If HTTPS is involved, this process will also include TLS negotiation time. The connection phase consists of three timings:</p>
+<ul>
+<li><code>connectStart</code> is when the browser starts to open a connection to a web server.</li>
+<li><code>secureConnectionStart</code> marks when the client begins TLS negotiation.</li>
+<li><code>connectEnd</code> is when the connection to the web server has been established.</li>
+</ul>
+<p>Measuring total connection time is similar to measuring total DNS lookup time: you subtract the start timing from the end timing. However, there's an additional <code>secureConnectionStart</code> property that may be <code>0</code> if HTTPS isn't used or <a href="https://en.wikipedia.org/wiki/HTTP_persistent_connection" rel="noopener">if the connection is persistent</a>. If you want measure TLS negotiation time, you'll need to keep that in mind:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Quantifying total connection time</span><br><span class="token keyword">const</span> <span class="token punctuation">[</span>pageNav<span class="token punctuation">]</span> <span class="token operator">=</span> performance<span class="token punctuation">.</span><span class="token function">getEntriesByType</span><span class="token punctuation">(</span><span class="token string">'navigation'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">const</span> connectionTime <span class="token operator">=</span> pageNav<span class="token punctuation">.</span>connectEnd <span class="token operator">-</span> pageNav<span class="token punctuation">.</span>connectStart<span class="token punctuation">;</span><br><span class="token keyword">let</span> tlsTime <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> <span class="token comment">// &lt;-- Assume 0 to start with</span><br><br><span class="token comment">// Was there TLS negotiation?</span><br><span class="token keyword">if</span> <span class="token punctuation">(</span>pageNav<span class="token punctuation">.</span>secureConnectionStart <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token comment">// Awesome! Calculate it!</span><br>  tlsTime <span class="token operator">=</span> pageNav<span class="token punctuation">.</span>connectEnd <span class="token operator">-</span> pageNav<span class="token punctuation">.</span>secureConnectionStart<span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>Once DNS lookup and connection negotiation ends, timings related to fetching documents and their dependent resources come into play.</p>
+<h3 id="requests-and-responses">Requests and responses <a class="w-headline-link" href="#requests-and-responses">#</a></h3>
+<p>Loading performance is affected by two types of factors:</p>
+<ul>
+<li><strong>Extrinsic factors:</strong> These are things like latency and bandwidth. Beyond choosing a hosting company and a CDN, they're (mostly) out of our control, as users can access the web from anywhere.</li>
+<li><strong>Intrinsic factors:</strong> These are things like server and client-side architectures, as well as resource size and our ability to optimize for those things, which are within our control.</li>
+</ul>
+<p>Both types of factors affect loading performance. Timings related to these factors are vital, as they describe how long resources take to download. Both Navigation Timing and Resource Timing describe loading performance with the following metrics:</p>
+<ul>
+<li><code>fetchStart</code> marks when the browser begins to fetch a resource (Resource Timing) or a document for a navigation request (Navigation Timing). This precedes the actual request, and is the point at which the browser is checking caches (for example, HTTP and <a href="https://developer.mozilla.org/docs/Web/API/Cache" rel="noopener"><code>Cache</code> instances</a>).</li>
+<li><code>workerStart</code> marks when a request starts being handled within a service worker's <a href="https://developer.mozilla.org/docs/Web/API/FetchEvent" rel="noopener"><code>fetch</code> event handler</a>. This will be <code>0</code> when no service worker is controlling the current page.</li>
+<li><code>requestStart</code> is when the browser makes the request.</li>
+<li><code>responseStart</code> is when the first byte of the response arrives.</li>
+<li><code>responseEnd</code> is when the last byte of the response arrives.</li>
+</ul>
+<p>These timings allow you to measure multiple aspects of loading performance, such as cache lookup within a service worker <em>and</em> download time:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Cache seek plus response time of the current document</span><br><span class="token keyword">const</span> <span class="token punctuation">[</span>pageNav<span class="token punctuation">]</span> <span class="token operator">=</span> performance<span class="token punctuation">.</span><span class="token function">getEntriesByType</span><span class="token punctuation">(</span><span class="token string">'navigation'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">const</span> fetchTime <span class="token operator">=</span> pageNav<span class="token punctuation">.</span>responseEnd <span class="token operator">-</span> pageNav<span class="token punctuation">.</span>fetchStart<span class="token punctuation">;</span><br><br><span class="token comment">// Service worker time plus response time</span><br><span class="token keyword">let</span> workerTime <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span><br><br><span class="token keyword">if</span> <span class="token punctuation">(</span>pageNav<span class="token punctuation">.</span>workerStart <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  workerTime <span class="token operator">=</span> pageNav<span class="token punctuation">.</span>responseEnd <span class="token operator">-</span> pageNav<span class="token punctuation">.</span>workerStart<span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>You can also measure other aspects of request/response latency:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> <span class="token punctuation">[</span>pageNav<span class="token punctuation">]</span> <span class="token operator">=</span> performance<span class="token punctuation">.</span><span class="token function">getEntriesByType</span><span class="token punctuation">(</span><span class="token string">'navigation'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// Request time only (excluding redirects, DNS, and connection/TLS time)</span><br><span class="token keyword">const</span> requestTime <span class="token operator">=</span> pageNav<span class="token punctuation">.</span>responseStart <span class="token operator">-</span> pageNav<span class="token punctuation">.</span>requestStart<span class="token punctuation">;</span><br><br><span class="token comment">// Response time only (download)</span><br><span class="token keyword">const</span> responseTime <span class="token operator">=</span> pageNav<span class="token punctuation">.</span>responseEnd <span class="token operator">-</span> pageNav<span class="token punctuation">.</span>responseStart<span class="token punctuation">;</span><br><br><span class="token comment">// Request + response time</span><br><span class="token keyword">const</span> requestResponseTime <span class="token operator">=</span> pageNav<span class="token punctuation">.</span>responseEnd <span class="token operator">-</span> pageNav<span class="token punctuation">.</span>requestStart<span class="token punctuation">;</span></code></pre>
+</web-copy-code><h3 id="other-measurements-you-can-make">Other measurements you can make <a class="w-headline-link" href="#other-measurements-you-can-make">#</a></h3>
+<p>Navigation Timing and Resource Timing is useful for more than what the examples above outline. Here are some other situations with relevant timings that may be worth exploring:</p>
+<ul>
+<li><strong>Page redirects:</strong> Redirects are an overlooked source of added latency, especially redirect chains. Latency gets added in a number of ways, such as HTTP-to-HTTPs hops, as well as 302/uncached 301 redirects. The <code>redirectStart</code>, <code>redirectEnd</code>, and <code>redirectCount</code> timings are helpful in assessing redirect latency.</li>
+<li><strong>Document unloading:</strong> In pages that run code in an <a href="https://developer.mozilla.org/docs/Web/Events/unload" rel="noopener"><code>unload</code> event handler</a>, the browser must execute that code before it can navigate to the next page. <code>unloadEventStart</code> and <code>unloadEventEnd</code> measure document unloading.</li>
+<li><strong>Document processing:</strong> Document processing time may not be consequential unless your website sends very large HTML payloads. If this describes your situation, the <code>domInteractive</code>, <code>domContentLoadedEventStart</code>, <code>domContentLoadedEventEnd</code>, and <code>domComplete</code> timings may be of interest.</li>
+</ul>
+<div class="w-aside w-aside--warning">
+<p><strong>Warning</strong>:
+Timings related to document unloading and processing are available only in Navigation Timing, as they only apply to navigation requests.</p>
+</div>
+<h2 id="acquiring-timings-in-application-code">Acquiring timings in application code <a class="w-headline-link" href="#acquiring-timings-in-application-code">#</a></h2>
+<p>All of the examples shown so far use <code>performance.getEntriesByType</code>, but there are other ways to query the performance entry buffer, such as <a href="https://developer.mozilla.org/docs/Web/API/Performance/getEntriesByName" rel="noopener"><code>performance.getEntriesByName</code></a> and <a href="https://developer.mozilla.org/docs/Web/API/Performance/getEntries" rel="noopener"><code>performance.getEntries</code></a>. These methods are fine when only light analysis is needed. In other situations, though, they can introduce excessive main thread work by iterating over a large number of entries, or even repeatedly polling the performance buffer to find new entries.</p>
+<p>The recommended approach for collecting entries from the performance entry buffer is to use a <a href="https://developer.mozilla.org/docs/Web/API/PerformanceObserver" rel="noopener"><code>PerformanceObserver</code></a>. <code>PerformanceObserver</code> listens for performance entries, and provides them as they're added to the buffer:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Create the performance observer:</span><br><span class="token keyword">const</span> perfObserver <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">PerformanceObserver</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">observedEntries</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token comment">// Get all resource entries collected so far:</span><br>  <span class="token keyword">const</span> entries <span class="token operator">=</span> observedEntries<span class="token punctuation">.</span><span class="token function">getEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>  <span class="token comment">// Iterate over entries:</span><br>  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">let</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> entries<span class="token punctuation">.</span>length<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token comment">// Do the work!</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// Run the observer:</span><br>perfObserver<span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span><span class="token punctuation">{</span><br>  <span class="token comment">// Polls for Navigation Timing and Resource Timing entries</span><br>  <span class="token comment">// (but can poll for other entry types as well):</span><br>  entryTypes<span class="token operator">:</span> <span class="token punctuation">[</span><br>    <span class="token string">'navigation'</span><span class="token punctuation">,</span><br>    <span class="token string">'resource'</span><br>  <span class="token punctuation">]</span><span class="token punctuation">,</span><br>  buffered<span class="token operator">:</span> <span class="token boolean">true</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><div class="w-aside w-aside--note">
+<p>Adding the <code>buffered</code> option to a performance observer's <code>observe</code> event ensures that performance entries added to the buffer prior to the instantiation of the performance observer are observable.</p>
+</div>
+<p>This method of collecting timings may feel awkward when compared to directly accessing the performance entry buffer, but it's preferable to tying up the main thread with work that doesn't serve a critical and user-facing purpose.</p>
+<h2 id="phoning-home">Phoning home <a class="w-headline-link" href="#phoning-home">#</a></h2>
+<p>Once you've collected all the timings you need, you can send them to an endpoint for further analysis. Two ways to do this are with either <a href="https://developer.mozilla.org/docs/Web/API/Navigator/sendBeacon" rel="noopener"><code>navigator.sendBeacon</code></a> or a <a href="https://developer.mozilla.org/docs/Web/API/fetch" rel="noopener"><code>fetch</code> with the <code>keepalive</code> option</a> set. Both methods will send a request to a specified endpoint in a non-blocking way, and the request will be queued in a way that outlives the current page session if need be:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token comment">// Caution: If you have lots of performance entries, don't</span><br><span class="token comment">// do this. This is an example for illustrative purposes.</span><br><span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span>performance<span class="token punctuation">.</span><span class="token function">getEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// The endpoint to transmit the encoded data to</span><br><span class="token keyword">const</span> endpoint <span class="token operator">=</span> <span class="token string">'/analytics'</span><span class="token punctuation">;</span><br><br><span class="token comment">// Check for fetch keepalive support</span><br><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'keepalive'</span> <span class="token keyword">in</span> <span class="token class-name">Request</span><span class="token punctuation">.</span>prototype<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token function">fetch</span><span class="token punctuation">(</span>endpoint<span class="token punctuation">,</span> <span class="token punctuation">{</span><br>    method<span class="token operator">:</span> <span class="token string">'POST'</span><span class="token punctuation">,</span><br>    body<span class="token operator">:</span> data<span class="token punctuation">,</span><br>    keepalive<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span><br>    headers<span class="token operator">:</span> <span class="token punctuation">{</span><br>      <span class="token string">'Content-Type'</span><span class="token operator">:</span> <span class="token string">'application/json'</span><br>    <span class="token punctuation">}</span><br>  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">'sendBeacon'</span> <span class="token keyword">in</span> navigator<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token comment">// Use sendBeacon as a fallback</span><br>  navigator<span class="token punctuation">.</span><span class="token function">sendBeacon</span><span class="token punctuation">(</span>endpoint<span class="token punctuation">,</span> data<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>In this example, the JSON string will arrive in a <code>POST</code> payload that you can decode and process/store in an application backend as needed.</p>
+<h2 id="wrapping-up">Wrapping up <a class="w-headline-link" href="#wrapping-up">#</a></h2>
+<p>Once you have metrics collected, it's up to you to figure out how to analyze that field data. When analyzing field data, there are a few general rules to follow to ensure you're drawing meaningful conclusions:</p>
+<ul>
+<li><a href="https://www.igvita.com/2016/01/12/the-average-page-is-a-myth/" rel="noopener">Avoid averages</a>, as they're not representative of any one user's experience, and may be skewed by outliers.</li>
+<li>Rely on percentiles. In datasets of time-based performance metrics, lower is better. This means that when you prioritize low percentiles, you're only paying attention to the fastest experiences.</li>
+<li><a href="https://timkadlec.com/remembers/2018-06-07-prioritizing-the-long-tail-of-performance/" rel="noopener">Prioritize the long tail of values</a>. When you prioritize experiences at the 75th percentile or higher, you're putting your focus where it belongs: on the slowest experiences.</li>
+</ul>
+<p>This guide isn't meant to be an exhaustive resource on Navigation or Resource Timing, but a starting point. Below are some additional resources you may find helpful:</p>
+<ul>
+<li><a href="https://www.w3.org/TR/navigation-timing-2/" rel="noopener">Navigation Timing Spec</a>.</li>
+<li><a href="https://www.w3.org/TR/resource-timing-2/" rel="noopener">Resource Timing Spec</a>.</li>
+<li><a href="https://nicj.net/resourcetiming-in-practice/" rel="noopener">ResourceTiming in Practice</a>.</li>
+<li><a href="https://developer.mozilla.org/docs/Web/API/Navigation_timing_API" rel="noopener">Navigation Timing API (MDN)</a></li>
+<li><a href="https://developer.mozilla.org/docs/Web/API/Resource_Timing_API" rel="noopener">Resource Timing API (MDN)</a></li>
+</ul>
+<p>With these APIs and the data they provide, you'll be better equipped to understand how loading performance is experienced by real users, which will give you more confidence in diagnosing and addressing loading performance problems in the field.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">Performance</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/javascript/">JavaScript</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/metrics/">Metrics</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/network/">Network</a>
+      
+    
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Oct 8, 2021</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/fast/navigation-and-resource-timing/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/blog"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

@@ -1,0 +1,695 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=218aab46a45b7">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Media frameworks</title>
+<meta name="description" content="Media frameworks come in both the proprietary and open-source variety, and at their core are a set of APIs that support audio and/or video playback for various container formats and transmission protocols. " />
+
+<link rel="canonical" href="https://web.dev/media-frameworks/" />
+
+<meta itemprop="name" content="Media frameworks" />
+<meta itemprop="description" content="Media frameworks come in both the proprietary and open-source variety, and at their core are a set of APIs that support audio and/or video playback for various container formats and transmission protocols. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/media-frameworks/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Media frameworks" />
+<meta property="og:description" content="Media frameworks come in both the proprietary and open-source variety, and at their core are a set of APIs that support audio and/or video playback for various container formats and transmission protocols. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="media" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Media frameworks" />
+<meta name="twitter:description" content="Media frameworks come in both the proprietary and open-source variety, and at their core are a set of APIs that support audio and/or video playback for various container formats and transmission protocols. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=be1d0fa62a8d', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=0c34f81ae3d95', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#media-frameworks" class="w-toc__header--link">
+        Media frameworks
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#benefits-of-using-a-framework">Benefits of using a framework</a></li><li><a href="#shaka-player">Shaka Player</a></li><li><a href="#jw-player">JW Player</a></li><li><a href="#video.js">Video.js</a></li><li><a href="#other-frameworks">Other frameworks</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@derekherman"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Share</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="media-frameworks" class="w-article-header__headline">Media frameworks</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Jul 5, 2021</time>
+           <span class="w-author__separator">•</span> Updated <time>Jul 5, 2021</time> 
+        </div>
+      
+
+      
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/media"
+          >Media</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/derekherman/"><img     alt="Derek Herman"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/8L1ESx211yWBm8uNAgqvUc2GwNk1/Co3mEQ34Z8eAw6lPGx5o.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/derekherman/">Derek Herman</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/derekherman"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/derekherman">GitHub</a>
+      </li>
+      
+      
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <p>There are several ways to add media to a web page. Previously you learned how to
+use the standard <code>&lt;video&gt;</code> tag. In this article you will learn about a few of the
+media frameworks (or libraries) available that you can use to extend or replace
+the behavior of the default HTML5 video player.</p>
+<p>Media frameworks come in both the proprietary and open-source variety, and at
+their core are a set of APIs that support audio and/or video playback for
+various container formats and transmission protocols. A good framework has
+a modular architecture and provides clear and detailed documentation. Ideally it
+should also be relatively easy to set up and use. You might be asking yourself,
+&quot;If the HTML5 video player provides most features already then why would I use a
+framework or library?&quot; That's a great question, let's dig in.</p>
+<h2 id="benefits-of-using-a-framework">Benefits of using a framework <a class="w-headline-link" href="#benefits-of-using-a-framework">#</a></h2>
+<p>In most situations that are beyond the needs of a basic web page, you are going
+to want to use a media framework to serve your content. Unless you are prepared
+to develop and maintain a rich feature set like offline playback, streaming,
+analytics, picture-in-picture, preview thumbnails, embedding, and monetization
+such as fill rate optimization, Ad scheduling, or header bidding to name a few
+then you should probably offload that complexity to an existing solution.</p>
+<p>This is where media frameworks come in. They provide you with a set of features,
+and conditions in which you can use those features, and then you have to decide
+which framework is right for your project. In the next article we will discuss
+how we built a <a href="/pwa-with-offline-streaming/">PWA with offline streaming</a> that implements several complex
+features. Spoiler alert, it was a lot of work and is still far from being a
+production ready solution. Save yourself the headache and use a framework.</p>
+<p>There are a lot of options out there to choose from, for now this article will
+focus on three, which are <a href="https://github.com/google/shaka-player" rel="noopener">Shaka Player</a>, <a href="https://developer.jwplayer.com/" rel="noopener">JW Player</a>, and <a href="http://videojs.com/" rel="noopener">Video.js</a>.</p>
+<h2 id="shaka-player">Shaka Player <a class="w-headline-link" href="#shaka-player">#</a></h2>
+<p>According to the documentation, Google's <a href="https://github.com/google/shaka-player" rel="noopener">Shaka Player</a> is an open-source
+JavaScript library for adaptive media. It plays adaptive media formats (such as
+<a href="http://dashif.org/" rel="noopener">DASH</a> and <a href="https://developer.apple.com/streaming/" rel="noopener">HLS</a>) in a browser, without using plugins. Instead, Shaka Player
+uses the open web standards <a href="https://www.w3.org/TR/media-source/" rel="noopener">MediaSource Extensions</a> and
+<a href="https://www.w3.org/TR/encrypted-media/" rel="noopener">Encrypted Media Extensions</a>.</p>
+<p>Shaka Player also supports <a href="https://shaka-player-demo.appspot.com/docs/api/tutorial-offline.html" rel="noopener">offline storage and playback</a> of media using
+<a href="https://www.w3.org/TR/IndexedDB-2/" rel="noopener">IndexedDB</a>. Content can be stored on any browser. Storage of licenses
+depends on browser support.</p>
+<p>There are directions for <a href="https://shaka-player-demo.appspot.com/docs/api/tutorial-basic-usage.html" rel="noopener">basic usage</a> on the Shaka Player documentation site.
+However, in a nutshell to use Shaka Player you first need to create an HTML page
+with a video or audio element. Then in your application's JavaScript you
+install the polyfills and check for browser support. Once the browser has
+confirmed support for Shaka Player a script will create a Player object to wrap
+the media element, listen for errors, then load a manifest file. Shaka Player
+will take over from there.</p>
+<p>With Shaka you will need to host and encode your media files yourself.
+Creating a media server is not overly complex, however encoding/transcoding media
+can be time-consuming and complicated. You will likely want to offload
+this part to a service such as <a href="https://en.wikipedia.org/wiki/Zencoder" rel="noopener">Zencoder</a>, <a href="https://aws.amazon.com/elastictranscoder" rel="noopener">Amazon Elastic Encoder</a>, or
+<a href="https://cloud.google.com/transcoder/docs" rel="noopener">Google Transcoder API</a> to automate repetitive tasks and speed the process up.</p>
+<p>The great thing about the Shaka Player is there is also a really fantastic tool
+and media packaging SDK for DASH and HLS packaging and encryption called Shaka
+Packager. It can prepare and package media content for online streaming, which
+you learned about earlier in <a href="/media-conversion/">Media conversion</a> and
+<a href="/media-encryption/">Media encryption</a>.</p>
+<h2 id="jw-player">JW Player <a class="w-headline-link" href="#jw-player">#</a></h2>
+<p>If you are looking for an option that provides hosting and encoding/transcoding
+services then you might look into <a href="https://developer.jwplayer.com/" rel="noopener">JW Player</a>, but keep in mind that JW Player is
+proprietary software. Meaning, you don't have much control over the platform or
+roadmap. There is a basic free version where videos are displayed with a watermark,
+and a commercial version.</p>
+<p>JW Player supports streaming with MPEG-DASH (paid version only), Digital rights
+management (DRM) (with Vualto), interactive advertisement, customization of the
+interface, and embeds. There is a well documented API and SDK. However, if you
+are just looking for a quick and free way to host your media then embedding
+YouTube videos are typically going to be your best free option.</p>
+<h2 id="video.js">Video.js <a class="w-headline-link" href="#video.js">#</a></h2>
+<p>According to their website, <a href="http://videojs.com/" rel="noopener">Video.js</a> is built from the
+ground up for an HTML5 world. It supports HTML5 video and modern streaming
+formats such as DASH and HLS, as well as YouTube, and Vimeo. It supports
+video playback on desktop and mobile devices and looks good everywhere with
+CSS-based skins.</p>
+<p>There are a few ways to use Video.js, but the easiest is to use the free CDN
+version provided by <a href="https://videojs.com/getting-started/#videojs-cdn" rel="noopener">Fastly</a>. You can learn more on how to get the player set
+up on the <a href="https://videojs.com/getting-started" rel="noopener">getting started</a> page. Video.js is a very powerful video player,
+and much like Shaka Player you will also need to host and encode your video.
+However, one difference is in the plugin system where you can do things like
+play YouTube videos in the Video.js player, which can also be customized.</p>
+<h2 id="other-frameworks">Other frameworks <a class="w-headline-link" href="#other-frameworks">#</a></h2>
+<p>There are lots of different frameworks and libraries available, this article
+only scratches the surface on what is out there. When choosing a framework you
+should consider what features you need for the project and how you plan to host
+and encode or transcode your media. Do you need pre-roll Ads or other
+monetization strategies? Will your media be available offline? How big or
+small is your budget? Or any other number of considerations. Do your research
+and ask people in your network for suggestions. There are dozens of other great
+options and before you make any choices take some time to pick one that will
+be right for your team and avoid creating unnecessary technical debt or
+complexity to maintain during the project lifecycle.</p>
+<p>Next, you will learn about the <a href="/pwa-with-offline-streaming/">PWA with offline streaming</a> we built to
+demonstrate how to approach and tackle the main challenges that come with
+rolling your own solution using just the HTML5 video object without a framework
+to handle the heavy lifting.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/media/">Media</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Jul 5, 2021</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/media/media-frameworks/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/media"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

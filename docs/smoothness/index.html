@@ -1,0 +1,1073 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=c8c0fc2a6e34a">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=87524cf7642bd">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Towards an animation smoothness metric</title>
+<meta name="description" content="Learn about measuring animations, how to think about animation frames, and overall page smoothness." />
+
+<link rel="canonical" href="https://web.dev/smoothness/" />
+
+<meta itemprop="name" content="Towards an animation smoothness metric" />
+<meta itemprop="description" content="Learn about measuring animations, how to think about animation frames, and overall page smoothness." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/smoothness/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Towards an animation smoothness metric" />
+<meta property="og:description" content="Learn about measuring animations, how to think about animation frames, and overall page smoothness." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="A silky smooth surface" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Towards an animation smoothness metric" />
+<meta name="twitter:description" content="Learn about measuring animations, how to think about animation frames, and overall page smoothness." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=75c2dc74a0968', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=5049d945b2612', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="A silky smooth surface"     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format"     srcset="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/Q32j8dRRdKSaxYaAYiNP.jpeg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#what-are-animations">What are animations?</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#how-do-animations-work">How do animations work?</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#what-are-animation-frames">What are animation frames?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#what-impacts-animation-frames">What impacts animation frames?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#animation-frames:-updates-that-matter">Animation frames: Updates that matter</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#main-and-compositor-thread-updates">Main and compositor thread updates</a></li><li class="toc__listitem"><a class="toc__anchor" href="#missing-paint-updates">Missing paint updates</a></li><li class="toc__listitem"><a class="toc__anchor" href="#detecting-animations">Detecting animations</a></li><li class="toc__listitem"><a class="toc__anchor" href="#quality-versus-quantity">Quality versus quantity</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#states-of-a-single-animation-frame">States of a single animation frame</a></li><li class="toc__listitem"><a class="toc__anchor" href="#putting-it-all-together:-a-percent-dropped-frames-metric">Putting it all together: A Percent Dropped Frames metric</a></li><li class="toc__listitem"><a class="toc__anchor" href="#try-it-yourself-in-developer-tooling!">Try it yourself in developer tooling!</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#performance-hud">Performance HUD</a></li><li class="toc__listitem"><a class="toc__anchor" href="#frame-rendering-stats">Frame Rendering Stats</a></li><li class="toc__listitem"><a class="toc__anchor" href="#frame-viewer-in-devtools-performance-profile-recordings">Frame Viewer in DevTools performance profile recordings</a></li><li class="toc__listitem"><a class="toc__anchor" href="#chrome-tracing">Chrome tracing</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#what's-next">What's next</a></li><li class="toc__listitem"><a class="toc__anchor" href="#feedback">Feedback</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="towards-an-animation-smoothness-metric">Towards an animation smoothness metric</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            Learn about measuring animations, how to think about animation frames, and overall page smoothness.
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Nov 3, 2021</time>
+             — Updated <time>Nov 3, 2021</time> 
+          </div>
+        
+
+        
+        
+
+        
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/mmocny/"> <img     alt="Michal Mocny"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/urYfROhm806fvOPRMsRg.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/urYfROhm806fvOPRMsRg.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/urYfROhm806fvOPRMsRg.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/urYfROhm806fvOPRMsRg.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/urYfROhm806fvOPRMsRg.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/urYfROhm806fvOPRMsRg.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/mmocny/">Michal Mocny</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/mmocny">Twitter</a>
+               <a href="https://github.com/mmocny">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/behdadb/"> <img     alt="Behdad Bakhshinategh"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/yNf8CJMxm2ZigCktK56g.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/yNf8CJMxm2ZigCktK56g.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/yNf8CJMxm2ZigCktK56g.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/yNf8CJMxm2ZigCktK56g.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/yNf8CJMxm2ZigCktK56g.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/yNf8CJMxm2ZigCktK56g.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/behdadb/">Behdad Bakhshinategh</a>
+    </cite>
+    <div class="author__links cluster">
+               
+               <a href="https://github.com/behdadb">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/jonross/"> <img     alt="Jonathan Ross"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/js2VCA8TRNRK2nYwhQFG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/js2VCA8TRNRK2nYwhQFG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/js2VCA8TRNRK2nYwhQFG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/js2VCA8TRNRK2nYwhQFG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/js2VCA8TRNRK2nYwhQFG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/js2VCA8TRNRK2nYwhQFG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/jonross/">Jonathan Ross</a>
+    </cite>
+    <div class="author__links cluster">
+               
+               <a href="https://github.com/jonrossca">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#what-are-animations">What are animations?</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#how-do-animations-work">How do animations work?</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#what-are-animation-frames">What are animation frames?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#what-impacts-animation-frames">What impacts animation frames?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#animation-frames:-updates-that-matter">Animation frames: Updates that matter</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#main-and-compositor-thread-updates">Main and compositor thread updates</a></li><li class="toc__listitem"><a class="toc__anchor" href="#missing-paint-updates">Missing paint updates</a></li><li class="toc__listitem"><a class="toc__anchor" href="#detecting-animations">Detecting animations</a></li><li class="toc__listitem"><a class="toc__anchor" href="#quality-versus-quantity">Quality versus quantity</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#states-of-a-single-animation-frame">States of a single animation frame</a></li><li class="toc__listitem"><a class="toc__anchor" href="#putting-it-all-together:-a-percent-dropped-frames-metric">Putting it all together: A Percent Dropped Frames metric</a></li><li class="toc__listitem"><a class="toc__anchor" href="#try-it-yourself-in-developer-tooling!">Try it yourself in developer tooling!</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#performance-hud">Performance HUD</a></li><li class="toc__listitem"><a class="toc__anchor" href="#frame-rendering-stats">Frame Rendering Stats</a></li><li class="toc__listitem"><a class="toc__anchor" href="#frame-viewer-in-devtools-performance-profile-recordings">Frame Viewer in DevTools performance profile recordings</a></li><li class="toc__listitem"><a class="toc__anchor" href="#chrome-tracing">Chrome tracing</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#what's-next">What's next</a></li><li class="toc__listitem"><a class="toc__anchor" href="#feedback">Feedback</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <p>You've probably experienced pages that &quot;stutter&quot; or &quot;freeze&quot; during scrolling or
+animations. We like to say that these experiences are not <em>smooth</em>. To address
+these types of issues, the Chrome team has been working on adding more support
+to our lab tooling for animation detection, as well as making steady improvements
+to the rendering pipeline diagnostics within Chromium.</p>
+<p>We'd like to share some recent progress, offer concrete tooling guidance, and
+discuss ideas for future animation smoothness metrics. As always, we would love
+to hear your <a href="#feedback">feedback</a>.</p>
+<p>This post will cover three main topics:</p>
+<ul>
+<li>A quick look at animations and animation frames.</li>
+<li>Our current thoughts on measuring overall animation smoothness.</li>
+<li>A few practical suggestions for you to leverage in lab tooling today.</li>
+</ul>
+<h2 id="what-are-animations">What are animations? <a class="w-headline-link" href="#what-are-animations">#</a></h2>
+<p>Animations bring content to life! By making content move, especially in response
+to user interactions, animations can make an experience feel more natural,
+understandable, and fun.</p>
+<p>But poorly implemented animations, or just adding too many animations, can
+degrade the experience and make it decidedly not fun at all. We've probably all
+interacted with an interface which just added too many &quot;helpful&quot; transition
+effects, which actually become hostile to experience when they perform poorly.
+Some users therefore actually might
+<a href="/prefers-reduced-motion/">prefer reduced motion</a>, a user preference
+that you should honor.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Learn more about <a href="/animations/">animations</a>, including how to
+<a href="/animations-guide/">create performant animations</a> and how to <a href="https://developer.chrome.com/docs/devtools/css/animations/" rel="noopener">inspect
+animations using developer
+tooling</a>.</p>
+</div></aside>
+<h3 id="how-do-animations-work">How do animations work? <a class="w-headline-link" href="#how-do-animations-work">#</a></h3>
+<p>As a quick recap, the <a href="/animations-overview/#pipeline">rendering pipeline</a>
+consists of a few, <strong>sequential</strong> stages:</p>
+<ol>
+<li><strong style="font-weight:700;color:#6251A2">Style:</strong> Calculate the
+styles that apply to the elements.</li>
+<li><strong style="font-weight:700;color:#6251A2">Layout:</strong> Generate the
+geometry and position for each element.</li>
+<li><strong style="font-weight:700;color:#78A55A">Paint:</strong> Fill out the
+pixels for each element into layers.</li>
+<li><strong style="font-weight:700;color:#78A55A">Composite:</strong> Draw the
+layers to the screen.</li>
+</ol>
+<p>While there are many ways to define animations, they all fundamentally work via
+one of the following:</p>
+<ul>
+<li>Adjusting <strong style="font-weight:700;color:#6251A2">layout</strong>
+properties.</li>
+<li>Adjusting <strong style="font-weight:700;color:#78A55A">paint</strong>
+properties.</li>
+<li>Adjusting <strong style="font-weight:700;color:#78A55A">composite</strong>
+properties.</li>
+</ul>
+<p>Because these stages are sequential, it is important to define animations in
+terms of properties that are further down the pipeline. The earlier the update
+happens in the process, the greater are the costs and it's less likely to be
+smooth. (See <a href="https://developers.google.com/web/fundamentals/performance/rendering" rel="noopener">Rendering
+performance</a>
+for more details.)</p>
+<p>While it can be convenient to animate layout properties, there are costs to
+doing so, even if those costs aren't immediately apparent. Animations should be
+defined in terms of composite property changes wherever possible.</p>
+<p>Defining <a href="https://developers.google.com/web/fundamentals/design-and-ux/animations/css-vs-javascript" rel="noopener">declarative CSS animations or using Web
+Animations</a>,
+and ensuring you <a href="https://developer.chrome.com/blog/hardware-accelerated-animations/" rel="noopener">animate composite
+properties</a>,
+is a great first step to ensuring smooth and efficient animations. But still,
+this alone does not guarantee smoothness because even efficient web animations
+have performance limits. That's why it is always important to measure!</p>
+<h2 id="what-are-animation-frames">What are animation frames? <a class="w-headline-link" href="#what-are-animation-frames">#</a></h2>
+<p>Updates to the visual representation of a page take time to appear. A visual
+change will lead to a new animation frame, which is eventually rendered on the
+user's display.</p>
+<p>Displays update on some interval, so visual updates are batched. Many displays
+update on a fixed interval of time, such as 60 times a second (that is
+60 Hz). Some more modern displays can offer higher refresh rates
+(90–120 Hz are becoming common). Often these displays can actively adapt
+between refresh rates as needed, or even offer fully variable frame rates.</p>
+<p>The goal for any application, like a game or a browser, is to process all these
+batched visual updates and produce a visually complete animation frame within
+the deadline, every time. Note that this goal is entirely distinct from other
+important browser tasks such as loading content from the network quickly or
+executing JavaScript tasks efficiently.</p>
+<p>At some point, it can become too difficult to complete all visual updates within
+the allotted deadline assigned by the display. When this happens, the browser
+<strong>drops a frame</strong>. Your screen doesn't go black, it just repeats itself. You see
+the same visual update for a bit longer—the same animation frame that was
+presented at the previous frame opportunity.</p>
+<p>This actually happens often! It is not necessarily even perceptible, especially
+for static or document-like content, which is common on the web platform in
+particular. Dropped frames only become apparent when there are important visual
+updates, such as animations, for which we need a steady stream of animation
+updates to show smooth motion.</p>
+<h2 id="what-impacts-animation-frames">What impacts animation frames? <a class="w-headline-link" href="#what-impacts-animation-frames">#</a></h2>
+<p>Web developers can greatly impact the ability of a browser to quickly and
+efficiently render and present visual updates!</p>
+<p>Some examples:</p>
+<ul>
+<li>Using content that is too large or resource-intensive to decode quickly on the
+target device.</li>
+<li><a href="https://developers.google.com/web/fundamentals/performance/rendering/stick-to-compositor-only-properties-and-manage-layer-count" rel="noopener">Using too many
+layers</a>
+requiring too much GPU memory.</li>
+<li>Defining overly complex CSS styles or web animations.</li>
+<li>Using design anti-patterns that disable fast rendering optimizations.</li>
+<li>Too much JS work on the main thread, leading to long tasks that block visual
+updates.</li>
+</ul>
+<p>But how can you know when an animation frame has missed its deadline and caused
+a dropped frame?</p>
+<p>One possible method is using
+<a href="https://developer.mozilla.org/docs/Web/API/window/requestAnimationFrame" rel="noopener"><code>requestAnimationFrame()</code></a>
+polling, however it has several downsides. <code>requestAnimationFrame()</code>, or &quot;rAF&quot;,
+tells the browser that you wish to perform an animation and asks for an
+opportunity to do so before the next paint stage of the rendering pipeline. If
+your callback function isn't called at the time you expect it, that means a
+paint wasn't executed, and one or more frames were skipped. By polling and
+counting how often rAF is called, you can compute a sort of &quot;frames per second&quot;
+(FPS) metric.</p>
+<aside class="aside flow bg-state-warn-bg color-core-text">
+<p class="cluster ">
+<span class="aside__icon box-block color-state-warn-text"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Warning sign" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M23 21L12 2 1 21h22zm-12-3v-2h2v2h-2zm0-4h2v-4h-2v4z" />
+</svg></span>
+<strong>Warning</strong></p>
+<div class=" flow">
+<p>The following code is an anti-pattern and is strongly discouraged!</p>
+</div></aside>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">let</span> frameTimes <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span><br><span class="token keyword">function</span> <span class="token function">pollFramesPerSecond</span><span class="token punctuation">(</span><span class="token parameter">now</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  frameTimes <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token operator">...</span>frameTimes<span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span><span class="token parameter">t</span> <span class="token operator">=></span> t <span class="token operator">></span> now <span class="token operator">-</span> <span class="token number">1000</span><span class="token punctuation">)</span><span class="token punctuation">,</span> now<span class="token punctuation">]</span><span class="token punctuation">;</span><br>  <span class="token function">requestAnimationFrame</span><span class="token punctuation">(</span>pollFramesPerSecond<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Frames per second:'</span><span class="token punctuation">,</span> frameTimes<span class="token punctuation">.</span>length<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><br><span class="token function">requestAnimationFrame</span><span class="token punctuation">(</span>pollFramesPerSecond<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>Using <code>requestAnimationFrame()</code> polling is not a good idea for several reasons:</p>
+<ul>
+<li>Every script has to set up its own polling loop.</li>
+<li>It can block the critical path.</li>
+<li>Even if the rAF polling is fast, it can prevent
+<a href="https://developer.mozilla.org/docs/Web/API/window/requestIdleCallback" rel="noopener"><code>requestIdleCallback()</code></a>
+from being able to schedule long idle blocks when used continuously (blocks that
+exceed a single frame).</li>
+<li>Similarly, lack of long idle blocks prevents the browser from scheduling other
+long-running tasks (such as longer garbage collection and other background or
+speculative work).</li>
+<li>If polling is toggled on and off, then you'll miss cases where frame budget
+has been exceeded.</li>
+<li>Polling will report false-positives in cases where the browser is using
+variable update frequency (for example, due to power or visibility status).</li>
+<li>And most importantly, it doesn't actually capture all types of animation
+updates!</li>
+</ul>
+<p>Too much work on the main thread can impact the ability to see animation frames.
+Check out the <a href="https://googlechrome.github.io/devtools-samples/jank/" rel="noopener">Jank
+Sample</a> to see how a
+rAF-driven animation, once there is too much work on the main thread (such as
+layout), will lead to dropped frames and fewer rAF callbacks, and lower FPS.</p>
+<p>When the main thread becomes bogged down, visual updates begin to stutter.
+That's jank!</p>
+<p>Many measurement tools have focused extensively on the ability for the main
+thread to yield in a timely manner, and for animation frames to run smoothly.
+But this is not the whole story! Consider the following example:</p>
+<p><video      autoplay            class="w-screenshot"      controls                        loop      muted                            >      <source src="https://storage.googleapis.com/web-dev-uploads/video/nM10iAStORWg0YlDbPc2czmpRRr2/xkdE00Gizsks9ytPkP6r.mov" type="video/mp4" />    </video></p>
+<p>The video above shows a page that periodically injects long tasks onto the main
+thread. These long tasks completely ruin the ability of the page to provide
+certain types of visual updates, and you can see in the top-left corner a
+corresponding drop of <code>requestAnimationFrame()</code> reported FPS to 0.</p>
+<p>And yet, despite these long tasks, the page continues to scroll smoothly. This
+is because on modern browsers, <a href="https://blogs.windows.com/msedgedev/2017/03/08/scrolling-on-the-web/#:~:text=The%20multithreaded%20web" rel="noopener">scrolling is often
+threaded</a>,
+driven entirely by the compositor.</p>
+<p>This is an example that simultaneously contains many dropped frames on the main
+thread, yet still has many successfully-delivered frames of scrolling on the
+compositor thread. Once the long task is complete, the main thread paint update
+has no visual change to offer anyway. rAF polling suggested a frame drop to 0,
+but <em>visually</em>, a user wouldn't be able to notice a difference!</p>
+<p>For animation frames, the story is not that simple.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>There are many reasons why long tasks are bad—and these are captured
+with <a href="/custom-metrics/">dedicated performance APIs</a>, such as the Long Tasks
+API or the Event Timing API. Yet, there are also features, such as
+<a href="/isinputpending/"><code>isInputPending()</code></a>, where long tasks during idle periods
+may be added entirely by design and be a good thing.</p>
+</div></aside>
+<h2 id="animation-frames:-updates-that-matter">Animation frames: Updates that matter <a class="w-headline-link" href="#animation-frames:-updates-that-matter">#</a></h2>
+<p>The above example showcases that there is more to the story than just
+<code>requestAnimationFrame()</code>.</p>
+<p>So when do animation updates and animation frames matter?  Here are
+some criteria we're thinking about and would love to get feedback on:</p>
+<ul>
+<li>Main and compositor thread updates</li>
+<li>Missing paint updates</li>
+<li>Detecting animations</li>
+<li>Quality versus quantity</li>
+</ul>
+<h3 id="main-and-compositor-thread-updates">Main and compositor thread updates <a class="w-headline-link" href="#main-and-compositor-thread-updates">#</a></h3>
+<p>Animation frame updates are not boolean. It is not the case that frames may only
+be fully dropped or fully presented. There are many reasons why an animation
+frame may be <em>partially</em> <em>presented</em>. In other words, it can simultaneously have
+<em>some stale content</em> while also having <em>some new visual updates</em> which are
+presented.</p>
+<p>The most common example of this is when the browser is unable to produce a new
+main thread update within frame deadline but does have a new compositor thread
+update (such as the threaded scrolling example from earlier).</p>
+<p>One important reason why using declarative animations to animate composite
+properties is recommended is that doing so enables an animation to be driven
+entirely by the compositor thread even when the main thread is busy. These types
+of animations can continue to produce visual updates efficiently and in
+parallel.</p>
+<p>On the other hand, there may be cases where a main thread update finally becomes
+available for presentation, but only after missing several frame deadlines. Here
+the browser will have <em>some</em> new update, but it may not be <em>the very latest</em>.</p>
+<p>Broadly speaking, we consider frames that contain some new visual updates,
+without all new visual updates, as a <em>partial frame</em>. Partial frames are fairly
+common. Ideally, partial updates would at least include the most important
+visual updates, like animations, but that can only happen if animations are
+driven by the compositor thread.</p>
+<h3 id="missing-paint-updates">Missing paint updates <a class="w-headline-link" href="#missing-paint-updates">#</a></h3>
+<p>Another type of partial update is when media like images have not finished
+decoding and rasterizing in time for frame presentation.</p>
+<p>Or, even if a page is perfectly static, browsers may still fall behind rendering
+visual updates during rapid scrolling. That is because the pixel renditions of
+content beyond the visible viewport may be discarded to save GPU memory. It
+takes time to render pixels, and it may take longer than a single frame to
+render everything after a large scroll, like a finger fling. This is commonly
+known as <em>checkerboarding</em>.</p>
+<p>With each frame rendering opportunity, it's possible to track how much of the
+latest visual updates actually got to the screen. Measuring the ability to do so
+over many frames (or time) is broadly known as <em>frame throughput</em>.</p>
+<p>If the GPU is really bogged down, the browser (or platform) may even begin to
+throttle the rate at which it attempts visual updates and thus decreases
+effective frame rates. While technically that can reduce the number of dropped
+frame updates, visually it will still appear as a lower frame throughput.</p>
+<p>Yet, not all types of low frame throughput are bad. If the page is mostly idle
+and there are no active animations, a low frame rate is just as visually
+appealing as a high frame rate (and, it can save battery!).</p>
+<p>So when does frame throughput matter?</p>
+<h3 id="detecting-animations">Detecting animations <a class="w-headline-link" href="#detecting-animations">#</a></h3>
+<p>High frame throughput matters especially during periods with important
+animations. Different animation types will depend on visual updates from a
+specific thread (main, compositor, or a worker), so its visual update is
+dependent on that thread providing its update within the deadline. We say that a
+given thread <em>affects smoothness</em> whenever there is an active animation that
+depends on that thread update.</p>
+<p>Some types of animations are easier to define and detect than others.
+Declarative animations, or user-input-driven animations, are clearer to define
+than JavaScript-driven animations implemented as periodic updates to animatable
+style properties.</p>
+<p>Even with <code>requestAnimationFrame()</code> you
+cannot always assume that every rAF call is necessarily producing a visual
+update or animation. For example, using rAF polling just to track frame rate
+(as shown above) should not itself affect smoothness measurements since there is
+no visual update.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Animation detection in tooling, as well as the specifics of
+animation implementations in browsers, continually evolves and improves.
+Chrome recently moved <a href="https://developer.chrome.com/blog/hardware-accelerated-animations/#whats-coming-next" rel="noopener">background-color
+animations</a>
+from the main thread to the compositor!</p>
+</div></aside>
+<h3 id="quality-versus-quantity">Quality versus quantity <a class="w-headline-link" href="#quality-versus-quantity">#</a></h3>
+<p>Finally, detecting animations and animation frame updates is still only part of
+the story because it only captures the quantity of animation updates, not the
+quality.</p>
+<p>For example, you may see a steady framerate of of 60 fps while watching a
+video. Technically, this is perfectly smooth, but the video itself may have a
+low bit rate, or issues with network buffering. This isn't captured by
+animation smoothness metrics directly, yet may still be jarring to the
+user.</p>
+<p>Or, a game which leverages <code>&lt;canvas&gt;</code> (perhaps even using techniques like
+<a href="https://developers.google.com/web/updates/2018/08/offscreen-canvas" rel="noopener">offscreen
+canvas</a> to
+ensure a steady frame rate) may technically be perfectly smooth in terms of
+animation frames, all while failing to load high quality game assets into the
+scene or exhibiting rendering artifacts.</p>
+<p>And of course, a site can just have some really lame animations 🙂</p>
+<p><img
+src="https://upload.wikimedia.org/wikipedia/commons/1/1c/Under-Construction-Bulldozer.gif"
+alt="Old school under construction GIF" width="410" height="49"></p>
+<p>I mean, I guess they were pretty cool for their time!</p>
+<h2 id="states-of-a-single-animation-frame">States of a single animation frame <a class="w-headline-link" href="#states-of-a-single-animation-frame">#</a></h2>
+<p>Because frames may be partially presented, or dropped frames may happen in ways
+that do not affect smoothness, we have begun to think of each frame as having a
+completeness or smoothness score.</p>
+<p>Here is the spectrum of ways in which we interpret the state of a single
+animation frame, ordered from best to worst case:</p>
+<div>
+  <table>
+    <tr>
+      <td style="width:12em"><strong style="background:#BCD5AC;padding:0.25em;">
+        No Update Desired</strong>
+      </td>
+      <td>Idle time, repeat of the previous frame.</td>
+    </tr>
+    <tr>
+      <td><strong style="background:#BCD5AC;padding:0.25em;">
+        Fully presented</strong>
+      </td>
+      <td>The main thread update was either committed within deadline, or no
+      main thread update was desired.</td>
+    </tr>
+    <tr>
+      <td><strong style="background:#BCD5AC;padding:0.25em;">
+        Partially presented</strong>
+      </td>
+      <td>Compositor only; the delayed main thread update had no visual
+      change.</td>
+    </tr>
+    <tr>
+      <td><strong style="background:#DCE9D5;padding:0.25em;">
+        Partially presented</strong>
+      </td>
+      <td>Compositor only; the main thread had a visual update, but that
+      update did not include an animation that affects smoothness.</td>
+    </tr>
+    <tr>
+      <td><strong style="background:#E9ECC2;padding:0.25em;">
+        Partially presented</strong>
+      </td>
+      <td>Compositor only; the main thread had a visual update that affects
+      smoothness, but a previously stale frame arrived and was used instead.</td>
+    </tr>
+    <tr>
+      <td><strong style="background:#FDF2D0;padding:0.25em;">
+        Partially presented</strong>
+      </td>
+      <td>Compositor only; without the desired main update, and the
+      compositor update has an animation that affects smoothness.</td>
+    </tr>
+    <tr>
+      <td><strong style="background:#EECDCD;padding:0.25em;">
+        Partially presented</strong>
+      </td>
+      <td>Compositor only but the compositor update does not have an
+      animation that affects smoothness.</td>
+    </tr>
+    <tr>
+      <td><strong style="background:#EECDCD;padding:0.25em;">
+        Dropped frame</strong>
+      </td>
+      <td>No update. There was no compositor update desired, and main was
+      delayed.</td>
+    </tr>
+    <tr>
+      <td><strong style="background:#DE9D9B;padding:0.25em;">
+        Dropped frame</strong>
+      </td>
+      <td>A compositor update was desired, but it was delayed.</td>
+    </tr>
+    <tr>
+      <td><strong style="background:#DE9D9B;padding:0.25em;">
+        Stale frame</strong>
+      </td>
+      <td>An update was desired, it was produced by the renderer, but the
+      GPU still did not present it before the vsync deadline.</td>
+    </tr>
+  </table>
+</div>
+<p>It's possible to turn these states into somewhat of a score. And perhaps one way
+to interpret this score is to consider it a <em>probability</em> of being observable by
+the user. A single dropped frame may not be very observable, but a sequence of
+many dropped frames affecting smoothness in a row sure is!</p>
+<h2 id="putting-it-all-together:-a-percent-dropped-frames-metric">Putting it all together: A Percent Dropped Frames metric <a class="w-headline-link" href="#putting-it-all-together:-a-percent-dropped-frames-metric">#</a></h2>
+<p>While it can sometimes be necessary to dive deep into the state of each
+animation frame, it's also useful to just assign a quick &quot;at a glance&quot; score for
+an experience.</p>
+<p>Because frames may be <em>partially presented,</em> and because even fully skipped
+frame updates may not actually <em>affect smoothness</em>, we want to focus less on
+just counting frames, and more on the <em>extent</em> to which the browser is unable to
+provide <em>visually complete</em> updates <em>when it mattered</em>.</p>
+<p>The mental model should move from:</p>
+<ol>
+<li><em>Frames Per Second</em>, to</li>
+<li>Detecting missing and important animation updates, to</li>
+<li><em>Percentage Dropped</em> over a given time period.</li>
+</ol>
+<p>What matters is: <em>the proportion of time waiting for important
+updates</em>. We think this matches the natural way users experience the smoothness
+of web content in practice. So far, we have been using the following as an
+initial set of metrics:</p>
+<ul>
+<li><strong>Average Percent Dropped:</strong> for all non-idle animation frames throughout the
+whole timeline</li>
+<li><strong>Worst Case of Percent Dropped Frames:</strong> as measured over 1 second sliding
+windows of time.</li>
+<li><strong>95th percentile of Percent Dropped Frames:</strong> as measured over 1 second
+sliding windows of time.</li>
+</ul>
+<p>You can find these scores in some Chrome developer tools today. While these
+metrics focus only on overall frame throughput, we are also evaluating other
+factors, such as frame latency.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>These names are somewhat historical. The &quot;Percent Dropped&quot; naming no longer
+matches any literal &quot;was a frame dropped&quot; concept. As the previous section
+covered, each animation frame is a complicated arrangement of conditions
+leading to an overall probability. Expect these names to evolve over time.</p>
+</div></aside>
+<h2 id="try-it-yourself-in-developer-tooling!">Try it yourself in developer tooling! <a class="w-headline-link" href="#try-it-yourself-in-developer-tooling!">#</a></h2>
+<h3 id="performance-hud">Performance HUD <a class="w-headline-link" href="#performance-hud">#</a></h3>
+<p>Chromium has a neat Performance HUD hidden behind a flag
+(<code>chrome://flags/#show-performance-metrics-hud</code>). In it, you can find live
+scores for things like Core Web Vitals and also a few experimental definitions
+for animation smoothness based on <em>Percent Dropped Frames</em> over time.</p>
+<img     alt="Performance HUD"          decoding="async"     height="441"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format"     srcset="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/hblBG5oYxWsUOua0tW3C.png?auto=format&w=1600 1600w"          width="800"   />
+<h3 id="frame-rendering-stats">Frame Rendering Stats <a class="w-headline-link" href="#frame-rendering-stats">#</a></h3>
+<p><a href="https://developer.chrome.com/docs/devtools/evaluate-performance/reference/#fps-meter" rel="noopener">Enable &quot;Frame Rendering
+Stats&quot;</a>
+in DevTools via Rendering settings to see a live view of new animation frames,
+which are color-coded to differentiate partial updates from fully-dropped frame
+updates. The reported fps is for fully-presented frames only.</p>
+<img     alt="Frame rendering stats"          decoding="async"     height="372"          loading="lazy"     sizes="(min-width: 398px) 398px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/xazCKFNCWwjviBGS9JO6.png?auto=format"     srcset="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/xazCKFNCWwjviBGS9JO6.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/xazCKFNCWwjviBGS9JO6.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/xazCKFNCWwjviBGS9JO6.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/xazCKFNCWwjviBGS9JO6.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/xazCKFNCWwjviBGS9JO6.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/xazCKFNCWwjviBGS9JO6.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/xazCKFNCWwjviBGS9JO6.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/xazCKFNCWwjviBGS9JO6.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/xazCKFNCWwjviBGS9JO6.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/xazCKFNCWwjviBGS9JO6.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/xazCKFNCWwjviBGS9JO6.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/xazCKFNCWwjviBGS9JO6.png?auto=format&w=796 796w"          width="398"   />
+<h3 id="frame-viewer-in-devtools-performance-profile-recordings">Frame Viewer in DevTools performance profile recordings <a class="w-headline-link" href="#frame-viewer-in-devtools-performance-profile-recordings">#</a></h3>
+<p>The <a href="https://developer.chrome.com/docs/devtools/evaluate-performance/" rel="noopener">DevTools Performance
+panel</a> has
+long had a <a href="https://developer.chrome.com/docs/devtools/evaluate-performance/reference/#frames" rel="noopener">Frames
+viewer</a>.
+However, it had grown a bit out of sync with how the modern rendering pipeline
+actually works. There has been plenty of recent improvement, even in the latest
+Chrome Canary, which we think will greatly ease debugging animation issues.</p>
+<p>Today you will find that frames in the frames viewer are better aligned with
+vsync boundaries, and color-coded based on status. There is still not full
+visualization for all the nuances outlined above, but we're planning to add more
+in the near future.</p>
+<img     alt="Frame viewer in Chrome DevTools"          decoding="async"     height="148"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format"     srcset="https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/nM10iAStORWg0YlDbPc2czmpRRr2/ou89sgoFeg2481KVUWmF.png?auto=format&w=1600 1600w"          width="800"   />
+<h3 id="chrome-tracing">Chrome tracing <a class="w-headline-link" href="#chrome-tracing">#</a></h3>
+<p>Finally, with Chrome Tracing, the tool of choice for diving deep into details,
+you can record a &quot;Web content rendering&quot; trace via the new <a href="https://ui.perfetto.dev/" rel="noopener">Perfetto
+UI</a> (or <code>about:tracing</code>), and dig deep into Chrome's
+graphics pipeline. It can be a daunting task, but there are a few things
+recently added to Chromium to make it easier. You can get an overview of what is
+available in the <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/docs/life_of_a_frame.md" rel="noopener">Life of a
+Frame</a>
+document.</p>
+<p>Through trace events you can definitively determine:</p>
+<ul>
+<li>Which animations are running (using events named <code>TrackerValidation</code>).</li>
+<li>Getting the exact timeline of animation frames (using events named
+<code>PipelineReporter</code>).</li>
+<li>For janky animation updates, figure out exactly what is blocking your
+animation from running faster (using the event breakdowns within
+<code>PipelineReporter</code> events).</li>
+<li>For input-driven animations, see how long it takes to get a visual update
+(using events named <code>EventLatency</code>).</li>
+</ul>
+<img     alt="Chrome Tracing pipeline reporter"          decoding="async"     height="138"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format"     srcset="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/O0vDMhhaob9bllU0xRVy.png?auto=format&w=1600 1600w"          width="800"   />
+<h2 id="what's-next">What's next <a class="w-headline-link" href="#what's-next">#</a></h2>
+<p>The <a href="/vitals/">Web Vitals</a> initiative aims to provide metric and guidance for
+building great user experiences on the web.
+<a href="/user-centric-performance-metrics/#in-the-lab">Lab-based</a> metrics like <a href="/tbt/">Total
+Blocking Time (TBT)</a> and <a href="/tti/">Time to Interactive (TTI)</a> are vital for
+catching and diagnosing potential interactivity issues. We are planning to
+design a similar lab-based metric for animation smoothness.</p>
+<p>We'll keep you posted as we continue to work through ideas for designing a
+comprehensive metric based on individual animation frame data.</p>
+<p>In the future, we'd also like to design APIs that make it possible to measure
+animation smoothness performantly for real users in the
+<a href="/user-centric-performance-metrics/#in-the-field">field</a> as well as in the lab.
+Stay tuned for updates there as well!</p>
+<h2 id="feedback">Feedback <a class="w-headline-link" href="#feedback">#</a></h2>
+<p>We're excited about all the recent improvements and developer tools that have
+shipped in Chrome to measure animation smoothness. Please try these tools out,
+benchmark your animations, and let us know where it leads!</p>
+<p>You can send your comments to the
+<a href="https://groups.google.com/g/web-vitals-feedback" rel="noopener">web-vitals-feedback</a> Google
+group with &quot;[Smoothness Metrics]&quot; in the subject line. We're really looking
+forward to hearing what you think!</p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/performance/">Performance</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/web-vitals/">Web Vitals</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Nov 3, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/blog/smoothness/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@mmocny | Behdad Bakhshinategh | Jonathan Ross"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

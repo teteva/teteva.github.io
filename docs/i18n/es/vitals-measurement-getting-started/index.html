@@ -1,0 +1,663 @@
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=e33421228eda3">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=80609199b5c96">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Cómo empezar a medir Web Vitals</title>
+<meta name="description" content="Aprenda a medir los Web Vitals de su sitio tanto en el mundo real como en entornos de laboratorio." />
+
+<link rel="canonical" href="https://web.dev/i18n/es/vitals-measurement-getting-started/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/vitals-measurement-getting-started/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/vitals-measurement-getting-started/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/vitals-measurement-getting-started/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/vitals-measurement-getting-started/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/vitals-measurement-getting-started/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/vitals-measurement-getting-started/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/vitals-measurement-getting-started/" />
+<meta itemprop="name" content="Cómo empezar a medir Web Vitals" />
+<meta itemprop="description" content="Aprenda a medir los Web Vitals de su sitio tanto en el mundo real como en entornos de laboratorio." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="es_ALL" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/es/vitals-measurement-getting-started/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Cómo empezar a medir Web Vitals" />
+<meta property="og:description" content="Aprenda a medir los Web Vitals de su sitio tanto en el mundo real como en entornos de laboratorio." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="Gráfico mensual superpuesto con cronómetros etiquetados como LCP, FID y CLS." />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Cómo empezar a medir Web Vitals" />
+<meta name="twitter:description" content="Aprenda a medir los Web Vitals de su sitio tanto en el mundo real como en entornos de laboratorio." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=1be316f16f2f8', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=e0b070f66774b', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Aprender
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Medir
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Cerrar</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="Gráfico mensual superpuesto con cronómetros etiquetados como LCP, FID y CLS."     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/QxMJKZcue9RS5u05XxTE.png?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="En esta página">
+    <div class="course-toc__heading font-google-sans weight-medium">En esta página</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#como-medir-los-web-vitals-utilizando-los-datos-del-rum">Cómo medir los Web Vitals utilizando los datos del RUM</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#como-comenzar">Cómo comenzar</a></li><li class="toc__listitem"><a class="toc__anchor" href="#recopilacion-de-datos-del-rum">Recopilación de datos del RUM</a></li><li class="toc__listitem"><a class="toc__anchor" href="#biblioteca-de-javascript-web-vitals">Biblioteca de JavaScript web-vitals</a></li><li class="toc__listitem"><a class="toc__anchor" href="#como-agregar-datos">Cómo agregar datos</a></li><li class="toc__listitem"><a class="toc__anchor" href="#interpretacion-de-los-datos">Interpretación de los datos</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#como-medir-los-web-vitals-utilizando-los-datos-del-laboratorio">Cómo medir los Web Vitals utilizando los datos del laboratorio</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#consideraciones">Consideraciones</a></li><li class="toc__listitem"><a class="toc__anchor" href="#herramientas">Herramientas</a></li></ul></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="como-empezar-a-medir-web-vitals">Cómo empezar a medir Web Vitals</h1>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>May 27, 2020</time>
+             — Actualizado <time>May 27, 2020</time> 
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/vitals-measurement-getting-started/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/vitals-measurement-getting-started/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/vitals-measurement-getting-started/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/vitals-measurement-getting-started/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/vitals-measurement-getting-started/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/vitals-measurement-getting-started/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/katiehempenius/"> <img     alt="Katie Hempenius"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/katiehempenius/">Katie Hempenius</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/katiehempenius">Twitter</a>
+               <a href="https://github.com/khempenius">GitHub</a>
+               <a href="https://glitch.com/@khempenius">Glitch</a>
+               <a href="https://katiehempenius.com/">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="En esta página">
+      <summary>
+        En esta página
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#como-medir-los-web-vitals-utilizando-los-datos-del-rum">Cómo medir los Web Vitals utilizando los datos del RUM</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#como-comenzar">Cómo comenzar</a></li><li class="toc__listitem"><a class="toc__anchor" href="#recopilacion-de-datos-del-rum">Recopilación de datos del RUM</a></li><li class="toc__listitem"><a class="toc__anchor" href="#biblioteca-de-javascript-web-vitals">Biblioteca de JavaScript web-vitals</a></li><li class="toc__listitem"><a class="toc__anchor" href="#como-agregar-datos">Cómo agregar datos</a></li><li class="toc__listitem"><a class="toc__anchor" href="#interpretacion-de-los-datos">Interpretación de los datos</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#como-medir-los-web-vitals-utilizando-los-datos-del-laboratorio">Cómo medir los Web Vitals utilizando los datos del laboratorio</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#consideraciones">Consideraciones</a></li><li class="toc__listitem"><a class="toc__anchor" href="#herramientas">Herramientas</a></li></ul></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <p>La recopilación de datos sobre los Web Vitals de su sitio es el primer paso para mejorarlos. Un análisis completo recopilará datos de rendimiento tanto en el mundo real como en entornos de laboratorio. Medir Web Vitals requiere cambios mínimos de código y se puede lograr usando herramientas gratuitas.</p>
+<h2 id="como-medir-los-web-vitals-utilizando-los-datos-del-rum">Cómo medir los Web Vitals utilizando los datos del RUM <a class="w-headline-link" href="#como-medir-los-web-vitals-utilizando-los-datos-del-rum">#</a></h2>
+<p>El <a href="https://en.wikipedia.org/wiki/Real_user_monitoring" rel="noopener">Real User Monitoring: Monitoreo de Usuarios Reales</a> (RUM), también conocido como los datos de campo, capturan el rendimiento experimentado por los usuarios reales de un sitio. Los datos RUM son los que utiliza Google para determinar si un sitio cumple con los <a href="/vitals/">umbrales recomendados por Core Web Vitals.</a></p>
+<h3 id="como-comenzar">Cómo comenzar <a class="w-headline-link" href="#como-comenzar">#</a></h3>
+<p>Si no tiene una configuración del RUM, las siguientes herramientas le proporcionarán rápidamente datos sobre el rendimiento de su sitio en el mundo real. Todas estas herramientas se basan en el mismo conjunto de datos subyacente (<a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome User Experience Report</a>), pero tienen casos de uso ligeramente diferentes:</p>
+<ul>
+<li><strong>PageSpeed Insights (PSI)</strong>: <a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">PageSpeed Insights</a> informa sobre el rendimiento agregado a nivel de página y a nivel de origen durante los últimos 28 días. Además, proporciona sugerencias sobre cómo mejorar el rendimiento. Si busca una única acción para comenzar a medir y mejorar los Web Vitals de su sitio web, le recomendamos que utilice PSI para auditar su sitio. PSI está disponible en la <a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">web</a> y como <a href="https://developers.google.com/speed/docs/insights/v5/get-started" rel="noopener">API</a>.</li>
+<li><strong>Search Console</strong>: <a href="https://search.google.com/search-console/welcome" rel="noopener">Search Console</a> informa los datos de rendimiento por página. Esto lo hace adecuado para identificar páginas específicas que necesitan mejoras. A diferencia de PageSpeed Insights, los informes de Search Console incluyen datos históricos de rendimiento. Search Console solo se puede utilizar con sitios de los que seas propietario y cuya propiedad ha sido verificada.</li>
+<li><strong>Panel de control de CrUX</strong>: el <a href="https://developers.google.com/web/updates/2018/08/chrome-ux-report-dashboard" rel="noopener">panel de control de CrUX</a> es un panel de control preconstruido que muestra los datos de CrUX para un origen de su elección. Está construido sobre Data Studio y el proceso de configuración toma aproximadamente un minuto. En comparación con PageSpeed Insights y Search Console, los informes del panel de CrUX incluyen más dimensiones, por ejemplo, los datos se pueden desglosar por dispositivo y tipo de conexión.</li>
+</ul>
+<p>Vale la pena señalar que, aunque las herramientas enumeradas anteriormente son adecuadas para &quot;comenzar&quot; a medir Web Vitals, también pueden ser útiles en otros contextos. En particular, tanto CrUX como PSI están disponibles como API y se pueden utilizar para <a href="https://dev.to/chromiumdev/a-step-by-step-guide-to-monitoring-the-competition-with-the-chrome-ux-report-4k1o" rel="noopener">crear paneles de control</a>  y otros informes.</p>
+<h3 id="recopilacion-de-datos-del-rum">Recopilación de datos del RUM <a class="w-headline-link" href="#recopilacion-de-datos-del-rum">#</a></h3>
+<p>Aunque las herramientas basadas en CrUX son un buen punto de partida para investigar el rendimiento de los Web Vitals, le recomendamos encarecidamente que lo complemente con su propio RUM. Los datos del RUM que recopila usted mismo pueden proporcionar información más detallada e inmediata sobre el rendimiento de su sitio. Esto facilita la identificación de problemas y probar posibles soluciones.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Las fuentes de datos basadas en CrUX informan de los datos utilizando una granularidad de aproximadamente un mes, sin embargo, los detalles de esto varían ligeramente según la herramienta. Por ejemplo, PSI y Search Console informan del rendimiento observado en los últimos 28 días, mientras que el conjunto de datos y el panel de control de CrUX se desglosan por mes natural.</p>
+</div></aside>
+<p>Puede recopilar sus propios datos del RUM utilizando un proveedor del RUM especializado, o bien, configurando sus propias herramientas.</p>
+<p>Los proveedores del RUM especializado se especializan en la recopilación y presentación de datos del RUM. Para utilizar Core Web Vitals con estos servicios, pregunte a su proveedor del RUM sobre la habilitación de la supervisión de Core Web Vitals para su sitio.</p>
+<p>Si no tiene un proveedor del RUM, puede aumentar su configuración de análisis existente para recopilar e informar sobre estas métricas utilizando la <a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">Biblioteca de JavaScript <code>web-vitals</code></a>. Este método se explica con más detalle a continuación.</p>
+<h3 id="biblioteca-de-javascript-web-vitals">Biblioteca de JavaScript web-vitals <a class="w-headline-link" href="#biblioteca-de-javascript-web-vitals">#</a></h3>
+<p>Si está implementando su propia configuración del RUM para Web Vitals, la forma más sencilla de recoger las medidas de los Web Vitals es utilizar la Biblioteca de JavaScript {<a href="https://github.com/GoogleChrome/web-vitals" rel="noopener"><code>web-vitals</code></a>. <code>web-vitals</code> es una biblioteca pequeña y modular (~1KB) que proporciona una API conveniente para recopilar y reportar cada una de las <a href="/user-centric-performance-metrics/#in-the-field">medidas de campo</a> en Web Vitals.</p>
+<p>Las métricas que componen Web Vitals no están expuestas directamente por las API de rendimiento integradas en el navegador, sino que se crearon sobre ellas. Por ejemplo, <a href="/cls/">Cumulative Layout Shift: Cambio Acumulativo del diseño (CLS)</a> se implementa utilizando la <a href="https://wicg.github.io/layout-instability/" rel="noopener">API Layout Instability</a>. Al utilizar <code>web-vitals</code>, no necesita preocuparse de implementar estas métricas usted mismo. Además, garantiza que los datos que recopila coinciden con la metodología y las prácticas recomendadas para cada métrica.</p>
+<p>Para obtener más información sobre la implementación de <code>web-vitals</code>, consulte la <a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">documentación</a> y las <a href="/vitals-field-measurement-best-practices/">Prácticas recomendadas para medir Web Vitals en la guía de campo</a>.</p>
+<h3 id="como-agregar-datos">Cómo agregar datos <a class="w-headline-link" href="#como-agregar-datos">#</a></h3>
+<p>Es esencial que reporte las medidas recopiladas por <code>web-vitals</code>. Si estos datos se miden pero no se reportan, nunca los verá. La documentación de los <code>web-vitals</code> incluye ejemplos que muestran cómo enviar los datos a <a href="https://github.com/GoogleChrome/web-vitals#send-the-results-to-an-analytics-endpoint" rel="noopener">un endpoint genérico de la API</a>, <a href="https://github.com/GoogleChrome/web-vitals#send-the-results-to-google-analytics" rel="noopener">Google Analytics</a> o <a href="https://github.com/GoogleChrome/web-vitals#send-the-results-to-google-tag-manager" rel="noopener">Google Tag Manager</a>.</p>
+<p>Si ya tiene una herramienta de reportes favorita, considere usarla. De lo contrario, Google Analytics es gratuita y se puede utilizar para este propósito.</p>
+<p>Al considerar qué herramienta utilizar, es útil pensar en quién necesitará tener acceso a los datos. Por lo general, las empresas obtienen las mayores ganancias de rendimiento cuando toda la empresa, en lugar de un solo departamento, está interesada en mejorar el rendimiento. Consulte <a href="/fixing-website-speed-cross-functionally/">Cómo corregir la velocidad del sitio web de forma cruzada</a> para obtener información sobre cómo conseguir la participación de diferentes departamentos.</p>
+<h3 id="interpretacion-de-los-datos">Interpretación de los datos <a class="w-headline-link" href="#interpretacion-de-los-datos">#</a></h3>
+<p>Al analizar los datos de rendimiento, es importante prestar atención a las colas de la distribución. Los datos de RUM con frecuencia revelan que el rendimiento varía ampliamente: algunos usuarios tienen experiencias rápidas, otros tienen experiencias lentas. Sin embargo, el uso de la mediana para resumir los datos puede enmascarar fácilmente este comportamiento.</p>
+<p>Con respecto a los Web Vitals, Google utiliza el porcentaje de experiencias &quot;buenas&quot;, en vez de estadísticas como medianas o promedios, para determinar si un sitio o página cumple con los umbrales recomendados. Específicamente, para que se considere que un sitio o una página cumple con los umbrales de Core Web Vitals, el 75% de las visitas a la página deben alcanzar el umbral &quot;bueno&quot; para cada métrica.</p>
+<h2 id="como-medir-los-web-vitals-utilizando-los-datos-del-laboratorio">Cómo medir los Web Vitals utilizando los datos del laboratorio <a class="w-headline-link" href="#como-medir-los-web-vitals-utilizando-los-datos-del-laboratorio">#</a></h2>
+<p>Los <a href="/user-centric-performance-metrics/#in-the-lab">datos de laboratorio</a>, también conocidos como datos sintéticos, se recopilan de un entorno controlado, en vez de usuarios reales. A diferencia de los datos del RUM, los datos de laboratorio se pueden recopilar de entornos de preproducción y, por lo tanto, se pueden incorporar a los flujos de trabajo de los desarrolladores y a los procesos de integración continua. Ejemplos de herramientas que recopilan datos sintéticos son Lighthouse y WebPageTest.</p>
+<h3 id="consideraciones">Consideraciones <a class="w-headline-link" href="#consideraciones">#</a></h3>
+<p>Siempre habrá discrepancias entre los datos del RUM y los datos de laboratorio, especialmente si las condiciones de la red, el tipo de dispositivo o la ubicación del entorno del laboratorio difieren significativamente de las de los usuarios. Sin embargo, cuando se trata de recopilar datos de laboratorio sobre métricas de Web Vitals en particular, hay un par de consideraciones específicas que es importante tener en cuenta:</p>
+<ul>
+<li><strong>Cumulative Layout Shift (CLS):</strong> El <a href="/cls/">Cumulative Layout Shift</a> medido en entornos de laboratorio puede ser artificialmente más bajo que el CLS observado en los datos del RUM. El CLS se define como la &quot;suma total de todas las puntuaciones de cambio de diseño individuales para cada cambio de diseño inesperado que se produce <em>durante toda la vida útil de la página</em> &quot;. Sin embargo, la vida útil de una página suele ser muy diferente dependiendo de si la carga un usuario real o una herramienta sintética para medir el rendimiento. Muchas herramientas de laboratorio solo cargan la página, no interactúan con ella. Como resultado, solo capturan los cambios de diseño que se producen durante la carga de la página inicial. Por el contrario, el CLS medido por las herramientas del RUM captura <a href="/cls/#expected-vs.-unexpected-layout-shifts">cambios de diseño inesperados</a> que ocurren a lo largo de toda la vida útil de la página.</li>
+<li><strong>First Input Delay: Demora de la primera entrada (FID)</strong> <a href="/fid/">First Input Delay</a> no se puede medir en entornos de laboratorio porque requiere interacciones del usuario con la página. Como resultado, <a href="/tbt/">Total Blocking Time: Tiempo de bloqueo total</a> (TBT) es el proxy de laboratorio recomendado para la FID. TBT mide la &quot;cantidad total de tiempo entre First Contentful Paint y Time to Interactive durante el cual la página está bloqueada para responder a la entrada del usuario&quot;. Aunque FID y TBT se calculan de manera diferente, ambos son reflejos de un hilo principal bloqueado durante el proceso de arranque. Cuando el proceso principal está bloqueado, el navegador se demora en responder a las interacciones del usuario. FID mide la demora, si lo hay, que se produce la primera vez que un usuario intenta interactuar con una página.</li>
+</ul>
+<h3 id="herramientas">Herramientas <a class="w-headline-link" href="#herramientas">#</a></h3>
+<p>Estas herramientas se pueden utilizar para recopilar medidas obtenidas en el laboratorio de Web Vitals:</p>
+<ul>
+<li><strong>Web Vitals Chrome Extension:</strong> la <a href="https://github.com/GoogleChrome/web-vitals-extension" rel="noopener">extensión</a> de los Web Vitals de Chrome mide y reporta los Core Web Vitals (LCP, FID, y CLS) para una página determinada. Esta herramienta está destinada a proporcionar a los desarrolladores comentarios sobre el rendimiento en tiempo real conforme se realizan cambios en el código.</li>
+<li><strong>Lighthouse:</strong> Lighthouse reporta sobre LCP, CLS y TBT, y también destaca las posibles mejoras en el rendimiento. Lighthouse está disponible en Chrome DevTools, como una extensión de Chrome y como un paquete npm. Lighthouse también se puede incorporar a los flujos de trabajo de integración continua a través de <a href="https://github.com/GoogleChrome/lighthouse-ci" rel="noopener">Lighthouse CI</a>.</li>
+<li><strong>WebPageTest:</strong> <a href="https://webpagetest.org/" rel="noopener">WebPageTest</a> incluye Web Vitals como parte de sus informes estándar. WebPageTest es útil para recopilar información sobre los Web Vitals en condiciones particulares de los dispositivos y las redes.</li>
+</ul>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/performance/">Rendimiento</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/web-vitals/">Web Vitals</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Última actualización: <time>May 27, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/es/blog/vitals-measurement-getting-started/index.md"
+        >
+          Mejorar el artículo
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@katiehempenius"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Compartir</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Presentar un error
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Ver fuente
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contenido relevante</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome Actualizaciones
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Conectar</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          Todos los productos
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="es"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Condiciones y privacidad
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Principios de la Comunidad
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

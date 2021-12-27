@@ -1,0 +1,726 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=ad1a6ae2202d3">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>How to define your install strategy</title>
+<meta name="description" content="Best practices for combining different installation offerings to increase installation rates and avoid platform competition and cannibalization. " />
+
+<link rel="canonical" href="https://web.dev/define-install-strategy/" />
+
+<meta itemprop="name" content="How to define your install strategy" />
+<meta itemprop="description" content="Best practices for combining different installation offerings to increase installation rates and avoid platform competition and cannibalization. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/define-install-strategy/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="How to define your install strategy" />
+<meta property="og:description" content="Best practices for combining different installation offerings to increase installation rates and avoid platform competition and cannibalization. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="progressive-web-apps" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="How to define your install strategy" />
+<meta name="twitter:description" content="Best practices for combining different installation offerings to increase installation rates and avoid platform competition and cannibalization. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=d6688af4f9986', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=086af0e6305af', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#how-to-define-your-install-strategy" class="w-toc__header--link">
+        How to define your install strategy
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#why-make-your-web-app-installable">Why make your web app installable?</a></li><li><a href="#promoting-the-installing-of-your-pwa-through-the-browser">Promoting the installing of your PWA through the browser</a><ol><li><a href="#pwa-as-primary-installable-experience">PWA as primary installable experience</a></li></ol></li><li><a href="#prevent-your-pwa-from-cannibalizing-your-platform-specific-app-install-rate">Prevent your PWA from cannibalizing your platform-specific app install rate</a></li><li><a href="#promoting-the-installing-of-your-pwa-through-an-app-store">Promoting the installing of your PWA through an app store</a><ol><li><a href="#promoting-lightweight-apps">Promoting Lightweight Apps</a></li></ol></li><li><a href="#conclusion">Conclusion</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@drenzulli | @petele"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Share</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="how-to-define-your-install-strategy" class="w-article-header__headline">How to define your install strategy</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>May 12, 2020</time>
+           <span class="w-author__separator">•</span> Updated <time>Aug 20, 2020</time> 
+        </div>
+      
+
+      
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/progressive-web-apps"
+          >Progressive Web Apps</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/demianrenzulli/"><img     alt="Demian Renzulli"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/EuTrT82fyivFn16L0vD9.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/EuTrT82fyivFn16L0vD9.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/EuTrT82fyivFn16L0vD9.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/EuTrT82fyivFn16L0vD9.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/EuTrT82fyivFn16L0vD9.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/EuTrT82fyivFn16L0vD9.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/demianrenzulli/">Demian Renzulli</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/drenzulli"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/demianrenzulli">GitHub</a>
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://glitch.com/@demianrenzulli"
+          >Glitch</a
+        >
+      </li>
+      
+    </ul>
+  </div>
+</div>
+          
+            <div class="w-author">
+  <a href="/authors/petelepage/"><img     alt="Pete LePage"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/0g2WvpbGRGdVs0aAPc6ObG7gkud2/3rFbsLsMMk1VveHfBRSu.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/petelepage/">Pete LePage</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/petele"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/petele">GitHub</a>
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://glitch.com/@petele"
+          >Glitch</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://petelepage.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <div class="youtube">  <lite-youtube    videoid="6R9pupbDXYw"      >  </lite-youtube></div>
+<p>In the past, app installs were only possible in the context of platform-specific applications. Today, modern web apps offer installable experiences that provide the same level of integration and reliability as platform-specific apps.</p>
+<p>You can achieve this in different ways:</p>
+<ul>
+<li>Installing the PWA <a href="/customize-install/">from the browser</a>.</li>
+<li>Installing the PWA <a href="https://developers.google.com/web/android/trusted-web-activity" rel="noopener">from the app store</a>.</li>
+</ul>
+<p>Having different distribution channels is a powerful way of reaching a broad number of users, but choosing the right strategy to promote them can be challenging.</p>
+<p>This guide explores best practices for combining different installation offerings to increase installation rates and avoid platform competition and cannibalization. The installation offerings covered include PWAs installed from both the browser and the App Store, as well as platform-specific apps.</p>
+<h2 id="why-make-your-web-app-installable">Why make your web app installable? <a class="w-headline-link" href="#why-make-your-web-app-installable">#</a></h2>
+<p>Installed Progressive Web Apps run in a standalone window instead of a browser tab. They're launchable from the user's home screen, dock, taskbar, or shelf. It's possible to search for them on a device and jump between them with the app switcher, making them feel like part of the device they're installed on.</p>
+<p>But having both an installable web app and a platform-specific app can be confusing for users. For some users platform-specific apps may be the best choice, but for others they can present some drawbacks:</p>
+<ul>
+<li><strong>Storage constraints:</strong> Installing a new app might mean deleting others, or cleaning up space, by removing valuable content. This is especially disadvantageous for users on low-end devices.</li>
+<li><strong>Available bandwidth:</strong> Downloading an app can be a costly and slow process, even more for users on slow connections and expensive data plans.</li>
+<li><strong>Friction:</strong> Leaving a website and moving to a store to download an app creates additional friction and delays a user action that could be performed directly in the web.</li>
+<li><strong>Update cycle:</strong> Making changes in platform-specific apps might require going through an app review process, which can slow down changes and experiments (e.g. A/B tests).</li>
+</ul>
+<p>In some cases, the percentage of users that won't download your platform-specific app might be large, for example: those that think that they won't use the app very often, or can't justify spending several megabytes of storage or data. You can determine the size of this segment in several ways, for example by using an analytics setup to track the percentage of &quot;mobile web only&quot; users.</p>
+<p>If the size of this segment is considerable, that's a good indication that you need to provide alternative ways of installing your experiences.</p>
+<h2 id="promoting-the-installing-of-your-pwa-through-the-browser">Promoting the installing of your PWA through the browser <a class="w-headline-link" href="#promoting-the-installing-of-your-pwa-through-the-browser">#</a></h2>
+<p>If you have a high quality PWA, it may be better to promote its installation over your platform-specific app. For example, if the platform-specific app is missing functionality offered by your PWA, or if it hasn't been updated in a while. It can also be helpful to promote installation of your PWA if the platform-specific app wasn't optimized for bigger screens, such as on Chrome OS.</p>
+<p>For some apps, driving platform-specific app installations is a key part of the business model, in that case, it makes business sense to show a platform-specific app install promotion. But, some users might be more comfortable staying on the web. If that segment can be identified, the PWA prompt can be shown only to them (what we call &quot;PWA as fallback&quot;).</p>
+<p>In this section we'll explore different ways of maximizing the installation rate of PWAs installed through the browser.</p>
+<h3 id="pwa-as-primary-installable-experience">PWA as primary installable experience <a class="w-headline-link" href="#pwa-as-primary-installable-experience">#</a></h3>
+<p>Once a PWA meets the <a href="/install-criteria/">installability criteria</a>, most browsers will show an indication that the PWA is installable. For example, Desktop Chrome will show an installable icon in the address bar, and on mobile, it will show a mini-infobar:</p>
+<figure class="w-figure w-figure--inline-right">
+  <img     alt="Standard Chrome install prompt called mini-infobar"          decoding="async"     height="417"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/1VOvbQjeenZOBAmzjVN5.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+    The mini-infobar
+  </figcaption>
+</figure>
+<p>While that may be enough for some experiences, if your goal is to drive installations of your PWA, we highly recommend you listen for the <a href="https://developer.mozilla.org/docs/Web/API/BeforeInstallPromptEvent" rel="noopener"><code>BeforeInstallPromptEvent</code></a>, and follow the <a href="/promote-install/">patterns for promoting the installation</a> of your PWA.</p>
+<h2 id="prevent-your-pwa-from-cannibalizing-your-platform-specific-app-install-rate">Prevent your PWA from cannibalizing your platform-specific app install rate <a class="w-headline-link" href="#prevent-your-pwa-from-cannibalizing-your-platform-specific-app-install-rate">#</a></h2>
+<p>In some cases, you may choose to promote the installation of your platform-specific app over your PWA, but in this case, we still recommend you provide a mechanism to allow users to install your PWA. This fallback option makes it possible for users who can't, or don't want to install your platform-specific app to get a similar, installed experience.</p>
+<p>The first step to implement this strategy is to define a heuristic for when you'll show the user an install promotion for your PWA, for example:</p>
+<p><strong>&quot;A PWA user is a user that has seen the platform-specific app install prompt and not installed the platform-specific app. They have returned to the site at least five times, or they have clicked the app banner, but have continued using the website instead.&quot;</strong></p>
+<p>Then, the heuristic can be implemented in the following way:</p>
+<ol>
+<li>Show the platform-specific app install banner.</li>
+<li>If a user dismisses the banner, set a cookie with that information (e.g. <code>document.cookie = &quot;app-install-banner=dismissed&quot;</code>).</li>
+<li>Use another cookie to track the number of user visits to the site (e.g. <code>document.cookie = &quot;user-visits=1&quot;</code>).</li>
+<li>Write a function, such as <code>isPWAUser()</code>, that uses the information previously stored in the cookies along with the <a href="/get-installed-related-apps/"><code>getInstalledRelatedApps()</code></a> API to determine if a user is considered a &quot;PWA user&quot;.</li>
+<li>At the moment when the user performs a meaningful action, call <code>isPWAUser()</code>. If the function returns true and the PWA install prompt was saved previously, you can show the PWA install button.</li>
+</ol>
+<h2 id="promoting-the-installing-of-your-pwa-through-an-app-store">Promoting the installing of your PWA through an app store <a class="w-headline-link" href="#promoting-the-installing-of-your-pwa-through-an-app-store">#</a></h2>
+<p>Apps that are available in App stores can be built with different technologies, including PWA techniques. In <a href="https://youtu.be/V7YX4cZ_Cto" rel="noopener">Blending PWA into native environments</a> you can find a summary of the technologies that can be used to that end.</p>
+<p>In this section we'll classify apps in the store in two groups:</p>
+<ul>
+<li><strong>Platform-specific apps:</strong> These apps are mostly built with platform-specific code. Their size depends on the platform, but it's usually above 10MB in Android, and 30MB in iOS. You might want to promote your platform-specific app if you don't have a PWA, or if the platform-specific app presents a more complete feature set.</li>
+<li><strong>Lightweight apps:</strong> These apps can be built with platform-specific code as well, but they are commonly built with web technology, packaged in a platform-specific wrapper. Full PWAs can be uploaded to the stores as well. Some companies opt to provide these as &quot;lite&quot; experiences, and others have used this approach for their flagship (core) apps as well.</li>
+</ul>
+<h3 id="promoting-lightweight-apps">Promoting Lightweight Apps <a class="w-headline-link" href="#promoting-lightweight-apps">#</a></h3>
+<p>According to a <a href="https://medium.com/googleplaydev/shrinking-apks-growing-installs-5d3fcba23ce2" rel="noopener">Google Play study</a>, for every 6 MB increase to an APK's size, the install conversion rate decreases by 1%. This means that the download completion rate of an app of 10 MB could be approximately <strong>30% higher than an app of 100 MB!</strong></p>
+<p>To address this, some companies are leveraging their PWA to provide a lightweight version of their app in the Play Store using Trusted Web Activities. <a href="https://developers.google.com/web/android/trusted-web-activity" rel="noopener">Trusted Web Activities</a> make it possible to deliver your PWA in the Play Store, and because it's built using the web, the app size is usually only a few megabytes.</p>
+<p>Oyo, one of India's largest hospitality companies, built a <a href="/oyo-lite-twa/">Lite version of their app</a>, and made it available in the Play Store using TWA.  It's only 850 KB, just 7% the size of their Android app. And once installed, it's indistinguishable from their Android app:</p>
+<figure class="w-figure">
+  <video controls autoplay loop muted class="w-screenshot">
+    <source src="https://storage.googleapis.com/web-dev-assets/oyo-case-study/oyo-lite.webm" type="video/webm; codecs=vp8">
+    <source src="https://storage.googleapis.com/web-dev-assets/oyo-case-study/oyo-lite.mp4" type="video/mp4; codecs=h264">
+  </video>
+ <figcaption class="w-figcaption">
+    OYO Lite in action.
+  </figcaption>
+</figure>
+<p>Oyo kept both the flagship and &quot;lite&quot; app versions in the store, leaving the final decision to users.</p>
+<h4 id="providing-a-lightweight-web-experience">Providing a lightweight web experience <a class="w-headline-link" href="#providing-a-lightweight-web-experience">#</a></h4>
+<p>Intuitively, users on low-end devices, might be more inclined to download lightweight versions of apps than users on high-end phones. Therefore, if it's possible to identify a user's device, one could prioritize the lightweight app install banner over the heavier platform-specific app version.</p>
+<p>On the web, it's possible to obtain device signals and approximately map them to device categories (e.g. &quot;high&quot;, &quot;mid&quot;, or &quot;low&quot;). You can obtain this information in different ways, using either JavaScript APIs or client hints.</p>
+<h4 id="using-javascript-apis">Using JavaScript APIs <a class="w-headline-link" href="#using-javascript-apis">#</a></h4>
+<p>Using JavaScript APIs like <a href="https://developer.mozilla.org/docs/Web/API/NavigatorConcurrentHardware/hardwareConcurrency" rel="noopener">navigator.hardwareConcurrency</a>, <a href="https://developer.mozilla.org/docs/Web/API/Navigator/deviceMemory" rel="noopener">navigator.deviceMemory</a>, and <a href="https://developer.mozilla.org/docs/Web/API/Navigator/connection" rel="noopener">navigator.connection</a> you can get information about the device CPU, memory and network status respectively. For example:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> deviceCategory <span class="token operator">=</span> req<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'Device-Memory'</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">1</span> <span class="token operator">?</span> <span class="token string">'lite'</span> <span class="token operator">:</span> <span class="token string">'full'</span><span class="token punctuation">;</span>`</code></pre>
+</web-copy-code><h4 id="using-client-hints">Using client hints <a class="w-headline-link" href="#using-client-hints">#</a></h4>
+<p>Device signals can be also inferred in HTTP request headers, through <a href="https://developer.mozilla.org/docs/Glossary/Client_hints" rel="noopener">client hints</a>. Here's how you can implement the previous code for device memory with client hints:</p>
+<p>First, tell the browser you are interested in receiving device memory hints in the header of the HTTP response for any first-party request:</p>
+<web-copy-code><pre class="language-html"><code class="language-html">HTTP/1.1 200 OK<br>Content-Type: text/html<br>Accept-CH: Device-Memory</code></pre>
+</web-copy-code><p>Then, you'll start receiving Device-Memory information in the request header of HTTP requests:</p>
+<web-copy-code><pre class="language-html"><code class="language-html">GET /main.js HTTP/1.1<br>Device-Memory: 0.5</code></pre>
+</web-copy-code><p>You can use this information in your backends to store a cookie with the category of the user's device:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript">app<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'/route'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">req<span class="token punctuation">,</span> res</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token comment">// Determine device category</span><br><br> <span class="token keyword">const</span> deviceCategory <span class="token operator">=</span> req<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'Device-Memory'</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">1</span> <span class="token operator">?</span> <span class="token string">'lite'</span> <span class="token operator">:</span> <span class="token string">'full'</span><span class="token punctuation">;</span><br><br>  <span class="token comment">// Set cookie</span><br>  res<span class="token punctuation">.</span><span class="token function">setCookie</span><span class="token punctuation">(</span><span class="token string">'Device-Category'</span><span class="token punctuation">,</span> deviceCategory<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  …<br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>Finally, create your own logic to map this information to device categories, and show the corresponding app install prompt on each case:</p>
+<web-copy-code><pre class="language-javascript"><code class="language-javascript"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">isDeviceMidOrLowEnd</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>   <span class="token comment">// show "Lite app" install banner or PWA A2HS prompt</span><br><span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span><br>  <span class="token comment">// show "Core app" install banner</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><div class="w-aside w-aside--note">
+<p>Covering in depth techniques on how to map device signals to device categories is out of the scope of this guide, but you can check out Addy Osmani's <a href="https://dev.to/addyosmani/adaptive-loading-improving-web-performance-on-low-end-devices-1m69" rel="noopener">adaptive loading guide</a>, Philip Walton's <a href="https://developers.google.com/web/updates/2017/12/device-memory" rel="noopener">The Device Memory API</a>  and Jeremy Wagner's <a href="https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/client-hints/" rel="noopener">Adapting to Users with Client Hints</a> for more information on best practices around this.</p>
+</div>
+<h2 id="conclusion">Conclusion <a class="w-headline-link" href="#conclusion">#</a></h2>
+<p>The ability to have an icon in the user's home screen is one of the most engaging features of applications. Given that historically this was only possible for apps installed from app stores, companies might think that showing an app store install banner would be enough to convince users to install their experiences. Currently there are more options to have the user install an app, including offering lightweight app experiences in the stores, and letting users add PWAs to the homescreen, by prompting them to do it directly from the website.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/progressive-web-apps/">Progressive Web Apps</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Aug 20, 2020</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/progressive-web-apps/define-install-strategy/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/progressive-web-apps"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

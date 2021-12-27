@@ -1,0 +1,733 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=79e3545355e1d">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=58238187b86d9">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+<meta name="robots" content="noindex" />
+
+
+<title>Self-assessments</title>
+<meta name="description" content="Learn how to use web.dev's self-assessment components. " />
+
+<link rel="canonical" href="https://web.dev/handbook/self-assessment-components/" />
+
+<meta itemprop="name" content="Self-assessments" />
+<meta itemprop="description" content="Learn how to use web.dev's self-assessment components. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/handbook/self-assessment-components/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Self-assessments" />
+<meta property="og:description" content="Learn how to use web.dev's self-assessment components. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Self-assessments" />
+<meta name="twitter:description" content="Learn how to use web.dev's self-assessment components. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=ea393b97f3fd6', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=51e485c7fccdc', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#start-a-self-assessment">Start a self-assessment</a></li><li class="toc__listitem"><a class="toc__anchor" href="#response-types">Response types</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#multiple-choice">Multiple-choice</a></li><li class="toc__listitem"><a class="toc__anchor" href="#think-and-checks">Think-and-checks</a></li><li class="toc__listitem"><a class="toc__anchor" href="#composite-questions">Composite questions</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#question-set-parameters">Question set parameters</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#set-leader">Set leader</a></li><li class="toc__listitem"><a class="toc__anchor" href="#height">Height</a></li><li class="toc__listitem"><a class="toc__anchor" href="#question-labels">Question labels</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#question-anatomy-and-parameters">Question anatomy and parameters</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#cardinality">Cardinality</a></li><li class="toc__listitem"><a class="toc__anchor" href="#correct-answer(s)">Correct answer(s)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#layout">Layout</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#multiple-sets-in-one-post">Multiple sets in one post</a></li><li class="toc__listitem"><a class="toc__anchor" href="#api">API</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#targetassessment">TargetAssessment</a></li><li class="toc__listitem"><a class="toc__anchor" href="#targetassessmentquestion">TargetAssessmentQuestion</a></li><li class="toc__listitem"><a class="toc__anchor" href="#targetassessmentoption">TargetAssessmentOption</a></li></ul></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+
+        <h1 id="self-assessments">Self-assessments</h1>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Jan 28, 2020</time>
+            
+          </div>
+        
+
+        
+        
+
+        
+
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#start-a-self-assessment">Start a self-assessment</a></li><li class="toc__listitem"><a class="toc__anchor" href="#response-types">Response types</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#multiple-choice">Multiple-choice</a></li><li class="toc__listitem"><a class="toc__anchor" href="#think-and-checks">Think-and-checks</a></li><li class="toc__listitem"><a class="toc__anchor" href="#composite-questions">Composite questions</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#question-set-parameters">Question set parameters</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#set-leader">Set leader</a></li><li class="toc__listitem"><a class="toc__anchor" href="#height">Height</a></li><li class="toc__listitem"><a class="toc__anchor" href="#question-labels">Question labels</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#question-anatomy-and-parameters">Question anatomy and parameters</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#cardinality">Cardinality</a></li><li class="toc__listitem"><a class="toc__anchor" href="#correct-answer(s)">Correct answer(s)</a></li><li class="toc__listitem"><a class="toc__anchor" href="#layout">Layout</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#multiple-sets-in-one-post">Multiple sets in one post</a></li><li class="toc__listitem"><a class="toc__anchor" href="#api">API</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#targetassessment">TargetAssessment</a></li><li class="toc__listitem"><a class="toc__anchor" href="#targetassessmentquestion">TargetAssessmentQuestion</a></li><li class="toc__listitem"><a class="toc__anchor" href="#targetassessmentoption">TargetAssessmentOption</a></li></ul></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <p>Self-assessments provide opportunities for users
+to check their understanding of concepts covered in your post.</p>
+<html><head></head><body><web-assessment class="w-callout unresolved " aria-label="Check your understanding">   <div class="w-callout__blurb web-assessment__set-leader">     Test your knowledge of resource optimization   </div> <web-tabs class="web-assessment__content unresolved" label="questions for knowledge self check">         <web-question question-height="25rem" data-label="question">    <web-response-mc cardinality="1" correct-answer="0" data-role="response">      <p data-role="stem">When is it appropriate to lazy load an image?</p>      <span data-role="option">When the image is offscreen during initial page load.</span>      <span data-role="option">When the image is a PNG or JPG.</span>      <span data-role="option">When the image has a <code>lazyload</code> class.</span>      <span data-role="option">When the image is larger than 10&nbsp;KB.</span>      <div data-role="rationale"><p>Images that are offscreen during page load aren't initially needed and so can be lazy loaded to improve performance.</p> </div>      <div data-role="rationale"><p>Improve performance by lazy loading all images—not just PNGs and JPGs—that aren't needed when the page loads.</p> </div>      <div data-role="rationale"><p>The <code>lazyload</code> class is something <em>you</em> add to tell lazysizes which images to lazy load. You can't use the class to determine which images you <em>should</em> lazy load.</p> </div>      <div data-role="rationale"><p>Lazy load any image that may improve performance without hurting user experience, regardless of how big the file is.</p> </div>    </web-response-mc> </web-question>         <web-question question-height="25rem" data-label="question">    <web-response-mc cardinality="1+" correct-answer="1,3" data-role="response">      <p data-role="stem">Which statements about optimizing third-party resources are accurate?</p>      <span data-role="option">The <code>async</code> and <code>defer</code> attributes can be used interchangeably.</span>      <span data-role="option">Pre-connecting to resources is sometimes appropriate.</span>      <span data-role="option">Lazy-loading ads should typically be avoided.</span>      <span data-role="option">Resources that don't provide value should be removed.</span>      <span data-role="option">Self-hosting resources requires minimal maintenance.</span>      <div data-role="rationale"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p> </div>      <div data-role="rationale"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p> </div>      <div data-role="rationale"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p> </div>      <div data-role="rationale"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p> </div>      <div data-role="rationale"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p> </div>    </web-response-mc> </web-question>         <web-question question-height="25rem" data-label="question">    <web-response-mc cardinality="1-2" correct-answer="1,3" data-role="response">      <p data-role="stem">Which statements about optimizing third-party resources are accurate? Select <strong>one to two</strong> statements. </p>      <span data-role="option">The <code>async</code> and <code>defer</code> attributes can be used interchangeably.</span>      <span data-role="option">Pre-connecting to resources is sometimes appropriate.</span>      <span data-role="option">Lazy-loading ads should typically be avoided.</span>      <span data-role="option">Resources that don't provide value should be removed.</span>      <span data-role="option">Self-hosting resources requires minimal maintenance.</span>      <div data-role="rationale"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p> </div>      <div data-role="rationale"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p> </div>      <div data-role="rationale"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p> </div>      <div data-role="rationale"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p> </div>      <div data-role="rationale"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p> </div>    </web-response-mc> </web-question>         <web-question question-height="25rem" data-label="question">    <web-response-mc cardinality="2" correct-answer="1,4" columns="" data-role="response">      <p data-role="stem">Which <strong>two</strong> Sesame Street muppets are clearly the best?</p>      <span data-role="option"><img src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/ng9hB0jbzGXy0MY7upMU.jpg?auto=format" alt="Elmo"></span>      <span data-role="option"><img src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/IzcniCVLaW1yV8ijjcoI.jpg?auto=format" alt="Ernie"></span>      <span data-role="option"><img src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/Ssj8YAsZcZfLHA6RVTQb.jpg?auto=format" alt="Cookie Monster"></span>      <span data-role="option"><img src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/uo1ZxzUbYfqtZCPzdCYF.jpg?auto=format" alt="Big Bird"></span>      <span data-role="option"><img src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/9gSbQKP405CVxOyD3Q0w.jpg?auto=format" alt="Grover"></span>      <div data-role="rationale"><p>Don't give a second thought to this tickle-me-come-lately.</p> </div>      <div data-role="rationale"><p>I mean, c'mon. He's Ernie. I don't know🤷</p> </div>      <div data-role="rationale"><p>"<a href="https://youtu.be/PaHkwE7TaNg">A cookie is a sometimes food</a>"? I remember when you had integrity.</p> </div>      <div data-role="rationale"><p>Laying it on kinda thick with the wide-eyed childlike wonder, no?</p> </div>      <div data-role="rationale"><p>The OG monster. Never forget it.</p> </div>    </web-response-mc> </web-question>         <web-question question-height="25rem" data-label="question">       <div data-role="stimulus"><p><img src="https://web-dev.imgix.net/image/admin/Iz4mJkLrJrLk9Ntem871.png?auto=format" alt="Webby"></p> </div> <web-response-mc cardinality="1" correct-answer="1" data-role="response">   <p data-role="stem">Who's this Webby I've heard so much about?</p>   <span data-role="option">A sentient system icon run amok</span>   <span data-role="option">The best darn mascot you could hope for</span>   <span data-role="option">Spiderman's lesser known sidekick</span>   <div data-role="rationale"><p>Like this helpful little being would ever go amok.</p> </div>   <div data-role="rationale"><p>Webby is <em>everything</em>.</p> </div>   <div data-role="rationale"><p>I really don't see Webby swinging around on those small (but <em>adorable</em>) arms.</p> </div> </web-response-mc> <web-response-mc cardinality="1" correct-answer="2" data-role="response">   <p data-role="stem">How awesome is Webby?</p>   <span data-role="option">Pretty awesome</span>   <span data-role="option">The awesomest</span>   <span data-role="option">OMG 🤯</span>   <div data-role="rationale"><p>Nope.</p> </div>   <div data-role="rationale"><p>Close but no.</p> </div>   <div data-role="rationale"><p>It was always you, Webby.</p> </div> </web-response-mc>     </web-question>       </web-tabs> </web-assessment></body></html>
+<ol>
+<li><a href="#start-a-self-assessment">Start a self-assessment</a></li>
+<li><a href="#response-types">Response types</a>
+<ul>
+<li><a href="#multiple-choice">Multiple-choice</a></li>
+<li><a href="#think-and-checks">Think-and-checks</a></li>
+<li><a href="#composite-questions">Composite questions</a></li>
+</ul>
+</li>
+<li><a href="#question-set-parameters">Question set parameters</a></li>
+<li><a href="#question-anatomy-and-parameters">Question anatomy and parameters</a></li>
+<li><a href="#multiple-sets-in-one-post">Multiple sets in one post</a></li>
+<li><a href="#example-assessment">Example assessment</a></li>
+<li><a href="#api">API</a>
+<ul>
+<li><a href="#targetassessment">TargetAssessment</a></li>
+<li><a href="#targetassessmentquestion">TargetAssessmentQuestion</a></li>
+<li><a href="#targetassessmentoption">TargetAssessmentOption</a></li>
+</ul>
+</li>
+</ol>
+<h2 id="start-a-self-assessment">Start a self-assessment <a class="w-headline-link" href="#start-a-self-assessment">#</a></h2>
+<p>To include a self-assessment in your post:</p>
+<ol>
+<li>Add this shortcode to your post where you want the self-assessment to appear:<web-copy-code><pre class="language-html"><code class="language-html">{% Assessment 'my-first-self-assessment' %}</code></pre>
+</web-copy-code></li>
+<li>Copy <code>my-first-self-assessment.assess.yml</code> in <code>src/site/_drafts/_template-self-assessment</code>
+to your post's directory.</li>
+<li>Change the file's name to match
+the topic of your assessment: <code>your-assessment-topic.assess.yml</code>.</li>
+<li>Update the argument in the short code to match the new file name.</li>
+<li>Using the YAML template as a starting point,
+follow the instructions below to create your question set.</li>
+</ol>
+<h2 id="response-types">Response types <a class="w-headline-link" href="#response-types">#</a></h2>
+<h3 id="multiple-choice">Multiple-choice <a class="w-headline-link" href="#multiple-choice">#</a></h3>
+<p>The multiple-choice response type lets users respond to a question
+by selecting from an array of options,
+which can include MarkDown or images.
+(But not both! Overstuffing your options can make them artificially hard.)</p>
+<aside class="aside flow bg-state-warn-bg color-core-text">
+<p class="cluster ">
+<span class="aside__icon box-block color-state-warn-text"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Warning sign" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M23 21L12 2 1 21h22zm-12-3v-2h2v2h-2zm0-4h2v-4h-2v4z" />
+</svg></span>
+<strong>Warning</strong></p>
+<div class=" flow">
+<p>To help ensure that users understand what selecting an option will do,
+don't include links or any other interactive elements in a multiple-choice option.</p>
+</div></aside>
+<details >
+<summary>
+  multiple-choice.assess.yml
+</summary>
+<web-copy-code><pre class="language-yml"><code class="language-yml"><span class="token key atrule">setLeader</span><span class="token punctuation">:</span> Test your knowledge of resource optimization<br><span class="token key atrule">height</span><span class="token punctuation">:</span> unset<br><span class="token key atrule">tabLabel</span><span class="token punctuation">:</span> question<br><span class="token key atrule">questions</span><span class="token punctuation">:</span><br>  <span class="token punctuation">-</span> <span class="token key atrule">type</span><span class="token punctuation">:</span> multiple<span class="token punctuation">-</span>choice<br>    <span class="token key atrule">cardinality</span><span class="token punctuation">:</span> <span class="token string">"1"</span><br>    <span class="token key atrule">correctAnswers</span><span class="token punctuation">:</span> <span class="token string">"0"</span><br>    <span class="token key atrule">stem</span><span class="token punctuation">:</span> When is it appropriate to lazy load an image<span class="token punctuation">?</span><br>    <span class="token key atrule">options</span><span class="token punctuation">:</span><br>      <span class="token punctuation">-</span> <span class="token key atrule">content</span><span class="token punctuation">:</span> When the image is offscreen during initial page load.<br>        <span class="token key atrule">rationale</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string"><br>          Images that are offscreen during page load aren't initially needed<br>          and so can be lazy loaded to improve performance.</span><br>      <span class="token punctuation">-</span> <span class="token key atrule">content</span><span class="token punctuation">:</span> When the image is a PNG or JPG.<br>        <span class="token key atrule">rationale</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string"><br>          Improve performance by lazy loading all images—not just PNGs and<br>          JPGs—that aren't needed when the page loads.</span><br>      <span class="token punctuation">-</span> <span class="token key atrule">content</span><span class="token punctuation">:</span> When the image has a `lazyload` class.<br>        <span class="token key atrule">rationale</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string"><br>          The `lazyload` class is something _you_ add to tell<br>          lazysizes which images to lazy load.<br>          You can't use the class to determine<br>          which images you _should_ lazy load.</span><br>      <span class="token punctuation">-</span> <span class="token key atrule">content</span><span class="token punctuation">:</span> When the image is larger than 10<span class="token important">&amp;nbsp;KB.</span><br>        <span class="token key atrule">rationale</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string"><br>          Lazy load any image that may improve performance<br>          without hurting user experience, regardless of how big the file is.</span><br></code></pre>
+</web-copy-code></details>
+<html><head></head><body><web-assessment class="w-callout unresolved web-assessment--singleton" aria-label="Check your understanding">    <div class="web-assessment__content">            <web-question question-height="unset" data-label="question">       <web-response-mc cardinality="1" correct-answer="0" data-role="response">         <p data-role="stem">When is it appropriate to lazy load an image?</p>         <span data-role="option">When the image is offscreen during initial page load.</span>         <span data-role="option">When the image is a PNG or JPG.</span>         <span data-role="option">When the image has a <code>lazyload</code> class.</span>         <span data-role="option">When the image is larger than 10&nbsp;KB.</span>         <div data-role="rationale"><p>Images that are offscreen during page load aren't initially needed and so can be lazy loaded to improve performance.</p> </div>         <div data-role="rationale"><p>Improve performance by lazy loading all images—not just PNGs and JPGs—that aren't needed when the page loads.</p> </div>         <div data-role="rationale"><p>The <code>lazyload</code> class is something <em>you</em> add to tell lazysizes which images to lazy load. You can't use the class to determine which images you <em>should</em> lazy load.</p> </div>         <div data-role="rationale"><p>Lazy load any image that may improve performance without hurting user experience, regardless of how big the file is.</p> </div>       </web-response-mc>    </web-question>          </div> </web-assessment></body></html>
+<h3 id="think-and-checks">Think-and-checks <a class="w-headline-link" href="#think-and-checks">#</a></h3>
+<p>Think-and-checks let you present a stimulus of some kind
+(for example, a code sample) and ask a question about it.
+Users can formulate a mental response and then check it.</p>
+<p>Since think-and-checks don't have any options to submit,
+there's no need to provide <code>cardinality</code> or <code>correctAnswers</code> keys.</p>
+<aside class="aside flow bg-state-bad-bg color-state-bad-text">
+<p class="cluster color-state-bad-text">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error sign">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm0-10v6h2V7h-2z" />
+</svg></span>
+<strong>Caution</strong></p>
+<div class=" flow">
+<p>Since think-and-checks don't provide a way for users to select
+and validate an actual response,
+it's generally better to use any other <a href="#response-types">response type</a> instead.</p>
+</div></aside>
+<details >
+<summary>
+  think-and-check.assess.yml
+</summary>
+<web-copy-code><pre class="language-yml"><code class="language-yml"><span class="token key atrule">setLeader</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string"><br>  Test your knowledge of tab order</span><br><span class="token key atrule">height</span><span class="token punctuation">:</span> unset<br><span class="token key atrule">tabLabel</span><span class="token punctuation">:</span> question<br><span class="token key atrule">questions</span><span class="token punctuation">:</span><br>  <span class="token punctuation">-</span> <span class="token key atrule">type</span><span class="token punctuation">:</span> think<span class="token punctuation">-</span>and<span class="token punctuation">-</span>check<br>    <span class="token key atrule">stimulus</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string"><br>      This HTML renders a modal dialog:</span><br><br>      ```html<br>      &lt;div role="dialog" aria<span class="token punctuation">-</span>labelledby="dialog<span class="token punctuation">-</span>header"<span class="token punctuation">></span><br>        &lt;button aria<span class="token punctuation">-</span>label="Close"<span class="token punctuation">></span>&lt;/button<span class="token punctuation">></span><br>        &lt;h2 id="dialog<span class="token punctuation">-</span>header"<span class="token punctuation">></span><br>          Do you want to allow notifications from this website<span class="token punctuation">?</span><br>        &lt;/h2<span class="token punctuation">></span><br>        &lt;button<span class="token punctuation">></span>No&lt;/button<span class="token punctuation">></span><br>        &lt;button<span class="token punctuation">></span>Yes&lt;/button<span class="token punctuation">></span><br>      &lt;/div<span class="token punctuation">></span><br>      ```<br>    <span class="token key atrule">stem</span><span class="token punctuation">:</span> What is the tab order for the elements in the sample<span class="token punctuation">?</span><br>    <span class="token key atrule">options</span><span class="token punctuation">:</span><br>      <span class="token punctuation">-</span> <span class="token key atrule">rationale</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string"><br>          1. The **Close** button<br>          1. The **No** button<br>          1. The **Yes** button</span><br><br>          Only the `&lt;button<span class="token punctuation">></span>` elements are included in the tab order<br>          because they're the only standardized HTML form elements.<br>          To insert other elements into the tab order<span class="token punctuation">,</span> you would add a `tabindex` attribute.<br>  <span class="token punctuation">-</span> <span class="token key atrule">type</span><span class="token punctuation">:</span> think<span class="token punctuation">-</span>and<span class="token punctuation">-</span>check<br>    <span class="token key atrule">stimulus</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string"><br>      ```html<br>      &lt;section tabindex="-1"><br>        &lt;h2>Cat facts&lt;/h2><br>        &lt;ul><br>          &lt;li>A group of cats is called a &lt;a href="https://m-w.com/dictionary/clowder">clowder&lt;/a>.&lt;/li><br>          &lt;li>Most cats are &lt;a href="https://www.catfacts.org/catnip.html"> unaffected by catnip&lt;/a>.&lt;/li><br>        &lt;/ul><br>      &lt;/section><br>      ```</span><br>    <span class="token key atrule">stem</span><span class="token punctuation">:</span> Which elements from the sample are included in the tab order<span class="token punctuation">?</span><br>    <span class="token key atrule">options</span><span class="token punctuation">:</span><br>      <span class="token punctuation">-</span> <span class="token key atrule">rationale</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string"><br>          Only the `&lt;a>` elements are included in the tab order.</span><br><br>          The `&lt;section<span class="token punctuation">></span>` element is not in the tab order<br>          because it has a negative `tabindex` value.<br>          (It can<span class="token punctuation">,</span> however<span class="token punctuation">,</span> be focused using the `focus()` method.)<br>          The `tabindex` value for the `&lt;section<span class="token punctuation">></span>` element doesn't affect its children.<br></code></pre>
+</web-copy-code></details>
+<html><head></head><body><web-assessment class="w-callout unresolved " aria-label="Check your understanding">   <div class="w-callout__blurb web-assessment__set-leader">     Test your knowledge of tab order        </div> <web-tabs class="web-assessment__content unresolved" label="questions for knowledge self check">         <web-question question-height="unset" data-label="question">   <div data-role="stimulus"><p>This HTML renders a modal dialog:</p> <web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">role</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dialog<span class="token punctuation">"</span></span> <span class="token attr-name">aria-labelledby</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dialog-header<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">aria-label</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Close<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dialog-header<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><br>    Do you want to allow notifications from this website?<br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">&gt;</span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span><span class="token punctuation">&gt;</span></span>No<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span><span class="token punctuation">&gt;</span></span>Yes<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span></code></pre> </web-copy-code></div> <web-response-tac data-role="response">   <p data-role="stem">What is the tab order for the elements in the sample?</p>      <div data-role="rationale"><ol> <li>The <strong>Close</strong> button</li> <li>The <strong>No</strong> button</li> <li>The <strong>Yes</strong> button</li> </ol> <p>Only the <code>&lt;button&gt;</code> elements are included in the tab order because they're the only standardized HTML form elements. To insert other elements into the tab order, you would add a <code>tabindex</code> attribute.</p> </div> </web-response-tac> </web-question>         <web-question question-height="unset" data-label="question">   <div data-role="stimulus"><web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>section</span> <span class="token attr-name">tabindex</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>-1<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">&gt;</span></span>Cat facts<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">&gt;</span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>ul</span><span class="token punctuation">&gt;</span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">&gt;</span></span>A group of cats is called a <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://m-w.com/dictionary/clowder<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>clowder<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span>.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">&gt;</span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">&gt;</span></span>Most cats are <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://www.catfacts.org/catnip.html<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span> unaffected by catnip<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span>.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">&gt;</span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>ul</span><span class="token punctuation">&gt;</span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>section</span><span class="token punctuation">&gt;</span></span></code></pre> </web-copy-code></div> <web-response-tac data-role="response">   <p data-role="stem">Which elements from the sample are included in the tab order?</p>      <div data-role="rationale"><p>Only the <code>&lt;a&gt;</code> elements are included in the tab order.</p> <p>The <code>&lt;section&gt;</code> element is not in the tab order because it has a negative <code>tabindex</code> value. (It can, however, be focused using the <code>focus()</code> method.) The <code>tabindex</code> value for the <code>&lt;section&gt;</code> element doesn't affect its children.</p> </div> </web-response-tac> </web-question>       </web-tabs> </web-assessment></body></html>
+<h3 id="composite-questions">Composite questions <a class="w-headline-link" href="#composite-questions">#</a></h3>
+<p>You can include more than one response component in a single question.</p>
+<p>To do that, add a <code>components</code> key to the question object
+and then include all question data <em>except</em> the stimulus in each component object.
+(Each question can have only one stimulus.)</p>
+<aside class="aside flow bg-state-bad-bg color-state-bad-text">
+<p class="cluster color-state-bad-text">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error sign">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm0-10v6h2V7h-2z" />
+</svg></span>
+<strong>Caution</strong></p>
+<div class=" flow">
+<p>Use composite questions judiciously.
+The more response components there are, the harder the question is.
+It's better to break up a multi-part question into separate questions
+unless the parts are truly interdependent.</p>
+</div></aside>
+<details >
+<summary>
+  composite.assess.yml
+</summary>
+<web-copy-code><pre class="language-yml"><code class="language-yml"><span class="token key atrule">setLeader</span><span class="token punctuation">:</span> Test your knowledge of web.dev<br><span class="token key atrule">height</span><span class="token punctuation">:</span> unset<br><span class="token key atrule">tabLabel</span><span class="token punctuation">:</span> question<br><span class="token key atrule">questions</span><span class="token punctuation">:</span><br>  <span class="token punctuation">-</span> <span class="token key atrule">stimulus</span><span class="token punctuation">:</span> <span class="token string">"![Webby](image/admin/Iz4mJkLrJrLk9Ntem871.png)"</span><br>    <span class="token key atrule">components</span><span class="token punctuation">:</span><br>      <span class="token punctuation">-</span> <span class="token key atrule">type</span><span class="token punctuation">:</span> multiple<span class="token punctuation">-</span>choice<br>        <span class="token key atrule">cardinality</span><span class="token punctuation">:</span> <span class="token string">"1"</span><br>        <span class="token key atrule">correctAnswers</span><span class="token punctuation">:</span> <span class="token string">"1"</span><br>        <span class="token key atrule">stem</span><span class="token punctuation">:</span> Who's this Webby I've heard so much about<span class="token punctuation">?</span><br>        <span class="token key atrule">options</span><span class="token punctuation">:</span><br>          <span class="token punctuation">-</span> <span class="token key atrule">content</span><span class="token punctuation">:</span> A sentient system icon run amok<br>            <span class="token key atrule">rationale</span><span class="token punctuation">:</span> Like this helpful little being would ever go amok.<br>          <span class="token punctuation">-</span> <span class="token key atrule">content</span><span class="token punctuation">:</span> The best darn mascot you could hope for<br>            <span class="token key atrule">rationale</span><span class="token punctuation">:</span> Webby is _everything_.<br>          <span class="token punctuation">-</span> <span class="token key atrule">content</span><span class="token punctuation">:</span> Spiderman's lesser known sidekick<br>            <span class="token key atrule">rationale</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string"><br>              I really don't see Webby swinging around<br>              on those small (but _adorable_) arms.</span><br>      <span class="token punctuation">-</span> <span class="token key atrule">type</span><span class="token punctuation">:</span> multiple<span class="token punctuation">-</span>choice<br>        <span class="token key atrule">cardinality</span><span class="token punctuation">:</span> <span class="token string">"1"</span><br>        <span class="token key atrule">correctAnswers</span><span class="token punctuation">:</span> <span class="token string">"2"</span><br>        <span class="token key atrule">stem</span><span class="token punctuation">:</span> How awesome is Webby<span class="token punctuation">?</span><br>        <span class="token key atrule">options</span><span class="token punctuation">:</span><br>          <span class="token punctuation">-</span> <span class="token key atrule">content</span><span class="token punctuation">:</span> Pretty awesome<br>            <span class="token key atrule">rationale</span><span class="token punctuation">:</span> Nope.<br>          <span class="token punctuation">-</span> <span class="token key atrule">content</span><span class="token punctuation">:</span> The awesomest<br>            <span class="token key atrule">rationale</span><span class="token punctuation">:</span> Close but no.<br>          <span class="token punctuation">-</span> <span class="token key atrule">content</span><span class="token punctuation">:</span> OMG 🤯<br>            <span class="token key atrule">rationale</span><span class="token punctuation">:</span> It was always you<span class="token punctuation">,</span> Webby.<br></code></pre>
+</web-copy-code></details>
+<html><head></head><body><web-assessment class="w-callout unresolved web-assessment--singleton" aria-label="Check your understanding">    <div class="web-assessment__content">            <web-question question-height="unset" data-label="question">          <div data-role="stimulus"><p><img src="https://web-dev.imgix.net/image/admin/Iz4mJkLrJrLk9Ntem871.png?auto=format" alt="Webby"></p> </div> <web-response-mc cardinality="1" correct-answer="1" data-role="response">      <p data-role="stem">Who's this Webby I've heard so much about?</p>      <span data-role="option">A sentient system icon run amok</span>      <span data-role="option">The best darn mascot you could hope for</span>      <span data-role="option">Spiderman's lesser known sidekick</span>      <div data-role="rationale"><p>Like this helpful little being would ever go amok.</p> </div>      <div data-role="rationale"><p>Webby is <em>everything</em>.</p> </div>      <div data-role="rationale"><p>I really don't see Webby swinging around on those small (but <em>adorable</em>) arms.</p> </div>    </web-response-mc> <web-response-mc cardinality="1" correct-answer="2" data-role="response">      <p data-role="stem">How awesome is Webby?</p>      <span data-role="option">Pretty awesome</span>      <span data-role="option">The awesomest</span>      <span data-role="option">OMG 🤯</span>      <div data-role="rationale"><p>Nope.</p> </div>      <div data-role="rationale"><p>Close but no.</p> </div>      <div data-role="rationale"><p>It was always you, Webby.</p> </div>    </web-response-mc>        </web-question>          </div> </web-assessment></body></html>
+<h2 id="question-set-parameters">Question set parameters <a class="w-headline-link" href="#question-set-parameters">#</a></h2>
+<h3 id="set-leader">Set leader <a class="w-headline-link" href="#set-leader">#</a></h3>
+<p>When a self-assessment includes more than one question,
+add a <strong>set leader</strong>—a statement about what the question set
+as a whole covers—using the <code>setLeader</code> key. For example:</p>
+<web-copy-code><pre class="language-yaml"><code class="language-yaml"><span class="token key atrule">setLeader</span><span class="token punctuation">:</span> Test your knowledge of resource optimization</code></pre>
+</web-copy-code><p>You can omit the <code>setLeader</code> if there's only one question in the set.
+(One-question sets will ignore a <code>setLeader</code> if you accidentally include one.)</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>On mobile, the set leader appears on its own with an <strong>Open quiz</strong> button
+that launches the self-assessment set in a modal,
+so make sure the set leader makes sense whether or not the questions are visible.</p>
+</div></aside>
+<h3 id="height">Height <a class="w-headline-link" href="#height">#</a></h3>
+<p>Self-assessments have a default question content height of 400 px.
+(A stable height keeps the location of the <strong>Check</strong> / <strong>Next</strong> button predictable.)</p>
+<p>If most of your questions are taller or shorter than the default height,
+change it using the <code>height</code> key.</p>
+<p>If you want each question's height to match its content, set <code>height</code> to <code>unset</code>.
+(Note that this will cause the self-assessment height to change
+as users check their responses and navigate across questions.)</p>
+<h3 id="question-labels">Question labels <a class="w-headline-link" href="#question-labels">#</a></h3>
+<p>You can adjust the labels for the question tabs using the <code>tabLabel</code> key.
+There are three options:</p>
+<ul>
+<li><code>question</code> (default): creates the label <code>Question n</code>,
+where <em>n</em> is the number of the tab in the set.
+Use for sets that mostly ask users to submit a response.</li>
+<li><code>sample</code>: creates the label <code>Sample n</code>.
+Use for sets that mostly ask users to evaluate code samples.</li>
+<li><code>bare</code>: creates the label <code>n</code>
+Use for larger sets where horizontal space is limited.</li>
+</ul>
+<h2 id="question-anatomy-and-parameters">Question anatomy and parameters <a class="w-headline-link" href="#question-anatomy-and-parameters">#</a></h2>
+<p>A self-assessment question includes four components:</p>
+<ul>
+<li>An optional <strong>stimulus</strong> that appears at the top of the question
+and provides any information needed to respond to the question.
+Stimuli may be text, media, or a combination.
+Only one stimulus per question is allowed.</li>
+<li>One or more <strong>stems</strong>, which are the questions or tasks
+the user is being asked to respond to.
+Stems are text only, but they do support inline MarkDown.</li>
+<li>A <a href="#response-types">response type</a> for each stem,
+which includes several options to choose from
+and accompanying rationales. Rationales are initially hidden.</li>
+<li>An automatically generated question footer,
+which includes the <strong>Check</strong> and <strong>Report issue</strong> buttons.</li>
+</ul>
+<p>Once the user submits an answer to a question,
+the question shows:</p>
+<ul>
+<li>Whether the option is correct or incorrect</li>
+<li>The rationale for the option</li>
+</ul>
+<h3 id="cardinality">Cardinality <a class="w-headline-link" href="#cardinality">#</a></h3>
+<p>Use the <code>cardinality</code> key to control how many options a user may select:</p>
+<ul>
+<li><code>n</code>: The user must select <strong>exactly <em>n</em></strong> options
+before the response is considered complete.
+If <em>n</em> &gt; 1, all unselected options will be disabled
+when <em>n</em> options are selected.</li>
+<li><code>n+</code>: The user must select <strong><em>n</em> or more</strong> options
+before the response is considered complete.</li>
+<li><code>n–m</code>: The user must select at <strong>least <em>n</em> and at most <em>m</em></strong> options
+before the response is considered complete.
+All unselected options will be disabled when <em>m</em> options are selected.</li>
+</ul>
+<p>For example,</p>
+<ul>
+<li><code>cardinality: &quot;1&quot;</code> allows users to select only one option.</li>
+<li><code>cardinality: &quot;2+&quot;</code> allows users to select two or more options.</li>
+<li><code>cardinality: &quot;2-3&quot;</code> requires users to select two options
+before allowing them to check their answer
+and doesn't allow them to select more than three options.</li>
+</ul>
+<aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>Gotchas</strong></p>
+<div class=" flow">
+<p>Put quotes around <code>cardinality</code> values
+so YAML doesn't incorrectly interpret them as numbers.</p>
+</div></aside>
+<h3 id="correct-answer(s)">Correct answer(s) <a class="w-headline-link" href="#correct-answer(s)">#</a></h3>
+<p>Use the <code>correctAnswers</code> key to indicate all correct answers to a question
+using a comma-separated, zero-indexed list.
+For example, <code>correctAnswers: &quot;0,3&quot;</code> indicates
+that the first and fourth answers are correct.</p>
+<aside class="aside flow bg-tertiary-box-bg color-tertiary-box-text">
+<p class="cluster ">
+<span class="aside__icon box-block "><svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Lightbulb" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+</svg></span>
+<strong>Gotchas</strong></p>
+<div class=" flow">
+<p>Put quotes around <code>correctAnswers</code> values
+so YAML doesn't incorrectly interpret them as numbers.</p>
+</div></aside>
+<h3 id="layout">Layout <a class="w-headline-link" href="#layout">#</a></h3>
+<p>The options of most <a href="#response-types">response types</a> can be presented in two columns
+by setting the <code>columns</code> key to <code>true</code>.
+(Response types that don't support a two-column layout
+will ignore the <code>columns</code> key.)</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>It's almost always best to use a single column for textual options.
+For image options,
+see which layout best balances legibility and screen real estate.</p>
+</div></aside>
+<h2 id="multiple-sets-in-one-post">Multiple sets in one post <a class="w-headline-link" href="#multiple-sets-in-one-post">#</a></h2>
+<p>To include another set in your post,
+create a second <code>*.assess.yml</code> file and
+add a second <code>Assessment</code> short code to your post.
+You can add as many assessments as you want as long as each has a unique name.
+For example:</p>
+<web-copy-code><pre class="language-html"><code class="language-html">{% Assessment 'first-assessment' %}<br>{% Assessment 'second-assessment' %}</code></pre>
+</web-copy-code><h2 id="api">API <a class="w-headline-link" href="#api">#</a></h2>
+<p>The <code>*.assess.yml</code> file can be broken down into the following types:</p>
+<h3 id="targetassessment">TargetAssessment <a class="w-headline-link" href="#targetassessment">#</a></h3>
+<web-copy-code><pre class="language-typescript"><code class="language-typescript"><span class="token comment">/*<br> * Copyright 2021 Google LLC<br> *<br> * Licensed under the Apache License, Version 2.0 (the "License");<br> * you may not use this file except in compliance with the License.<br> * You may obtain a copy of the License at<br> *<br> *     https://www.apache.org/licenses/LICENSE-2.0<br> *<br> * Unless required by applicable law or agreed to in writing, software<br> * distributed under the License is distributed on an "AS IS" BASIS,<br> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.<br> * See the License for the specific language governing permissions and<br> * limitations under the License.<br> */</span><br><br><span class="token keyword">declare</span> global <span class="token punctuation">{</span><br>  <span class="token keyword">export</span> <span class="token keyword">interface</span> <span class="token class-name">TargetAssessment</span> <span class="token punctuation">{</span><br>    setLeader<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    height<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    tabLabel<span class="token operator">:</span> <span class="token string">"question"</span> <span class="token operator">|</span> <span class="token string">"sample"</span> <span class="token operator">|</span> <span class="token string">"bare"</span><span class="token punctuation">,</span><br>    questions<span class="token operator">:</span> TargetAssessmentQuestion<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><br><br><span class="token comment">// empty export to keep file a module</span><br><span class="token keyword">export</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span><br></code></pre>
+</web-copy-code><h3 id="targetassessmentquestion">TargetAssessmentQuestion <a class="w-headline-link" href="#targetassessmentquestion">#</a></h3>
+<web-copy-code><pre class="language-typescript"><code class="language-typescript"><span class="token comment">/*<br> * Copyright 2021 Google LLC<br> *<br> * Licensed under the Apache License, Version 2.0 (the "License");<br> * you may not use this file except in compliance with the License.<br> * You may obtain a copy of the License at<br> *<br> *     https://www.apache.org/licenses/LICENSE-2.0<br> *<br> * Unless required by applicable law or agreed to in writing, software<br> * distributed under the License is distributed on an "AS IS" BASIS,<br> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.<br> * See the License for the specific language governing permissions and<br> * limitations under the License.<br> */</span><br><br><span class="token keyword">declare</span> global <span class="token punctuation">{</span><br>  <span class="token keyword">export</span> <span class="token keyword">interface</span> <span class="token class-name">TargetAssessmentQuestion</span> <span class="token punctuation">{</span><br>    type<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    stimulus<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    stem<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    cardinality<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    correctAnswers<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    options<span class="token operator">:</span> TargetAssessmentOption<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span><br>    columns<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">boolean</span><span class="token punctuation">,</span><br>    components<span class="token operator">?</span><span class="token operator">:</span> TargetAssessmentQuestion<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><br><br><span class="token comment">// empty export to keep file a module</span><br><span class="token keyword">export</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span><br></code></pre>
+</web-copy-code><h3 id="targetassessmentoption">TargetAssessmentOption <a class="w-headline-link" href="#targetassessmentoption">#</a></h3>
+<web-copy-code><pre class="language-typescript"><code class="language-typescript"><span class="token comment">/*<br> * Copyright 2021 Google LLC<br> *<br> * Licensed under the Apache License, Version 2.0 (the "License");<br> * you may not use this file except in compliance with the License.<br> * You may obtain a copy of the License at<br> *<br> *     https://www.apache.org/licenses/LICENSE-2.0<br> *<br> * Unless required by applicable law or agreed to in writing, software<br> * distributed under the License is distributed on an "AS IS" BASIS,<br> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.<br> * See the License for the specific language governing permissions and<br> * limitations under the License.<br> */</span><br><br><span class="token keyword">declare</span> global <span class="token punctuation">{</span><br>  <span class="token keyword">export</span> <span class="token keyword">interface</span> <span class="token class-name">TargetAssessmentOption</span> <span class="token punctuation">{</span><br>    content<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    rationale<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><br><br><span class="token comment">// empty export to keep file a module</span><br><span class="token keyword">export</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span><br></code></pre>
+</web-copy-code>
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Jan 28, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/handbook/self-assessment-components/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors=""
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

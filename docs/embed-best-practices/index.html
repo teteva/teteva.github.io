@@ -1,0 +1,779 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=22214ab59ce1a">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=c13dbba77f01">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Best practices for using third-party embeds</title>
+<meta name="description" content="This article discusses performance best practices that you can use when loading third-party embeds, efficient loading techniques and the Layout Shift Terminator tool that helps reduce layout shifts for popular embeds. " />
+
+<link rel="canonical" href="https://web.dev/embed-best-practices/" />
+
+<meta itemprop="name" content="Best practices for using third-party embeds" />
+<meta itemprop="description" content="This article discusses performance best practices that you can use when loading third-party embeds, efficient loading techniques and the Layout Shift Terminator tool that helps reduce layout shifts for popular embeds. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/embed-best-practices/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Best practices for using third-party embeds" />
+<meta property="og:description" content="This article discusses performance best practices that you can use when loading third-party embeds, efficient loading techniques and the Layout Shift Terminator tool that helps reduce layout shifts for popular embeds. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="A phone with a YouTube play button" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Best practices for using third-party embeds" />
+<meta name="twitter:description" content="This article discusses performance best practices that you can use when loading third-party embeds, efficient loading techniques and the Layout Shift Terminator tool that helps reduce layout shifts for popular embeds. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=b8296cb66bd83', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=8b8e87e534d8a', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="A phone with a YouTube play button"     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/aeToz7Hb1mx63bHBXTDx.jpeg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#what-is-an-embed">What is an embed</a></li><li class="toc__listitem"><a class="toc__anchor" href="#performance-impact-of-third-party-embeds">Performance impact of third-party embeds</a></li><li class="toc__listitem"><a class="toc__anchor" href="#loading-best-practices">Loading best practices</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#script-ordering">Script ordering</a></li><li class="toc__listitem"><a class="toc__anchor" href="#lazy-loading">Lazy-loading</a></li><li class="toc__listitem"><a class="toc__anchor" href="#replace-embeds-with-facades">Replace embeds with facades</a></li><li class="toc__listitem"><a class="toc__anchor" href="#remove-or-replace-embeds-with-links">Remove or replace embeds with links</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#layout-stability">Layout stability</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#layout-shift-terminator">Layout Shift Terminator</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#conclusion">Conclusion</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="best-practices-for-using-third-party-embeds">Best practices for using third-party embeds</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            An overview of techniques to load popular third-party embeds efficiently.
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Oct 5, 2021</time>
+             — Updated <time>Oct 5, 2021</time> 
+          </div>
+        
+
+        
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/leenasohoni/"> <img     alt="Leena Sohoni"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/VXCjCzLEGWApTkZkNZkR.JPG?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/VXCjCzLEGWApTkZkNZkR.JPG?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/VXCjCzLEGWApTkZkNZkR.JPG?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/VXCjCzLEGWApTkZkNZkR.JPG?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/VXCjCzLEGWApTkZkNZkR.JPG?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/VXCjCzLEGWApTkZkNZkR.JPG?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/leenasohoni/">Leena Sohoni</a>
+    </cite>
+    <div class="author__links cluster">
+               
+               
+               
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/addyosmani/"> <img     alt="Addy Osmani"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/addyosmani/">Addy Osmani</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/addyosmani">Twitter</a>
+               <a href="https://github.com/addyosmani">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/katiehempenius/"> <img     alt="Katie Hempenius"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/fZo7BJGec2MNRt6cWpeh.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/katiehempenius/">Katie Hempenius</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/katiehempenius">Twitter</a>
+               <a href="https://github.com/khempenius">GitHub</a>
+               <a href="https://glitch.com/@khempenius">Glitch</a>
+               <a href="https://katiehempenius.com/">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#what-is-an-embed">What is an embed</a></li><li class="toc__listitem"><a class="toc__anchor" href="#performance-impact-of-third-party-embeds">Performance impact of third-party embeds</a></li><li class="toc__listitem"><a class="toc__anchor" href="#loading-best-practices">Loading best practices</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#script-ordering">Script ordering</a></li><li class="toc__listitem"><a class="toc__anchor" href="#lazy-loading">Lazy-loading</a></li><li class="toc__listitem"><a class="toc__anchor" href="#replace-embeds-with-facades">Replace embeds with facades</a></li><li class="toc__listitem"><a class="toc__anchor" href="#remove-or-replace-embeds-with-links">Remove or replace embeds with links</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#layout-stability">Layout stability</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#layout-shift-terminator">Layout Shift Terminator</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#conclusion">Conclusion</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <p>Many sites use third-party embeds to create an engaging user experience by delegating some sections of a web page to another content provider. The most common examples of third-party content embeds are video players, social-media feeds, maps, and advertisements.</p>
+<p>Third-party content can impact the performance of a page in many ways. It can be render-blocking, contend with other critical resources for network and bandwidth, or affect the Core Web Vitals metrics. Third-party embeds may also cause layout shifts as they load. This article discusses performance best practices that you can use when loading third-party embeds, efficient loading techniques, and the Layout Shift Terminator tool that helps reduce layout shifts for popular embeds.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>It's best to use the techniques described in this post to load only offscreen or non-primary page content. This ensures that all the critical content gets indexed by <a href="https://developers.google.com/search/docs/advanced/javascript/lazy-loading" rel="noopener">search engines</a>.</p>
+</div></aside>
+<h2 id="what-is-an-embed">What is an embed <a class="w-headline-link" href="#what-is-an-embed">#</a></h2>
+<p>A third-party embed is any content displayed on your site that is:</p>
+<ul>
+<li>Not authored by you</li>
+<li>Served from third-party servers</li>
+</ul>
+<img     alt="Multiple offscreen embeds are shown, which could be lazy-loaded"          decoding="async"     height="450"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/QfPvNJo9yN6IcxvWqYWI.jpeg?auto=format&w=1600 1600w"          width="800"   />
+<p>Embeds are frequently used in the following:</p>
+<ul>
+<li>Websites related to sports, news, entertainment, and fashion use videos to augment textual content.</li>
+<li>Organizations with active Twitter or social media accounts embed feeds from these accounts to their web pages to engage and reach out to more people.</li>
+<li>Restaurant, park, and event venue pages often embed maps.</li>
+</ul>
+<p>Third-party embeds are typically loaded in <a href="https://developer.mozilla.org/docs/Web/HTML/Element/iframe" rel="noopener"><code>&lt;iframe&gt;</code></a> elements on the page. Third-party providers offer HTML snippets often consisting of an <code>&lt;iframe&gt;</code> that pulls in a page composed of markup, scripts, and stylesheets. Some providers also use a script snippet that dynamically injects an <code>&lt;iframe&gt;</code> to pull other content in. This can make the third-party embeds heavy and affect the performance of the page by delaying its first-party content.</p>
+<h2 id="performance-impact-of-third-party-embeds">Performance impact of third-party embeds <a class="w-headline-link" href="#performance-impact-of-third-party-embeds">#</a></h2>
+<p>Many popular embeds include over 100 KB of JavaScript, sometimes even going up to 2 MB. They take more time to load and keep the main thread busy when executing. Performance monitoring tools such as <a href="https://developers.google.com/web/tools/lighthouse/" rel="noopener">Lighthouse</a> and <a href="https://developer.chrome.com/docs/devtools/" rel="noopener">Chrome DevTools</a> help to <a href="/identify-slow-third-party-javascript/">measure the impact of third-party embeds on performance</a>.</p>
+<p><a href="/third-party-summary/">Reduce the impact of third-party code</a> Lighthouse audit shows the list of third-party providers a page uses, with size and main-thread blocking time. The audit is available through Chrome DevTools under the Lighthouse tab.</p>
+<p>It is a good practice to periodically audit the performance impact of your embeds and third-party code because embed source code may change. You can use this opportunity to remove any redundant code.</p>
+<img     alt="Reduce the impact of third-party code"     class="w-screenshot"     decoding="async"     height="738"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/WektrXQsgQPMWy2hxQ4E.png?auto=format&w=1600 1600w"          width="800"   />
+<h2 id="loading-best-practices">Loading best practices <a class="w-headline-link" href="#loading-best-practices">#</a></h2>
+<p>Third-party embeds can negatively impact performance, but they also offer important functionalities. To efficiently use third-party embeds and reduce their performance impact, follow the guidelines below.</p>
+<h3 id="script-ordering">Script ordering <a class="w-headline-link" href="#script-ordering">#</a></h3>
+<p>In a well-designed page, the key first-party content will be the focus of the page, while the third-party embeds will occupy side-bars or appear after the first-party content.</p>
+<p>For the best user experience, the main content should load quickly and before any other supporting content. For example, the news text on a news page should load before embeds for a Twitter feed or advertisements.</p>
+<p>Requests for third-party embeds can get in the way of loading first-party content, so the position of a third-party script tag is important. Scripts can affect the loading sequence because the DOM construction pauses while scripts are executed. Place third-party script tags after the key first-party tags and <a href="/efficiently-load-third-party-javascript/#use-async-or-defer">use <code>async</code> or <code>defer</code></a> attributes to load them asynchronously.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span><br>   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>title</span><span class="token punctuation">></span></span>Order of Things<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>title</span><span class="token punctuation">></span></span><br>   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span> <span class="token attr-name">media</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>screen<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/assets/application.css<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>index.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span><br>   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com/3p-library.js<span class="token punctuation">"</span></span> <span class="token attr-name">async</span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><h3 id="lazy-loading">Lazy-loading <a class="w-headline-link" href="#lazy-loading">#</a></h3>
+<p>Since third-party content usually comes after the primary content, it may not be visible in the viewport when the page loads. In that case, downloading third-party resources may be deferred until the user scrolls down to that part of the page. This not only helps optimize the initial page load but also reduces the download costs for users on fixed data plans and slow network connections.</p>
+<p>Delaying the download of content until it is actually needed is called <a href="/lazy-loading-best-practices/">lazy-loading</a>. Depending on the requirements and the type of embed, you can use different lazy-loading techniques explained below.</p>
+<h4 id="native-lazy-loading-for-lessiframegreater">Native lazy-loading for <code>&lt;iframe&gt;</code> <a class="w-headline-link" href="#native-lazy-loading-for-lessiframegreater">#</a></h4>
+<p>For third-party embeds loaded through <code>&lt;iframe&gt;</code> elements, you can use browser-level lazy-loading to defer loading offscreen iframes until users scroll near them. The <a href="/iframe-lazy-loading/">loading attribute for <code>&lt;iframe&gt;</code> is available in Chrome 77</a> and above and has <a href="https://caniuse.com/loading-lazy-attr" rel="noopener">also been introduced</a> to other Chromium-based browsers.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com<span class="token punctuation">"</span></span><br>       <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span><br>       <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>600<span class="token punctuation">"</span></span><br>       <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>400<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>The loading attribute supports the following values:</p>
+<ul>
+<li><code>lazy</code>: Indicates that the browser should defer loading the iframe. The browser will load the iframe when it is nearing the viewport. Use if the iframe is a good candidate for lazy-loading.</li>
+<li><code>eager</code>: Loads the iframe immediately. Use if the iframe is not a good candidate for lazy-loading. If the <code>loading</code> attribute has not been specified, this is the default behavior—except in <a href="https://support.google.com/chrome/answer/2392284?hl=en&amp;co=GENIE.Platform%3DAndroid" rel="noopener">Lite mode</a>.</li>
+<li><code>auto</code>: The browser determines whether to lazy-load this frame.</li>
+</ul>
+<p>Browsers that don’t support the <code>loading</code> attribute ignore it, so you can apply native lazy-loading as a progressive enhancement. Browsers that support the attribute may have different implementations for the <a href="/browser-level-image-lazy-loading/#distance-from-viewport-thresholds">distance-from-viewport</a> threshold (the distance at which the iframe starts loading).</p>
+<p>Following are some ways in which you can lazy load iframes for different types of embeds.</p>
+<ul>
+<li>YouTube videos: To lazy-load a YouTube video player iframe,  include the <code>loading</code> attribute to the embed code provided by YouTube. Lazy loading the YouTube embed can save approximately 500 KB on the initial page load.</li>
+</ul>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://www.youtube.com/embed/aKydtOXW8mI<span class="token punctuation">"</span></span><br>   <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>560<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>315<span class="token punctuation">"</span></span><br>   <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span><br>   <span class="token attr-name">title</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>YouTube video player<span class="token punctuation">"</span></span><br>   <span class="token attr-name">frameborder</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span><br>   <span class="token attr-name">allow</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>accelerometer; autoplay; clipboard-write;<br>            encrypted-media; gyroscope; picture-in-picture<span class="token punctuation">"</span></span><br>   <span class="token attr-name">allowfullscreen</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><ul>
+<li>Google Maps: To lazy-load a Google Map iframe, include the <code>loading</code> attribute in the code for the iframe embed generated by the <a href="https://developers.google.com/maps/documentation/embed/get-started" rel="noopener">Google Maps Embed API</a>. Following is an example of the code with a placeholder for the Google Cloud API key.</li>
+</ul>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://www.google.com/maps/embed/v1/place?key=API_KEY&amp;q=PLACE_ID<span class="token punctuation">"</span></span><br>   <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>600<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>450<span class="token punctuation">"</span></span><br>   <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">border</span><span class="token punctuation">:</span>0<span class="token punctuation">;</span></span><span class="token punctuation">"</span></span></span><br>   <span class="token attr-name">allowfullscreen</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span><br>   <span class="token attr-name">loading</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazy<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><h4 id="lazysizes-library">lazysizes library <a class="w-headline-link" href="#lazysizes-library">#</a></h4>
+<p>Because browsers use an embed’s distance-from-viewport, in addition to signals like <a href="https://googlechrome.github.io/samples/network-information/" rel="noopener">effective connection type</a> and Lite-mode, to decide when an iframe should be loaded, native lazy-loading can be inconsistent. If you need better control on the distance thresholds or you want to provide a consistent lazy-loading experience across browsers, you can use the <a href="https://github.com/aFarkas/lazysizes" rel="noopener">lazysizes</a> library.</p>
+<p><a href="https://github.com/aFarkas/lazysizes" rel="noopener">lazysizes</a> is a fast, SEO-friendly lazy loader for both images and iframes. Once you have downloaded the component, it can be used with an iframe for a YouTube embed as follows.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazysizes.min.js<span class="token punctuation">"</span></span> <span class="token attr-name">async</span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span><br><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">data-src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://www.youtube.com/embed/aKydtOXW8mI<span class="token punctuation">"</span></span><br>   <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>560<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>315<span class="token punctuation">"</span></span><br>   <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>lazyload<span class="token punctuation">"</span></span><br>   <span class="token attr-name">title</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>YouTube video player<span class="token punctuation">"</span></span><br>   <span class="token attr-name">frameborder</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span><br>   <span class="token attr-name">allow</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>accelerometer; autoplay; clipboard-write;<br>        encrypted-media; gyroscope; picture-in-picture<span class="token punctuation">"</span></span><br>   <span class="token attr-name">allowfullscreen</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>Similarly, lazysizes may be used with iframes for other third-party embeds.</p>
+<p>Note that lazysizes uses the <a href="https://developer.mozilla.org/docs/Web/API/Intersection_Observer_API" rel="noopener">Intersection Observer API</a> to detect when an element becomes visible.</p>
+<h4 id="using-data-lazy-in-facebook">Using data-lazy in Facebook <a class="w-headline-link" href="#using-data-lazy-in-facebook">#</a></h4>
+<p>Facebook provides different types of <a href="https://developers.facebook.com/docs/plugins" rel="noopener">social plugins</a> that can be embedded. This includes posts, comments, videos, and the most popular <em>Like</em> button. All plugins include a setting for <code>data-lazy</code>. Setting it to <code>true</code> ensures that the plugin will use the browser's lazy-loading mechanism by setting the <code>loading=&quot;lazy&quot;</code> iframe attribute.</p>
+<h4 id="lazy-loading-instagram-feeds">Lazy-loading Instagram feeds <a class="w-headline-link" href="#lazy-loading-instagram-feeds">#</a></h4>
+<p>Instagram provides a block of markup and a script as part of the embed. The script injects an <code>&lt;iframe&gt;</code> into the page. Lazy-loading this <code>&lt;iframe&gt;</code> can improve performance as the embed can be over 100 KB gzipped in size. Many Instagram plugins for WordPress sites like <a href="https://wordpress.org/plugins/instagram-widget-by-wpzoom/" rel="noopener">WPZoom</a> and <a href="https://www.mapledesign.co.uk/tech-blog/elfsight-instagram-feed-performance/" rel="noopener">Elfsight</a> provide the lazy-loading option.</p>
+<h3 id="replace-embeds-with-facades">Replace embeds with facades <a class="w-headline-link" href="#replace-embeds-with-facades">#</a></h3>
+<p>While interactive embeds add value to the page, many users may not interact with them. For example, not every user browsing a restaurant page will click, expand, scroll, and navigate the map embed. Similarly, not every user to a telecom service providers page will interact with the chatbot. In these cases, you can avoid loading or lazy-loading the embed altogether by displaying a facade in its place.</p>
+<div class="switcher">
+  <figure class="w-figure">
+    <figcaption class="w-figcaption">
+      A map embed with a zoom in and out feature.
+    </figcaption>
+    <img     alt="A map embed"     class="w-screenshot"     decoding="async"     height="725"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/Cn0x7aeqCw7M0X5b4L1P.png?auto=format&w=1600 1600w"          width="800"   />
+  </figure>
+  <figure class="w-figure">
+    <figcaption class="w-figcaption">
+      A map facade that is an image.
+    </figcaption>
+    <img     alt="A map facade"     class="w-screenshot"     decoding="async"     height="541"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/f8z9MfvgIFiBkCLA1Qud.png?auto=format&w=1600 1600w"          width="800"   />
+  </figure>
+</div>
+<p>A <a href="/third-party-facades/">facade</a> is a static element that looks similar to the actual embedded third-party but is not functional and, therefore, much less taxing on the page load. Following are a few strategies to load such embeds optimally while still providing some value to the user.</p>
+<h4 id="use-static-images-as-facades">Use static images as facades <a class="w-headline-link" href="#use-static-images-as-facades">#</a></h4>
+<p>Static images can be used instead of map embeds where you might not need to make the map interactive. You can zoom in on the area of interest on the map, capture an image, and use this instead of the interactive map embed. You can also use DevTools <strong>Capture node screenshot</strong> functionality to capture a screenshot of the embedded <code>iframe</code> element, as shown below.</p>
+<img     alt="Capture node screenshot"     class="w-screenshot"     decoding="async"     height="500"          loading="lazy"     sizes="(min-width: 400px) 400px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EJvMAEUmF3QNUDGBgfNR.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EJvMAEUmF3QNUDGBgfNR.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EJvMAEUmF3QNUDGBgfNR.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EJvMAEUmF3QNUDGBgfNR.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EJvMAEUmF3QNUDGBgfNR.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EJvMAEUmF3QNUDGBgfNR.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EJvMAEUmF3QNUDGBgfNR.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EJvMAEUmF3QNUDGBgfNR.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EJvMAEUmF3QNUDGBgfNR.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EJvMAEUmF3QNUDGBgfNR.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EJvMAEUmF3QNUDGBgfNR.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EJvMAEUmF3QNUDGBgfNR.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EJvMAEUmF3QNUDGBgfNR.png?auto=format&w=800 800w"          width="400"   />
+<p>DevTools captures the image as a  <code>png</code>, but you can also consider converting it to <code><a href="/serve-images-webp/">WebP format for better performance</a></code>.</p>
+<h4 id="use-dynamic-images-as-facades">Use dynamic images as facades <a class="w-headline-link" href="#use-dynamic-images-as-facades">#</a></h4>
+<p>This technique allows you to generate images corresponding to an interactive embed at run time. Following are some of the tools that allow you to generate static versions of embeds on your pages.</p>
+<ul>
+<li>
+<p><strong>Maps Static API</strong>: The Google <a href="https://developers.google.com/maps/documentation/maps-static/overview" rel="noopener">Maps Static API</a> service generates a map based on the URL parameters included in a standard HTTP request and returns the map as an image you can display on your web page. The URL needs to include the Google Maps API key and must be placed in the <code>&lt;img&gt;</code> tag on the page as the <code>src</code> attribute.</p>
+<p>The <a href="https://staticmapmaker.com/google/" rel="noopener">Static map maker</a> tool helps to configure the parameters required for the URL and gives you the code for the image element in real-time.</p>
+<p>The following snippet shows code for an image with the source set to a Maps Static API URL. It has been included in a link tag that ensures that the actual map can be accessed by clicking on the image. (Note: API key attribute is not included in the url)</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://www.google.com/maps/place/Albany,+NY/<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://maps.googleapis.com/maps/api/staticmap?center=Albany,+NY&amp;zoom=13&amp;scale=1&amp;size=600x300&amp;maptype=roadmap&amp;format=png&amp;visual_refresh=true<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Google Map of Albany, NY<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code></li>
+<li>
+<p><strong>Twitter screenshots</strong>: Similar to map screenshots, this concept allows you to dynamically embed a Twitter screenshot instead of the live feed. <a href="https://tweetpik.com/" rel="noopener">Tweetpik</a> is one of the tools that can be used to take screenshots of tweets. Tweetpik API accepts the URL of the tweet and returns an image with its contents. The API also accepts parameters to customize the background, colors, borders, and dimensions of the image.</p>
+</li>
+</ul>
+<h4 id="use-click-to-load-to-enhance-facades">Use click-to-load to enhance facades <a class="w-headline-link" href="#use-click-to-load-to-enhance-facades">#</a></h4>
+<p>The click-to-load concept combines lazy-loading and facades. The page initially loads with the facade. When the user interacts with the static placeholder by clicking on it, the third-party embed is loaded. This is also known as the <a href="https://addyosmani.com/blog/import-on-interaction/" rel="noopener">import on interaction</a> pattern and can be implemented using the following steps.</p>
+<ol>
+<li>On page load: Facade or static element is included on the page.</li>
+<li>On mouseover: Facade preconnects to the third-party embed provider.</li>
+<li>On click: The facade is replaced by the third-party product.</li>
+</ol>
+<p>Facades may be used with third-party embeds for video players, chat widgets, authentication services, and social media widgets. YouTube video embeds that are just images with a play button are facades that we come across frequently. The actual video loads only when you click on the image.</p>
+<p>You can build a custom click-to-load facade using the <em>import on interaction</em> pattern or use one of the following open source facades available for different types of embeds.</p>
+<ul>
+<li>
+<p>YouTube facade</p>
+<p><a href="https://github.com/paulirish/lite-youtube-embed" rel="noopener">Lite-youtube-embed</a> is a recommended facade for the YouTube player, which looks like the real player but is 224 times faster. It can be used by downloading the script and stylesheet and then using the <code>&lt;lite-youtube&gt;</code> tag in HTML or JavaScript. Custom player parameters supported by YouTube may be included through the <code>params</code> attribute.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>lite-youtube</span> <span class="token attr-name">videoid</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>ogfYd705cRs<span class="token punctuation">"</span></span> <span class="token attr-name">playlabel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Play: Keynote (Google I/O <span class="token punctuation">'</span>18)<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>lite-youtube</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>Following is a comparison between the lite-youtube-embed and the actual embed.</p>
+<div class="switcher">
+  <figure class="w-figure">
+    <img     alt="Lite YouTube embed"          decoding="async"     height="521"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/EcTxjLs9SUb1ofALN8rA.png?auto=format&w=1600 1600w"          width="800"   />
+    <figcaption class="w-figcaption">
+      A lite-YouTube embed
+    </figcaption>
+  </figure>
+  <figure class="w-figure">
+    <img     alt="Actual YouTube embed"          decoding="async"     height="502"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/cYG1NJqM8ZoLkYOi6xFJ.png?auto=format&w=1600 1600w"          width="800"   />
+    <figcaption class="w-figcaption">
+      A YouTube embed
+    </figcaption>
+  </figure>
+</div>
+<p>Other similar facades available for YouTube and Vimeo players are <a href="https://github.com/justinribeiro/lite-youtube" rel="noopener">lite-youtube</a>, <a href="https://github.com/luwes/lite-vimeo-embed" rel="noopener">lite-vimeo-embed</a>, and <a href="https://github.com/slightlyoff/lite-vimeo" rel="noopener">lite-vimeo</a>.</p>
+</li>
+<li>
+<p>Chat widget facade</p>
+<p><a href="https://github.com/calibreapp/react-live-chat-loader" rel="noopener">React-live-chat-loader</a> loads a button that looks like a chat embed instead of the embed itself. It can be used with various chat provider platforms such as Intercom, Help Scout, Messenger, and so on. The look-alike widget is much lighter than the chat-widget and loads faster. It can be replaced by the actual chat widget when the user hovers or clicks on the button or if the page has been idle for a long time. The <a href="https://wildbit.com/blog/2020/09/30/getting-postmark-lighthouse-performance-score-to-100" rel="noopener">Postmark case study</a> explains how they implemented react-live-chat-loader and performance improvements they achieved.</p>
+ <img     alt="Postmark chat widget"     class="w-screenshot"     decoding="async"     height="389"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/XyJON43TV8h1qWNZV1Ev.png?auto=format&w=1600 1600w"          width="800"   />
+</li>
+</ul>
+<h3 id="remove-or-replace-embeds-with-links">Remove or replace embeds with links <a class="w-headline-link" href="#remove-or-replace-embeds-with-links">#</a></h3>
+<p>If you find that some third-party embeds result in poor loading performance and using any of the techniques above is not an option, the simplest thing that you can do is remove the embed entirely. If you still want your users to be able to access the content in the embed, you can provide a link to it with <code>target=&quot;_blank&quot;</code> so that the user can click and view it in another tab.</p>
+<h2 id="layout-stability">Layout stability <a class="w-headline-link" href="#layout-stability">#</a></h2>
+<p>While dynamically loading embedded content can improve the loading performance of a page, it can sometimes cause unexpected movement of page content. This is known as layout shift.</p>
+<p>Since visual stability is important to guarantee a smooth user experience, <a href="/cls/">Cumulative Layout Shift (CLS)</a> measures how often those shifts happen and how disruptive they are.</p>
+<p>Layout shifts can be avoided by reserving space during page load for elements that are going to be dynamically loaded later. The browser can determine the space to be reserved if it knows the width and height of the elements. You can ensure this by specifying the <code>width</code> and <code>height</code> attributes of iframes or by setting a fixed size for static elements where the third-party embed will be loaded. For example, an iframe for a YouTube embed should have width and height specified as follows.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://www.youtube.com/embed/aKydtOXW8mI<span class="token punctuation">"</span></span> <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>560<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>315<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>Popular embeds like YouTube, Google Maps, and Facebook provide the embed code with size attributes specified. However, there may be providers who do not include this. For example, this code snippet does not indicate the dimensions of the resulting embed.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>twitter-timeline<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://twitter.com/ChannelNewsAsia?ref_src=twsrc%5Etfw<span class="token punctuation">"</span></span> <span class="token attr-name">data-tweet-limit</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Tweets by ChannelNewsAsia<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">async</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://platform.twitter.com/widgets.js<span class="token punctuation">"</span></span> <span class="token attr-name">charset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>utf-8<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>You can use DevTools to inspect the injected <code>iframe</code>after this page is rendered. As seen in the following snippet, the height of the injected iframe is fixed while the width is specified in percentage.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>iframe</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>twitter-widget-0<span class="token punctuation">"</span></span> <span class="token attr-name">scrolling</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>no<span class="token punctuation">"</span></span> <span class="token attr-name">frameborder</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span> <span class="token attr-name">allowtransparency</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span> <span class="token attr-name">allowfullscreen</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>twitter-timeline twitter-timeline-rendered<span class="token punctuation">"</span></span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">position</span><span class="token punctuation">:</span> static<span class="token punctuation">;</span> <span class="token property">visibility</span><span class="token punctuation">:</span> visible<span class="token punctuation">;</span> <span class="token property">display</span><span class="token punctuation">:</span> inline-block<span class="token punctuation">;</span> <span class="token property">width</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span> <span class="token property">padding</span><span class="token punctuation">:</span> 0px<span class="token punctuation">;</span> <span class="token property">border</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span> <span class="token property">max-width</span><span class="token punctuation">:</span> 1000px<span class="token punctuation">;</span> <span class="token property">min-width</span><span class="token punctuation">:</span> 180px<span class="token punctuation">;</span> <span class="token property">margin-top</span><span class="token punctuation">:</span> 0px<span class="token punctuation">;</span> <span class="token property">margin-bottom</span><span class="token punctuation">:</span> 0px<span class="token punctuation">;</span> <span class="token property">min-height</span><span class="token punctuation">:</span> 200px<span class="token punctuation">;</span> <span class="token property">height</span><span class="token punctuation">:</span> 6238.31px<span class="token punctuation">;</span></span><span class="token punctuation">"</span></span></span> <span class="token attr-name">data-widget-id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>profile:ChannelNewsAsia<span class="token punctuation">"</span></span> <span class="token attr-name">title</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Twitter Timeline<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>iframe</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>This information can be used to set the size of the containing element to ensure that the container does not expand on loading the feed and there is no layout shift. Following snippet may be used to fix the size of the embed included previously.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">></span></span><span class="token style"><span class="token language-css"><br>    <span class="token selector">.twitterfeed</span> <span class="token punctuation">{</span> <span class="token property">display</span><span class="token punctuation">:</span> table-cell<span class="token punctuation">;</span>  <span class="token property">vertical-align</span><span class="token punctuation">:</span> top<span class="token punctuation">;</span> <span class="token property">width</span><span class="token punctuation">:</span> 100vw<span class="token punctuation">;</span> <span class="token punctuation">}</span><br>    <span class="token selector">.twitter-timeline</span> <span class="token punctuation">{</span><span class="token property">height</span><span class="token punctuation">:</span> 400px <span class="token important">!important</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><br></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span>twitterfeed</span><span class="token punctuation">></span></span><br>       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>twitter-timeline<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://twitter.com/ChannelNewsAsia?ref_src=twsrc%5Etfw<span class="token punctuation">"</span></span> <span class="token attr-name">data-tweet-limit</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Tweets by ChannelNewsAsia<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><br>       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">async</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://platform.twitter.com/widgets.js<span class="token punctuation">"</span></span> <span class="token attr-name">charset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>utf-8<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><h3 id="layout-shift-terminator">Layout Shift Terminator <a class="w-headline-link" href="#layout-shift-terminator">#</a></h3>
+<p>Since third-party embeds often omit the dimensions (width, height) for the final content they render, they can cause significant layout shifts on a page. This problem can be tricky to address without manually inspecting the final sizes using DevTools at a variety of different viewport sizes.</p>
+<p>Now there’s an automated tool, <a href="https://googlechromelabs.github.io/layout-shift-terminator/" rel="noopener">Layout Shift Terminator</a>, that can help you reduce layout shifts from popular embeds, such as from Twitter, Facebook, and other providers.</p>
+<p>Layout Shift Terminator:</p>
+<ul>
+<li>Loads the embed client-side in an iframe.</li>
+<li>Resizes the iframe to various popular viewport sizes.</li>
+<li>For each popular viewport, captures the dimensions of the embed to later generate media queries and container queries.</li>
+<li>Sizes a min-height wrapper around the embed markup using media queries (and container queries) until the embed initializes (after which the min-height styles are removed).</li>
+<li>Generates an optimized embed snippet that can be copy/pasted where you would otherwise be including the embed in your page.</li>
+</ul>
+ <img     alt="Layour shift Terminal"          decoding="async"     height="740"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/lJrW6vxuf1G80XUmvXBT.png?auto=format&w=1600 1600w"          width="800"   />
+<p>Try out the Layout Shift Terminator, and feel free to leave any feedback on <a href="https://github.com/GoogleChromeLabs/layout-shift-terminator" rel="noopener">GitHub</a>. The tool is in a beta state and aims to improve over time with further refinements.</p>
+<h2 id="conclusion">Conclusion <a class="w-headline-link" href="#conclusion">#</a></h2>
+<p>Third-party embeds can provide a lot of value to users, but as the number and size of embeds on a page increases, performance can suffer. That’s why it is necessary to measure, judge, and use appropriate loading strategies for embeds based on their position, relevance, and potential users' needs.</p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/performance/">Performance</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/web-vitals/">Web Vitals</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Oct 5, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/blog/embed-best-practices/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="Leena Sohoni | @addyosmani | @katiehempenius"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

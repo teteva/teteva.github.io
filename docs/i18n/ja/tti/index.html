@@ -1,0 +1,694 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=23f6532353dd8">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Time to Interactive (TTI)</title>
+<meta name="description" content="この投稿では、Time to Interactive (操作可能になるまでの時間、TTI) という指標について紹介し、その測定方法に関する説明を行います。" />
+
+<link rel="canonical" href="https://web.dev/i18n/ja/tti/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/tti/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/tti/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/tti/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/tti/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/tti/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/tti/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/tti/" />
+<meta itemprop="name" content="Time to Interactive (TTI)" />
+<meta itemprop="description" content="この投稿では、Time to Interactive (操作可能になるまでの時間、TTI) という指標について紹介し、その測定方法に関する説明を行います。" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="ja_JP" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/ja/tti/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Time to Interactive (TTI)" />
+<meta property="og:description" content="この投稿では、Time to Interactive (操作可能になるまでの時間、TTI) という指標について紹介し、その測定方法に関する説明を行います。" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="metrics" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Time to Interactive (TTI)" />
+<meta name="twitter:description" content="この投稿では、Time to Interactive (操作可能になるまでの時間、TTI) という指標について紹介し、その測定方法に関する説明を行います。" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=63f17bf4fbfd1', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=26d3c4cda998', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="メニューを開く">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">メニューを開く</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        学習する
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        測定する
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        ブログ
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        概要
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="閉じる"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">閉じる</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        学習する
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        測定する
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        ブログ
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        概要
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#time-to-interactive-(tti)" class="w-toc__header--link">
+        Time to Interactive (TTI)
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#tti">TTI とは？</a></li><li><a href="#tti-2">TTI の測定方法</a><ol></ol></li><li><a href="#tti-3">TTI における良いスコアとは？</a></li><li><a href="#tti-4">TTI の改善方法</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@philwalton"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>共有する</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="time-to-interactive-(tti)" class="w-article-header__headline">Time to Interactive (TTI)</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Nov 7, 2019</time>
+           <span class="w-author__separator">•</span> 更新済み <time>Jun 15, 2020</time> 
+        </div>
+      
+
+      
+      
+      <div class="w-layout-container--narrow w-post-signpost">
+        <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/tti/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/tti/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/tti/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/tti/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/tti/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/tti/">
+      English</a></span>
+      </div>
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/metrics"
+          >指標</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/philipwalton/"><img     alt="Philip Walton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/philipwalton/">Philip Walton</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/philwalton"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/philipwalton">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://philipwalton.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <div class="w-aside w-aside--note">
+<p>Time to Interactive (操作可能になるまでの時間、TTI) は、<a href="/user-centric-performance-metrics/#in-the-lab">読み込みの応答性</a>を測定するために重要となる<a href="/user-centric-performance-metrics/#types-of-metrics">ラボ環境での指標</a>です。TTI は、ページが<em>見かけ上</em>操作可能になっているものの、実際にはそうでない場合を特定するのに役立ちます。TTI を高速にすることで、そのページが<a href="/user-centric-performance-metrics/#in-the-lab">使用可能</a>であることをユーザーに確信させることができます。</div></p>
+<h2 id="tti">TTI とは？ <a class="w-headline-link" href="#tti">#</a></h2>
+<p>TTI 指標は、ページの読み込みが開始されてから主なサブリソースの読み込みが完了するまでの時間を測定するもので、改善することでページがユーザーの入力に対してすばやく確実に応答できるようになります。</p>
+<p>Web ページの<a href="https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/reference" rel="noopener">パフォーマンス トレース</a>に基づいて TTI を計算するには、以下の手順に従います。</p>
+<ol>
+<li><a href="/fcp/">First Contentful Paint (FCP)</a> から開始します。</li>
+<li>少なくとも 5 秒間の落ち着いている期間を時間の経過順に探していきます。この場合の<em>落ち着いている期間</em>とは、<a href="/custom-metrics/#long-tasks-api">長く時間がかかっているタスク</a>がなく、実行中のネットワーク GET リクエストが 2 件以下となる期間として定義されます。</li>
+<li>落ち着いている期間より前の期間内で、一番最後に現れる長く時間がかかっているタスクを見つけ出します。長く時間がかかっているタスクが見つからない場合には、FCP まで遡ります。</li>
+<li>落ち着いている期間より前の期間内で一番最後に現れる長く時間がかかっているタスクの終了時間が、TTI となります。(長く時間がかかっているタスクが見つからない場合には、FCP と同じ値になります)。</li>
+</ol>
+<p>以下の図は、上記の手順を視覚化したものです。</p>
+<p><a href="https://web-dev.imgix.net/image/admin/WZM0n4aXah67lEyZugOT.svg"><img      alt="TTI の算出方法を示すページの読み込みタイムライン"            decoding="async"      height="473"            loading="lazy"            src="https://web-dev.imgix.net/image/admin/WZM0n4aXah67lEyZugOT.svg"                  width="800"    /></a></p>
+<p>歴史的に開発者はレンダリング時間を短縮するためにページを最適化してきており、時には TTI を犠牲にしてきました。</p>
+<p>サーバーサイド レンダリング (SSR) のような技術は、ページが<em>見かけ上</em>は操作可能である (つまり、リンクやボタンが画面に表示されている) にもかかわらず、メイン スレッドがブロックされていたり、それらの要素を制御する JavaScript コードが読み込まれていなかったりするために<em>実際には</em>操作可能ではないといったシナリオをもたらします。</p>
+<p>操作可能に見えて、実際には操作可能ではないページでユーザーが操作を試みると、次のいずれかの応答が返ってきます。</p>
+<ul>
+<li>最良のシナリオの場合、ユーザーはページの反応が遅いことに苛立ちを覚えます。</li>
+<li>最悪のシナリオの場合、ページが故障していると判断され、離脱されてしまう可能性があります。さらには、あなたが管理するブランドの価値に対する自信や信頼を失ってしまう可能性すらあります。</li>
+</ul>
+<p>このような問題を回避するために、FCP と TTI の差を最小限に抑えるように努力してください。また、かなりの差がある場合には、ページ上のコンポーネントがまだ操作可能になっていないことを示す視覚的なインジケーターを設置してください。</p>
+<h2 id="tti-2">TTI の測定方法 <a class="w-headline-link" href="#tti-2">#</a></h2>
+<p>TTI は、<a href="/user-centric-performance-metrics/#in-the-lab">ラボ環境</a>で測定する場合に最適な指標です。TTI の測定に最適な方法には、サイトでの Lighthouse のパフォーマンス監査の実行が挙げられます。使用方法の詳細については、「<a href="/interactive/">TTI に関する Lighthouse ドキュメント</a>」を参照してください。</p>
+<h3 id="">ラボ測定を実施するためのツール <a class="w-headline-link" href="#">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/lighthouse/" rel="noopener">Lighthouse</a></li>
+<li><a href="https://www.webpagetest.org/" rel="noopener">WebPageTest</a></li>
+</ul>
+<div class="w-aside w-aside--note">
+<p>実際のユーザー環境での TTI の測定は可能ですが、ユーザーの操作がページの TTI に影響を与え、レポートに多数のばらつきが出てしまう可能性があるため、お勧めできません。実際のユーザー環境でのページのインタラクティブ性を理解するためには、<a href="/fid/">First Input Delay (FID)</a> を測定する必要があります。</div></p>
+<h2 id="tti-3">TTI における良いスコアとは？ <a class="w-headline-link" href="#tti-3">#</a></h2>
+<p>優れたユーザー エクスペリエンスを提供するためには、<strong>平均的なモバイル ハードウェア</strong>でテストを行った場合に、Time to Interactive を <strong>5 秒</strong>以下に抑えるよう努力する必要があります。</p>
+<p>ページの TTI が Lighthouse のパフォーマンス スコアにどのような影響を及ぼすかについては、「<a href="/interactive/#how-lighthouse-determines-your-tti-score">Lighthouse による TTI スコアの決定方法</a>」を参照してください。</p>
+<h2 id="tti-4">TTI の改善方法 <a class="w-headline-link" href="#tti-4">#</a></h2>
+<p>特定のサイトについて TTI の改善方法を把握するには、Lighthouse でパフォーマンス監査を実行し、そこで推奨される具体的な <a href="/lighthouse-performance/#opportunities">Opportunities</a> (改善機会) に注目します。</p>
+<p>TTI の (あらゆるサイトに共通する) 一般的な改善方法については、以下のパフォーマンス ガイドを参照してください。</p>
+<ul>
+<li><a href="/unminified-javascript/">JavaScript を圧縮する</a></li>
+<li><a href="/uses-rel-preconnect/">必要なオリジンに事前接続する</a></li>
+<li><a href="/uses-rel-preload/">キー リクエストを事前に読み込む</a></li>
+<li><a href="/third-party-summary/">サードパーティ製コードの影響を減らす</a></li>
+<li><a href="/critical-request-chains/">クリティカルなリクエストの深さを最小化する</a></li>
+<li><a href="/bootup-time/">JavaScript の実行にかかる時間を短縮する</a></li>
+<li><a href="/mainthread-work-breakdown/">メイン スレッドの作業を最小限に抑える</a></li>
+<li><a href="/resource-summary/">リクエスト数を少なく、転送サイズを小さく維持する</a></li>
+</ul>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">パフォーマンス</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/metrics/">指標</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        最終更新: <time>Jun 15, 2020</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/ja/metrics/tti/index.md"
+      >
+        記事を改善する
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/metrics"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              バグを報告する
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              ソースを表示する
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">関連性のあるコンテンツ</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome のアップデート
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              ケーススタディ
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              ポッドキャスト
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              ショー
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">接続する</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            すべての製品
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="ja"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            利用規約とプライバシーポリシー
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            コミュニティガイドライン
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

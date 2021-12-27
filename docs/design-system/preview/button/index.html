@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=bfb4937c93d56">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=b5b889151297e">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+<meta name="robots" content="noindex" />
+
+
+<title>Preview</title>
+<meta name="description" content="" />
+
+<link rel="canonical" href="https://web.dev/design-system/preview/button/" />
+
+<meta itemprop="name" content="Preview" />
+<meta itemprop="description" content="" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/design-system/preview/button/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Preview" />
+<meta property="og:description" content="" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Preview" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=c5813f9f1a41b', 'module');
+
+
+
+
+  loadScript('/js/design-system.js?v=b9d52b93d94a6', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+
+    <style>
+      /* Extra padding for theme toggle */
+      body {
+        padding: 1rem 1rem 5rem 1rem;
+      }
+
+      .theme-toggle {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        padding: 1rem;
+        z-index: 10;
+        background: var(--color-mid-bg);
+      }
+
+      
+    </style>
+  </head>
+  <body>
+    <div class="preview">
+      <button class="button">A button</button>
+
+    </div>
+    <div class="theme-toggle">
+      <theme-toggle>
+  <label class="toggle-switch" for="theme-toggle">
+    <span class="toggle-switch__label ">Dark theme</span>
+    <input type="checkbox" role="switch" class="toggle-switch__input" id="theme-toggle" />
+    <div class="toggle-switch__decor focus-ring" aria-hidden="true">
+      <div class="toggle-switch__thumb"></div>
+    </div>
+  </label>
+</theme-toggle>
+    </div>
+    <!-- Sets a specific state for windowed previews -->
+    <script>
+      const urlSearchParams = new URLSearchParams(window.location.search);
+      const params = Object.fromEntries(urlSearchParams.entries());
+
+      const state = params.state || '';
+
+      document.documentElement.setAttribute('data-state', state);
+    </script>
+  </body>
+</html>

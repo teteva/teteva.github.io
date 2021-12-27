@@ -1,0 +1,763 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=9f7b1ad16544f">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=0218304dd967b">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>How CLS optimizations increased Yahoo! JAPAN News's page views per session by 15%</title>
+<meta name="description" content="Using Search Console and Lighthouse to monitor Core Web Vitals, they discovered opportunities for optimizing CLS score by 0.2 which led to 15% increase in page views per session, 13% longer session duration, and 1.72 percentage point decrease in bounce rate. " />
+
+<link rel="canonical" href="https://web.dev/yahoo-japan-news/" />
+
+<meta itemprop="name" content="How CLS optimizations increased Yahoo! JAPAN News's page views per session by 15%" />
+<meta itemprop="description" content="Using Search Console and Lighthouse to monitor Core Web Vitals, they discovered opportunities for optimizing CLS score by 0.2 which led to 15% increase in page views per session, 13% longer session duration, and 1.72 percentage point decrease in bounce rate. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/SYCpuPDC7QTj1runSA2C.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/yahoo-japan-news/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="How CLS optimizations increased Yahoo! JAPAN News's page views per session by 15%" />
+<meta property="og:description" content="Using Search Console and Lighthouse to monitor Core Web Vitals, they discovered opportunities for optimizing CLS score by 0.2 which led to 15% increase in page views per session, 13% longer session duration, and 1.72 percentage point decrease in bounce rate. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/SYCpuPDC7QTj1runSA2C.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="case-study" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="How CLS optimizations increased Yahoo! JAPAN News's page views per session by 15%" />
+<meta name="twitter:description" content="Using Search Console and Lighthouse to monitor Core Web Vitals, they discovered opportunities for optimizing CLS score by 0.2 which led to 15% increase in page views per session, 13% longer session duration, and 1.72 percentage point decrease in bounce rate. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/SYCpuPDC7QTj1runSA2C.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=ecf778e328399', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=50e2077c1a713', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt=""     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format"     srcset="https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/CT42V29q9DyjsktM03Wi.png?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#identifying-the-issue">Identifying the issue</a></li><li class="toc__listitem"><a class="toc__anchor" href="#improving-cls-for-images">Improving CLS for images</a></li><li class="toc__listitem"><a class="toc__anchor" href="#results">Results</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="how-cls-optimizations-increased-yahoo!-japan-news&#39;s-page-views-per-session-by-15percent">How CLS optimizations increased Yahoo! JAPAN News's page views per session by 15%</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            <p>Optimizing CLS by 0.2 led to a 15% increase in page views per session, 13% longer session durations, and a 1.72 percentage point decrease in bounce rate.</p>
+
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Mar 9, 2021</time>
+             — Updated <time>Mar 15, 2021</time> 
+          </div>
+        
+
+        
+        
+
+        
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/sisidovski/"> <img     alt="Shunya Shishido"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/hrfeVegJxVUofxsDxkbh.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/hrfeVegJxVUofxsDxkbh.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/hrfeVegJxVUofxsDxkbh.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/hrfeVegJxVUofxsDxkbh.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/hrfeVegJxVUofxsDxkbh.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/hrfeVegJxVUofxsDxkbh.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/sisidovski/">Shunya Shishido</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/sisidovski">Twitter</a>
+               <a href="https://github.com/sisidovski">GitHub</a>
+               
+               <a href="https://sisidov.ski/">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/gladenjoy/"> <img     alt="Tomoki Kiraku"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/o8ixW7QKSWR02r9ZUOFP.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/o8ixW7QKSWR02r9ZUOFP.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/o8ixW7QKSWR02r9ZUOFP.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/o8ixW7QKSWR02r9ZUOFP.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/o8ixW7QKSWR02r9ZUOFP.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/iEYkFAI5LNQv7oLlIBv9DuB265a2/o8ixW7QKSWR02r9ZUOFP.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/gladenjoy/">Tomoki Kiraku</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/gladenjoy">Twitter</a>
+               
+               
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/mihajlija/"> <img     alt="Milica Mihajlija"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/WkMOiDtaDgiAA2YkRZ5H.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/mihajlija/">Milica Mihajlija</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/bibydigital">Twitter</a>
+               <a href="https://github.com/mihajlija">GitHub</a>
+               
+               <a href="https://mihajlija.github.io/">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#identifying-the-issue">Identifying the issue</a></li><li class="toc__listitem"><a class="toc__anchor" href="#improving-cls-for-images">Improving CLS for images</a></li><li class="toc__listitem"><a class="toc__anchor" href="#results">Results</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <p><a href="https://www.yahoo.co.jp" rel="noopener">Yahoo! JAPAN</a> is one of the largest media companies in Japan,
+providing over 79 billion page views per month. Their news platform, <a href="https://news.yahoo.co.jp" rel="noopener">Yahoo!
+JAPAN News</a> has more than 22 billion page views per
+month and an engineering team dedicated to improving the user experience.</p>
+<p>By continuously monitoring Core Web Vitals (CWV), they correlated the site's
+improved <a href="/cls">Cumulative Layout Shift (CLS)</a> score with a 15%
+increase in page views per session and 13% increase in session duration.</p>
+<div class="stats">
+  <div class="stats__item">
+    <p class="stats__figure">0.2</p>
+    <p>CLS improvement</p>
+  </div>
+  <div class="stats__item">
+    <p class="stats__figure">15.1<sub>%</sub></p>
+    <p>More page views per session</p>
+  </div>
+  <div class="stats__item">
+    <p class="stats__figure">13.3<sub>%</sub></p>
+    <p>Longer session duration</p>
+  </div>
+</div>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p><a href="/cls">Cumulative Layout Shift</a> measures how visually stable a
+website is—it helps quantify how often users experience unexpected layout
+shifts.</p>
+</div></aside>
+<p>Page content moving around unexpectedly often causes accidental clicks,
+disorientation on the page, and ultimately user frustration. Frustrated users
+tend not to stick around for long. To keep users happy, the page layout should
+stay stable through the entire lifecycle of the user journey. For Yahoo! JAPAN
+News this improvement had a significant positive impact on business critical
+engagement metrics.</p>
+<p>For technical details on how they improved the CLS, read the
+<a href="https://techblog.yahoo.co.jp/entry/2021022230076263/" rel="noopener">Yahoo! JAPAN News engineering team's post</a>.</p>
+<h2 id="identifying-the-issue">Identifying the issue <a class="w-headline-link" href="#identifying-the-issue">#</a></h2>
+<p>Monitoring Core Web Vitals, including CLS, is crucial in catching issues and
+identifying where they're coming from. At Yahoo! JAPAN News, <a href="https://search.google.com/search-console/about" rel="noopener">Search
+Console</a> provided a great
+overview of groups of pages with performance issues and
+<a href="/learn/#lighthouse">Lighthouse</a> helped identify per-page
+opportunities to improve page experience. Using these tools, they discovered
+that the article detail page had poor CLS.</p>
+<figure>
+    <img     alt="Google Search Console Core Web Vitals Report showing high CLS for article details page."     class="w-screenshot"     decoding="async"     height="719"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format"     srcset="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/GhORGAous9gyou5yTmHj.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption>
+    Google Search Console Core Web Vitals Report.
+  </figcaption>
+</figure>
+<figure>
+    <img     alt="Lighthouse Avoid large layout shifts audit showing DOm elements that contribute the most to the CLS on the page."     class="w-screenshot"     decoding="async"     height="265"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format"     srcset="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/3YwmCzVBl78a9TdOKu90.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption>
+    Lighthouse "Avoid large layout shifts" audit shows which elements are
+    contributing to CLS score and how much.
+  </figcaption>
+</figure>
+<p>It's important to keep in mind the <em>cumulative</em> part of the Cumulative Layout
+Shift—the score is captured through the entire page lifecycle. In the
+real-world, the score can include shifts that happen as a result of user
+interactions such as scrolling a page or tapping a button. To collect CLS scores
+from the <a href="/how-to-measure-speed/#lab-data-vs-field-data">field
+data</a>, the team
+integrated <a href="https://github.com/GoogleChrome/web-vitals/" rel="noopener">web-vitals</a> JavaScript
+library reporting.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>As a part of performance monitoring strategy, they're also working on building
+an internal tool with <a href="/lighthouse-ci/">Lighthouse CI</a> to
+continuously audit performance across businesses in the company.</p>
+</div></aside>
+<p>The team used Chrome DevTools to identify which elements were making layout
+shifts on the page.
+<a href="https://developers.google.com/web/updates/2019/07/devtools" rel="noopener">Layout Shift Regions</a>
+in DevTools visualizes elements that contribute to CLS by highlighting them with
+a blue rectangle whenever a layout shift happens.</p>
+<figure>
+    <img     alt="Article details page with blue rectangles overlayed on the hero image and the text."     class="w-screenshot"     decoding="async"     height="668"          loading="lazy"     sizes="(min-width: 376px) 376px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/scvRgLxkZVQoGfOtjZ4z.png?auto=format"     srcset="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/scvRgLxkZVQoGfOtjZ4z.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/scvRgLxkZVQoGfOtjZ4z.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/scvRgLxkZVQoGfOtjZ4z.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/scvRgLxkZVQoGfOtjZ4z.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/scvRgLxkZVQoGfOtjZ4z.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/scvRgLxkZVQoGfOtjZ4z.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/scvRgLxkZVQoGfOtjZ4z.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/scvRgLxkZVQoGfOtjZ4z.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/scvRgLxkZVQoGfOtjZ4z.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/scvRgLxkZVQoGfOtjZ4z.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/scvRgLxkZVQoGfOtjZ4z.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/scvRgLxkZVQoGfOtjZ4z.png?auto=format&w=752 752w"          width="376"   />
+  <figcaption>
+    Visualized layout shifts.
+  </figcaption>
+</figure>
+<p>They figured out that a layout shift occurred after the hero image at the top of
+the article was loaded for the first view.</p>
+<figure>
+    <img     alt="Screenshots of the article details page showing side by side comparison before and after layout shift."     class="w-screenshot"     decoding="async"     height="455"          loading="lazy"     sizes="(min-width: 798px) 798px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/HdGiCh7O8ZhqcOkfVGEv.jpg?auto=format&w=1596 1596w"          width="798"   />
+  <figcaption>
+    Layout shift on the article detail page.
+  </figcaption>
+</figure>
+<p>In the example above, when the image finishes loading, the text gets pushed down
+(the position change is indicated with the red line).</p>
+<h2 id="improving-cls-for-images">Improving CLS for images <a class="w-headline-link" href="#improving-cls-for-images">#</a></h2>
+<p>For fixed-size images, layout shifts can be prevented by specifying the <code>width</code>
+and <code>height</code> attributes in the <code>img</code> element and using the CSS
+<a href="/aspect-ratio"><code>aspect-ratio</code></a>
+property available in modern browsers. However, Yahoo! JAPAN News needed to
+support not only modern browsers, but also browsers installed in relatively old
+operating systems such as iOS 9.</p>
+<p>They used <a href="https://css-tricks.com/aspect-ratio-boxes/" rel="noopener">Aspect Ratio Boxes</a>—a
+method which uses markup to reserve the space on the page before the image is
+loaded. This method requires knowing the aspect ratio of the image in advance,
+which they were able to get from the backend API.</p>
+<figure>
+    <img     alt="Screenshots of the article details page showing side by side comparison before and after CLS optimization."     class="w-screenshot"     decoding="async"     height="439"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/gUbS3jB6zMBZwEU3wmW6.jpg?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption>
+    Left: reserved blank space for the image at the top of the page; right: the
+    hero image loaded in the reserved space without layout shifts.
+    </figcaption>
+</figure>
+<h2 id="results">Results <a class="w-headline-link" href="#results">#</a></h2>
+<p>The number of URLs with poor performance in Search Console decreased by 98% and
+CLS in lab data decreased from about 0.2 to 0. More importantly, there were
+several
+<a href="https://nicj.net/cumulative-layout-shift-in-the-real-world/" rel="noopener">correlated improvements in business metrics</a>.</p>
+<figure>
+    <img     alt="Search Console report showing a significant drop in pages with performance issues."     class="w-screenshot"     decoding="async"     height="509"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format"     srcset="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/Q5pRaIvOgzb4tqgv5dWo.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption>
+    Search Console after improvements.
+  </figcaption>
+</figure>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Search Console doesn't reflect improvements in real-time.</p>
+</div></aside>
+<p>When Yahoo! JAPAN News compared user engagement metrics before and after CLS
+optimization, they saw multiple improvements:</p>
+<div class="stats">
+  <div class="stats__item">
+    <p class="stats__figure">15.1<sub>%</sub></p>
+    <p>More page views per session</p>
+  </div>
+  <div class="stats__item">
+    <p class="stats__figure">13.3<sub>%</sub></p>
+    <p>Longer session duration</p>
+  </div>
+  <div class="stats__item">
+    <p class="stats__figure">1.72<sub>%*</sub></p>
+    <p>Lower bounce rate (*percentage points)</p>
+  </div>
+</div>
+<p>By improving CLS and other Core Web Vitals metrics, Yahoo! JAPAN News also got
+the
+<a href="https://blog.chromium.org/2020/08/highlighting-great-user-experiences-on.html" rel="noopener">&quot;Fast page&quot; label</a>
+in the context menu of Chrome Android.</p>
+<figure>
+    <img     alt="Fast page label in Chrome on Android."     class="w-screenshot"     decoding="async"     height="600"          loading="lazy"     sizes="(min-width: 400px) 400px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/ivyeENjT9NKZLhdn9WJm.png?auto=format"     srcset="https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/ivyeENjT9NKZLhdn9WJm.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/ivyeENjT9NKZLhdn9WJm.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/ivyeENjT9NKZLhdn9WJm.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/ivyeENjT9NKZLhdn9WJm.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/ivyeENjT9NKZLhdn9WJm.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/ivyeENjT9NKZLhdn9WJm.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/ivyeENjT9NKZLhdn9WJm.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/ivyeENjT9NKZLhdn9WJm.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/ivyeENjT9NKZLhdn9WJm.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/ivyeENjT9NKZLhdn9WJm.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/ivyeENjT9NKZLhdn9WJm.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/vgdbNJBYHma2o62ZqYmcnkq3j0o1/ivyeENjT9NKZLhdn9WJm.png?auto=format&w=800 800w"          width="400"   />
+  <figcaption>
+    "Fast page" label in Chrome on Android.
+  </figcaption>
+</figure>
+<p>Layout shifts are frustrating and discourage users from reading more pages, but
+that can be improved by using the appropriate tools, identifying issues, and
+applying best practices. Improving CLS is a chance to improve your business.</p>
+<p>For more information, read the
+<a href="https://techblog.yahoo.co.jp/entry/2021022230076263/" rel="noopener">Yahoo! JAPAN engineering team's post</a>.</p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/case-study/">Case Study</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/web-vitals/">Web Vitals</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Mar 15, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/blog/yahoo-japan-news/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@sisidovski | @gladenjoy | @bibydigital"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

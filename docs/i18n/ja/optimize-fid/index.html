@@ -1,0 +1,759 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=392d6cb624cc1">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=463b7e8cd1964">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>First Input Delay を最適化する</title>
+<meta name="description" content="First Input Delay (初回入力までの遅延時間、FID) は、ユーザーが初めてサイトを操作してからブラウザーが実際にその操作に応答するまでの時間を測定するものです。この記事では、使用されていない JavaScript の圧縮、長く時間がかかっているタスクの分割、操作に対する準備状況の改善などの実施により FID を最適化する方法について説明します。" />
+
+<link rel="canonical" href="https://web.dev/i18n/ja/optimize-fid/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/optimize-fid/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/optimize-fid/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/optimize-fid/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/optimize-fid/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/optimize-fid/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/optimize-fid/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/optimize-fid/" />
+<meta itemprop="name" content="First Input Delay を最適化する" />
+<meta itemprop="description" content="First Input Delay (初回入力までの遅延時間、FID) は、ユーザーが初めてサイトを操作してからブラウザーが実際にその操作に応答するまでの時間を測定するものです。この記事では、使用されていない JavaScript の圧縮、長く時間がかかっているタスクの分割、操作に対する準備状況の改善などの実施により FID を最適化する方法について説明します。" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="ja_JP" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/ja/optimize-fid/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="First Input Delay を最適化する" />
+<meta property="og:description" content="First Input Delay (初回入力までの遅延時間、FID) は、ユーザーが初めてサイトを操作してからブラウザーが実際にその操作に応答するまでの時間を測定するものです。この記事では、使用されていない JavaScript の圧縮、長く時間がかかっているタスクの分割、操作に対する準備状況の改善などの実施により FID を最適化する方法について説明します。" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="スマートフォンの画面に触れる手" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="First Input Delay を最適化する" />
+<meta name="twitter:description" content="First Input Delay (初回入力までの遅延時間、FID) は、ユーザーが初めてサイトを操作してからブラウザーが実際にその操作に応答するまでの時間を測定するものです。この記事では、使用されていない JavaScript の圧縮、長く時間がかかっているタスクの分割、操作に対する準備状況の改善などの実施により FID を最適化する方法について説明します。" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=ddfd0745d655c', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=af8e7268908ce', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          学習する
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        測定する
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        ブログ
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        概要
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">閉じる</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="スマートフォンの画面に触れる手"     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/WH0KlcJXJlxvsxU9ow2i.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="このページ内">
+    <div class="course-toc__heading font-google-sans weight-medium">このページ内</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#javascript">重い JavaScript の実行</a></li><li class="toc__listitem"><a class="toc__anchor" href="#long-tasks">長く時間がかかっているタスクを分割する</a></li><li class="toc__listitem"><span class="toc__span">操作に対する準備状況にページを最適化する</span><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-2">ファーストパーティー スクリプトの実行によって操作に対する準備状況に遅延が生じる</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">データフェッチが操作に対する準備状況の様々な側面に影響を与える可能性がある</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">サードパーティ スクリプトの実行も操作の遅延時間に悪影響を及ぼす可能性がある</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#web-worker">Web Worker を使用する</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#reduce-javascript-execution">JavaScript の実行にかかる時間を短縮する</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-6">開発者ツール</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="first-input-delay">First Input Delay を最適化する</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            ユーザーによる操作により速く応答する方法。
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>May 5, 2020</time>
+            
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/optimize-fid/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/optimize-fid/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/optimize-fid/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/optimize-fid/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/optimize-fid/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/optimize-fid/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/houssein/"> <img     alt="Houssein Djirdeh"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/houssein/">Houssein Djirdeh</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/hdjirdeh">Twitter</a>
+               <a href="https://github.com/housseindjirdeh">GitHub</a>
+               <a href="https://glitch.com/@housseindjirdeh">Glitch</a>
+               <a href="https://houssein.me/">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/addyosmani/"> <img     alt="Addy Osmani"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/1L2RBhCLSnXjCnSlevaDjy3vba73/LJyNTOzyWbowv2mrlzPS.jpeg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/addyosmani/">Addy Osmani</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/addyosmani">Twitter</a>
+               <a href="https://github.com/addyosmani">GitHub</a>
+               
+               
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="このページ内">
+      <summary>
+        このページ内
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#javascript">重い JavaScript の実行</a></li><li class="toc__listitem"><a class="toc__anchor" href="#long-tasks">長く時間がかかっているタスクを分割する</a></li><li class="toc__listitem"><span class="toc__span">操作に対する準備状況にページを最適化する</span><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#-2">ファーストパーティー スクリプトの実行によって操作に対する準備状況に遅延が生じる</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-3">データフェッチが操作に対する準備状況の様々な側面に影響を与える可能性がある</a></li><li class="toc__listitem"><a class="toc__anchor" href="#-4">サードパーティ スクリプトの実行も操作の遅延時間に悪影響を及ぼす可能性がある</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#web-worker">Web Worker を使用する</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#reduce-javascript-execution">JavaScript の実行にかかる時間を短縮する</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#-6">開発者ツール</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <blockquote>
+  <p>クリックしても反応がありません。なぜこのページを操作できないのでしょうか？😢</p>
+</blockquote>
+<p><a href="/fcp/">First Contentful Paint</a> (視覚コンテンツの初期表示時間、FCP) と <a href="/lcp/">Largest Contentful Paint</a> (最大視覚コンテンツの表示時間、LCP) は、どちらもコンテンツがページ上で視覚的にレンダリング (描画) されるまでにかかる時間を測定する指標です。描画にかかる時間も重要ではありますが、これは<em>読み込みの応答性</em>、つまりユーザーの操作に対するページの応答の速さを示すものではありません。</p>
+<p><a href="/fid/">First Input Delay</a> (FID) は、サイトのインタラクティブ性や応答性についてのユーザーの第一印象を測定する <a href="/vitals/">Core Web Vitals</a> 指標です。ユーザーが最初にページに操作してからブラウザーが実際にその操作に応答するまでの時間を測定します。FID は<a href="/user-centric-performance-metrics/#in-the-field">フィールド指標</a>であり、ラボ環境ではシミュレートできません。応答の遅延を測定するには、<strong>実際のユーザーによる操作</strong>が必要です。</p>
+  <picture>
+    <source srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eXyvkqRHQZ5iG38Axh1Z.svg" media="(min-width: 640px)">
+    <img     alt="良いfid値は2.5秒、悪い値は4.0秒を超え、その間の値は改善が必要"     class="w-screenshot w-screenshot--filled width-full"     decoding="async"     height="96"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/Se4TiXIdp8jtLJVScWed.svg"               width="384"   />
+  </picture>
+<p><a href="/how-to-measure-speed/#lab-data-vs-field-data">ラボ</a>環境での FID の予測には、<a href="/tbt/">Total Blocking Time (合計ブロック時間、TBT)</a> をお勧めしています。この 2 つの指標の測定対象は異なりますが、通常 TBT の改善は FID の改善に相当します。</p>
+<p>FID が悪化する場合の主な原因には、<strong>重い JavaScript の実行</strong>が挙げられます。Web ページ上での JavaScript の解析方法、コンパイル方法、実行方法を最適化することにより、FID を直接的に短縮することができます。</p>
+<h2 id="javascript">重い JavaScript の実行 <a class="w-headline-link" href="#javascript">#</a></h2>
+<p>ブラウザーは、メイン スレッドで JavaScript を実行している最中にはほとんどのユーザー入力に応答することができません。言い換えれば、メイン スレッドがビジー状態の間はブラウザーがユーザーの操作に応答することはできません。これを改善するには、以下の方法を行います。</p>
+<ul>
+<li><a href="#long-tasks">長く時間がかかっているタスクを分割する</a></li>
+<li><a href="#optimize-interaction-readiness">操作に対する準備状況にページを最適化する</a></li>
+<li><a href="#use-a-web-worker">Web Worker を使用する</a></li>
+<li><a href="#reduce-javascript-execution">JavaScript の実行にかかる時間を短縮する</a></li>
+</ul>
+<h2 id="long-tasks">長く時間がかかっているタスクを分割する <a class="w-headline-link" href="#long-tasks">#</a></h2>
+<p>単一のページで読み込まれる JavaScript の量の削減をすでに試している場合には、長時間に渡って実行されるコードを<strong>比較的小さな非同期タスク</strong>へと分割する方法が有効となる可能性があります。</p>
+<p><a href="/custom-metrics/#long-tasks-api"><strong>長く時間がかかっているタスク</strong></a>とは、ユーザーが UI の応答がが悪いと感じる可能性のある JavaScript の実行時間のことを指します。メイン スレッドを 50 ミリ秒以上に渡ってブロックし続けるコードは、すべて長く時間がかかっているタスクとして分類されます。長く時間がかかっているタスクは、潜在的な JavaScript の肥大化 (ユーザーがその場で必要とする以上のものを読み込み、実行すること) の兆候を示しています。長く時間がかかっているタスクを分割することにより、サイトの入力遅延を削減することができます。</p>
+<figure class="w-figure">
+  <img     alt="Chrome DevTools での長く時間がかかっているタスク"     class="w-screenshot"     decoding="async"     height="132"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/THLKu0sOPhSghNr0XkP1.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">Chrome DevTools のパフォーマンス パネルで<a href="https://developers.google.com/web/updates/2020/03/devtools#long-tasks">可視化された、長く時間がかかっているタスク</a></figcaption>
+</figure>
+<p>コード分割や、長く時間がかかっているタスクの分割などのベスト プラクティスを採用することにより、FID は顕著に改善されるはずです。TBT はフィールド指標ではありませんが、Time to Interactive (操作可能になるまでの時間、TTI) および FID の両指標が最終的に改善されるまでの進捗状況の確認に役立ちます。</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>詳細については、「<a href="/long-tasks-devtools/">長く時間がかかっている JavaScript タスクが Time to Interactive を悪化させていませんか？</a>」を参照してください。</p>
+</div></aside>
+<h2 id="">操作に対する準備状況にページを最適化する <a class="w-headline-link" href="#">#</a></h2>
+<p>JavaScript に大きく依存している Web アプリケーションで FID や TBT のスコアが悪化する原因には、いくつかのものが考えられます。</p>
+<h3 id="-2">ファーストパーティー スクリプトの実行によって操作に対する準備状況に遅延が生じる <a class="w-headline-link" href="#-2">#</a></h3>
+<ul>
+<li>JavaScript のサイズの肥大化、実行時間の長期化、非効率なチャンキングは、ユーザーの入力に対するページの応答時間を遅らせ、FID、TBT、TTI に影響を与えます。コードや機能のプログレッシブ読み込みはこの作業を分散させ、操作に対する準備状況を改善させます。</li>
+<li>サーバー側でレンダリングされたアプリは、一見すぐに画面にピクセルが描画されるように見えるかもしれませんが、大量のスクリプトの実行によってユーザーの操作がブロックされる場合もあるので注意が必要です (イベント リスナーを接続するためのリハイドレーションなど)。ルートベースのコード分割が使用されている場合、これには数百ミリ秒、場合によっては数秒かかる可能性があります。より多くのロジックをサーバー側に移行するか、ビルド時に静的にコンテンツを生成することを検討してください。</li>
+</ul>
+<p>次に示すのは、あるアプリケーションのファーストパーティー スクリプトの読み込みを最適化する前後での TBT スコアの比較です。必要のないコンポーネントのために読み込み (および実行) にコストがかかっていたスクリプトをクリティカル パスから除外することにより、ユーザーはより早くページを操作できるようになりました。</p>
+<img     alt="ファーストパーティー スクリプトの最適化により、Lighthouse での TBT スコアが改善されました。"     class="w-screenshot"     decoding="async"     height="148"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/TEIbBnIAyfzIoQtvXvMk.png?auto=format&w=1600 1600w"          width="800"   />
+<h3 id="-3">データフェッチが操作に対する準備状況の様々な側面に影響を与える可能性がある <a class="w-headline-link" href="#-3">#</a></h3>
+<ul>
+<li>カスケーディング フェッチのウォーターフォール (例: コンポーネントで使用される JavaScript やデータのフェッチ) での待機は、操作の遅延時間に影響を及ぼす可能性があります。カスケーディング データ フェッチへの依存は、最小限に抑えるようにしましょう。</li>
+<li>サイズの大きいインラインのデータストアは、HTML の解析にかかる時間を増大させ、描画や操作の指標に影響を与えます。クライアント側で後処理が必要なデータの量を最小限に抑えるようにしましょう。</li>
+</ul>
+<h3 id="-4">サードパーティ スクリプトの実行も操作の遅延時間に悪影響を及ぼす可能性がある <a class="w-headline-link" href="#-4">#</a></h3>
+<ul>
+<li>ネットワークをビジー状態にし、メイン スレッドを定期的に応答不可の状態にする可能性があるサードパーティ製のタグやアナリティクスが多くのサイトで使用されていますが、これらは操作の遅延時間に影響を及ぼします。サードパーティ製のコードについてはオンデマンドでの読み込みをご検討ください (たとえば、スクロールしてビューポートの範囲内に含まれるまで、Below the fold (ビロウ・ザ・フォールド、スクロールせずに閲覧可能なサイトのファースト ビュー以外の部分を指す) にある広告を読み込まないようにするなど)。</li>
+<li>場合によっては、メイン スレッドでの優先度や帯域幅の観点からサードパーティ スクリプトがファーストパーティ スクリプトよりも先に実行される可能性があり、ページが操作に応答できるようになるまでの時間にも遅延が生じる場合があります。ユーザーにとって最も価値があると思われるものを優先的に読み込むようにしましょう。</li>
+</ul>
+<h2 id="web-worker">Web Worker を使用する <a class="w-headline-link" href="#web-worker">#</a></h2>
+<p>メイン スレッドのブロックは、入力遅延を引き起こす主な原因の 1 つです。<a href="https://developer.mozilla.org/docs/Web/API/Worker" rel="noopener">Web Worker</a> は、JavaScript をバックグラウンドのスレッドで実行できるようにします。UI 以外の処理を別のワーカー スレッドに移すことでメイン スレッドのブロック時間を短縮し、結果的に FID を改善させることができます。</p>
+<p>運営するサイトで Web Worker をより簡単にご利用いただくために、以下のライブラリの使用をご検討ください。</p>
+<ul>
+<li><a href="https://github.com/GoogleChromeLabs/comlink" rel="noopener">Comlink</a>: <code>postMessage</code> を抽象化して使いやすくしたヘルパー ライブラリ</li>
+<li><a href="https://github.com/WebReflection/workway" rel="noopener">Workway</a>: 汎用的な Web Worker エクスポーター</li>
+<li><a href="https://github.com/developit/workerize" rel="noopener">Workerize</a>: モジュールを Web Worker に移動</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Web Worker を利用してメイン スレッド以外でコードを実行する方法については、「<a href="/off-main-thread/">Web Worker を使用してブラウザーのメイン スレッド以外で JavaScript を実行する</a>」を参照してください。</p>
+</div></aside>
+<h3 id="reduce-javascript-execution">JavaScript の実行にかかる時間を短縮する <a class="w-headline-link" href="#reduce-javascript-execution">#</a></h3>
+<p>ページ上の JavaScript の量を制限することで、ブラウザーが JavaScript コードを実行するために必要となる時間を短縮することができます。これにより、ユーザーの操作に対するブラウザーの応答時間を高速化することができます。</p>
+<p>ページ上で実行される JavaScript の量を減らす方法には、以下のものがあります。</p>
+<ul>
+<li>使用されていない JavaScript を先送りする</li>
+<li>使用されていないポリフィルを最小限に抑える</li>
+</ul>
+<h4 id="javascript-2">使用されていない JavaScript を先送りする <a class="w-headline-link" href="#javascript-2">#</a></h4>
+<p>デフォルトでは、すべての JavaScript はレンダリングをブロックします。ブラウザーは外部の JavaScript ファイルにリンクされているスクリプト タグに遭遇すると処理を中断し、その JavaScript のダウンロード、解析、コンパイル、実行を行わなければならなくなります。そのため、ページの処理やユーザーの入力に対する応答に必要なコードのみを読み込む必要があります。</p>
+<p>Chrome DevTools の <a href="https://developers.google.com/web/tools/chrome-devtools/coverage" rel="noopener">Coverage</a> (カバレッジ) タブでは、Web ページで使用されていない JavaScript がどの程度存在しているかを確認することができます。</p>
+<img     alt="Coverage (カバレッジ) タブ。"     class="w-screenshot w-screenshot--filled"     decoding="async"     height="559"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/UNEigFiwsGu48rtXMZM4.png?auto=format&w=1600 1600w"          width="800"   />
+<p>使用されていない JavaScript を削減する方法には、以下のものがあります。</p>
+<ul>
+<li>複数のチャンクへとバンドルのコードを分割する</li>
+<li>サードパーティ スクリプトを含む重要でない JavaScript を<code>async</code> または <code>defer</code> を使用して先送りする</li>
+</ul>
+<p><strong>コード分割</strong>とは、1 つの大きな JavaScript バンドルを条件付きでの読み込みが可能な小さなチャンクへと分割することを意味します (レイジーロードとも呼ばれています)。<a href="https://caniuse.com/#feat=es6-module-dynamic-import" rel="noopener">最新のブラウザーのほとんどが動的なインポート構文をサポート</a>しており、モジュールを必要に応じてフェッチすることができます。</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">import</span><span class="token punctuation">(</span><span class="token string">'module.js'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">module</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token comment">// モジュールを使用して何かを実行します。</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>特定のユーザー操作 (ルートの変更やモーダル ウィンドウの表示など) に関する JavaScript を動的にインポートすることにより、最初のページ読み込みに使用されないコードを必要な場合にのみ取得できるようになります。</p>
+<p>一般的なブラウザーのサポートに加えて、動的なインポート構文は様々なビルド システムでも使用が可能です。</p>
+<ul>
+<li>モジュール バンドラーとして <a href="https://webpack.js.org/guides/code-splitting/" rel="noopener">webpack</a>、<a href="https://medium.com/rollup/rollup-now-has-code-splitting-and-we-need-your-help-46defd901c82" rel="noopener">Rollup</a>、<a href="https://parceljs.org/code_splitting.html" rel="noopener">Parcel</a> を使用している場合には、それらが提供する動的インポートのサポートをご利用ください。</li>
+<li><a href="https://reactjs.org/docs/code-splitting.html#reactlazy" rel="noopener">React</a>、<a href="https://angular.io/guide/lazy-loading-ngmodules" rel="noopener">Angular</a>、<a href="https://vuejs.org/v2/guide/components-dynamic-async.html#Async-Components" rel="noopener">Vue</a> のようなクライアントサイド フレームワークでは、コンポーネントレベルでのレイジーロードを容易にするための抽象化を提供しています。</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>コード分割の詳細については、「<a href="/reduce-javascript-payloads-with-code-splitting/">コード分割による JavaScript ペイロードの削減</a>」を参照してください。</p>
+</div></aside>
+<p>コード分割以外にも、クリティカル パスや Above the fold (アバブ・ザ・フォールド、スクロールせずに閲覧可能なサイトのファースト ビューを指す) のコンテンツに必要のないスクリプトについては常に <a href="https://javascript.info/script-async-defer" rel="noopener">async または defer</a> を使用してください。</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">defer</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>…<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">async</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>…<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>特別な理由がない限りは、すべてのサードパーティ スクリプトをデフォルトで <code>defer</code> または <code>async</code> のいずれかを使用して読み込むようにすることを強くお勧めします。</p>
+<h4 id="-5">使用されていないポリフィルを最小限に抑える <a class="w-headline-link" href="#-5">#</a></h4>
+<p>最新の JavaScript 構文を使用してコードを作成したり、最新のブラウザー API を参照したりしている場合、ページを古いブラウザーで動作させるためにはトランスパイルを行ったり、ポリフィルを使用したりする必要があります。</p>
+<p>ポリフィルやトランスパイルされたコードをサイトに使用する場合に考えられる主なパフォーマンス上の問題点の 1 つとして、最新のブラウザーがそれらを必要としていない場合にはダウンロードを行う必要がなくなるということが挙げられます。アプリケーションの JavaScript サイズを削減するには、使用されていないポリフィルを可能な限り少なくし、それらが必要とされる環境に限定して使用するようにしてください。</p>
+<p>運営するサイトでのポリフィルの使用を最適化する方法には、以下のものがあります。</p>
+<ul>
+<li>
+<p>トランスパイラとして <a href="https://babeljs.io/docs/en/index.html" rel="noopener">Babel</a> を使用している場合、<a href="https://babeljs.io/docs/en/babel-preset-env" rel="noopener"><code>@babel/preset-env</code></a> を使用して、ターゲットにするブラウザーが必要とするポリフィルのみを使用するようにします。Babel 7.9 では、不必要なポリフィルをさらに削減するために <a href="https://babeljs.io/docs/en/babel-preset-env#bugfixes" rel="noopener"><code>bugfixes</code></a> オプションを有効にしてください。</p>
+</li>
+<li>
+<p>module/nomodule パターンを使用して、異なるバンドルを 2 つ配信します (<code>@babel/preset-env</code> も <a href="https://babeljs.io/docs/en/babel-preset-env#targetsesmodules" rel="noopener"><code>target.esmodules</code></a> を介してこれをサポートしています)。</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>module<span class="token punctuation">"</span></span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>modern.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">nomodule</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>legacy.js<span class="token punctuation">"</span></span> <span class="token attr-name">defer</span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>JavaScript モジュールをサポートしている環境であれば、Babel を使用してコンパイルされた新しい ECMAScript の機能の多くはすでにサポートされています。そのため、この手法を用いることにより、トランスパイルされたコードのみが実際にそれらを必要としているブラウザーに使用されていることを確認するプロセスを簡素化することができます。</p>
+</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>このトピックの詳細については、「<a href="/serve-modern-code-to-modern-browsers/">最新のコードを最新のブラウザーに配信して、ページの読み込みを高速化する</a>」ガイドをご覧ください。</p>
+</div></aside>
+<h2 id="-6">開発者ツール <a class="w-headline-link" href="#-6">#</a></h2>
+<p>FID を測定またはデバッグするためのツールは、以下のように様々なものが用意されています。</p>
+<ul>
+<li>
+<p>FID はフィールド指標であるため、<a href="https://developers.google.com/web/tools/lighthouse" rel="noopener">Lighthouse 6.0</a> には FID のサポートは含まれていません。ただし、その代替指標として <a href="/tbt/">Total Blocking Time</a> (TBT) を使用することができます。TBT を改善することができる最適化手法であれば、実際のユーザー環境での FID も改善することができるはずです。</p>
+  <img     alt="Lighthouse 6.0"     class="w-screenshot"     decoding="async"     height="309"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/FRM9kHWmsDv9dddGMgwu.jpg?auto=format&w=1600 1600w"          width="800"   />
+</li>
+<li>
+<p><a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome User Experience Report</a> は、オリジンレベルで集計された実際の環境での FID 値を提供します。</p>
+</li>
+</ul>
+<p><em>レビューしていただいた Philip Walton、Kayce Basques、Ilya Grigorik、Annie Sullivan には、心より感謝申し上げます。</em></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/performance/">パフォーマンス</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/web-vitals/">Web Vitals</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          最終更新: <time>May 5, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/ja/blog/optimize-fid/index.md"
+        >
+          記事を改善する
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@hdjirdeh | @addyosmani"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">共有する</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            バグを報告する
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            ソースを表示する
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">関連性のあるコンテンツ</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome のアップデート
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            ケーススタディ
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            ポッドキャスト
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            ショー
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">接続する</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          すべての製品
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="ja"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          利用規約とプライバシーポリシー
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          コミュニティガイドライン
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

@@ -1,0 +1,1837 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=3024c3be9e8b4">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=1d984eee73cf1">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Introduction</title>
+<meta name="description" content="Find out where responsive design came from. " />
+
+<link rel="canonical" href="https://web.dev/learn/design/intro/" />
+
+<meta itemprop="name" content="Introduction" />
+<meta itemprop="description" content="Find out where responsive design came from. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/KxnwWklPxOyH9uK87KG8.svg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/learn/design/intro/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Introduction" />
+<meta property="og:description" content="Find out where responsive design came from. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/KxnwWklPxOyH9uK87KG8.svg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="course-design" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Introduction" />
+<meta name="twitter:description" content="Find out where responsive design came from. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/KxnwWklPxOyH9uK87KG8.svg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+  
+  <script>
+    /*
+ * Copyright 2021 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * @fileoverview A custom element to track the user's progress using
+ * localstorage, and report progress using analytics.
+ *
+ * We inline this element into the head of the document to avoid FOUC because
+ * it needs to read from localstorage and then modify its children.
+ */
+
+/**
+ * @typedef {object} Course
+ * @property {string[]} pages
+ * @property {string} percent
+ */
+
+/** @type {Course} */
+const initialCourse = {pages: [], percent: '0'};
+
+class CourseLinks extends HTMLElement {
+  constructor() {
+    super();
+
+    // Add a slot that is basically a cheap MutationObserver
+    // We use this to listen for when children are added or removed.
+    this.attachShadow({mode: 'open'});
+    const slot = document.createElement('slot');
+    this.shadowRoot.appendChild(slot);
+    slot.addEventListener('slotchange', this.onSlotChange);
+  }
+
+  /**
+   * Get the user's overall course progress from localstorage.
+   * This returns an object where each string key represents a different course.
+   * Example: {css: {pages: ['intro', ...], percent: 10}, pwa: {...}}
+   * @returns {{[courseName: string]: Course}}
+   */
+  getProgress = () => {
+    let progress;
+    try {
+      progress = JSON.parse(localStorage['webdev_course_progress']);
+    } catch (e) {
+      progress = {};
+    }
+    return progress;
+  };
+
+  /**
+   * Called when the element's children are first parsed.
+   * This will set attributes on the children so they render correctly
+   * and will track the user's progress in GA.
+   */
+  onSlotChange = () => {
+    const children = Array.from(this.querySelectorAll('a'));
+    const currentUrl = this.getAttribute('data-current');
+    const courseKey = this.getAttribute('data-course-key');
+
+    // Get the user's progress from localstorage and update it.
+    const progress = this.getProgress();
+    const course = progress[courseKey] || {...initialCourse};
+    // Find every anchor that the user has already visited and set an attribute
+    // on it so it renders a checkmark.
+    children.forEach((child) => {
+      if (course.pages && course.pages.includes(child.getAttribute('href'))) {
+        child.setAttribute('data-complete', 'true');
+      }
+      return child;
+    });
+
+    this.trackProgress(children, currentUrl, course, courseKey);
+  };
+
+  /**
+   * Update the user's progress in localstorage and fire analytics.
+   * @param {Element[]} children
+   * @param {string} currentUrl
+   * @param {Course} course
+   * @param {string} courseKey
+   */
+  trackProgress = (children, currentUrl, course, courseKey) => {
+    // Add the user's current page to the set of pages already visited.
+    // We use a Set here to avoid duplicate pages.
+    // We'll compare newPages to oldPages to figure out how far they
+    // have progressed.
+    const oldPages = new Set(course.pages);
+    oldPages.add(currentUrl);
+    const newPages = Array.from(oldPages);
+
+    // Bucket the user's progress into increments of 10.
+    // For each 10%+ bucket jump, fire an analytics event.
+    // e.g. If there are 21 modules, and the user is on the 10th module, and
+    // clicks three more modules, the events will look like
+    // this:
+    // Math.floor((10/21) * 10) * 10 == 40
+    // Math.floor((11/21) * 10) * 10 == 50 (fire analytics event)
+    // Math.floor((12/21) * 10) * 10 == 50
+    // Math.floor((13/21) * 10) * 10 == 60 (fire analytics event)
+    // Note we're using integers to represent percents instead of decimals to
+    // avoid issues with floating point arithmetic.
+    const oldPercent = parseInt(course.percent, 10);
+    const newPercent =
+      Math.floor((newPages.length / children.length) * 10) * 10;
+
+    // Fire analytics if there's been a 10%+ bucket jump.
+    if (ga && newPercent - oldPercent >= 10) {
+      ga('send', 'event', {
+        eventCategory: 'Course Events',
+        eventAction: `course: ${courseKey} progress`,
+        eventLabel: newPercent.toString(),
+      });
+    }
+
+    // Write everything back to localstorage using the data-course-key
+    // to identify which course it came from.
+    //
+    // If a user has visited multiple courses, then we need to preserve
+    // their progress, so we merge the new progress with their saved state.
+    let updatedProgress = this.getProgress();
+    updatedProgress = Object.assign({}, updatedProgress, {
+      [courseKey]: {
+        pages: newPages,
+        percent: newPercent,
+      },
+    });
+
+    try {
+      localStorage['webdev_course_progress'] = JSON.stringify(updatedProgress);
+    } catch (e) {
+      // Fail gracefully with a console log.
+      // We don't want to cause a runtime error here and possibly disrupt
+      // the rest of the JS on the page since tracking progress isn't a
+      // critical feature.
+      console.warn(`Failed to write course status to localstorage.`);
+    }
+  };
+}
+
+customElements.define('course-links', CourseLinks);
+
+  </script>
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=29531209df13', 'module');
+
+
+
+
+  loadScript('/js/course.js?v=5e6da8d54ddcb', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a class="skip-link button" data-type="primary" href="#main">Skip to main</a>
+
+<div class="course">
+  
+
+<web-header class="cluster gutter-base" role="navigation" style="--course-background: url('/images/courses/design/background.svg')">
+  <button data-open-drawer-button class="icon-button tooltip" data-alignment="right">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="tooltip__content">Open menu</span>
+  </button>
+
+  <p class="font-brand text-size-2 color-mid-text">Learn Responsive Design!</p>
+</web-header>
+
+
+  <div class="sidebar">
+
+    <div class="course__sidebar">
+      
+
+
+
+<web-navigation-drawer type="standard">
+  <nav data-drawer-container class="course__drawer flow">
+    <div class="course__header" style="--course-background: url('/images/courses/design/background.svg')">
+      <button data-drawer-close-button class="icon-button tooltip gap-top-base color-dark-text" data-alignment="right">
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+
+      <div class="course__side-title">
+        
+          
+          
+          
+
+
+  <svg role="img" aria-label="Learn Responsive Design!" viewBox="0 0 240 70" width="240" height="70" preserveAspectRatio="xMinYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 10h3.06v16.64h8.388v2.923H0V10ZM19.88 30c-1.33 0-2.532-.31-3.607-.929a6.61 6.61 0 0 1-2.486-2.568c-.601-1.111-.902-2.35-.902-3.716 0-1.312.283-2.514.847-3.607a6.624 6.624 0 0 1 2.432-2.623c1.038-.655 2.222-.983 3.552-.983 1.366 0 2.55.3 3.552.901a5.847 5.847 0 0 1 2.322 2.514c.528 1.056.793 2.277.793 3.661 0 .164-.01.328-.028.492a5.822 5.822 0 0 0-.027.273H15.89c.09 1.239.537 2.195 1.339 2.87.801.673 1.712 1.01 2.732 1.01 1.566 0 2.768-.729 3.606-2.186l2.569 1.23a7.097 7.097 0 0 1-2.514 2.677c-1.056.656-2.304.984-3.743.984Zm3.442-8.88c-.036-.437-.182-.883-.437-1.339-.255-.455-.655-.837-1.202-1.147-.528-.328-1.193-.492-1.994-.492-.893 0-1.667.273-2.323.82-.637.546-1.075 1.266-1.311 2.158h7.267ZM33.443 30c-.966 0-1.84-.191-2.623-.574a4.83 4.83 0 0 1-1.83-1.64c-.438-.71-.656-1.511-.656-2.404 0-1.42.528-2.54 1.584-3.36 1.075-.82 2.432-1.23 4.071-1.23 1.44 0 2.669.246 3.689.738v-.574c0-.82-.328-1.493-.984-2.022-.637-.546-1.412-.82-2.322-.82-1.385 0-2.496.565-3.334 1.695l-2.295-1.585a6.365 6.365 0 0 1 2.377-1.967c.966-.456 2.05-.683 3.252-.683 1.985 0 3.515.5 4.59 1.502 1.093.984 1.64 2.378 1.64 4.18v8.307h-2.924v-1.667h-.164a5.372 5.372 0 0 1-1.667 1.53c-.674.383-1.475.574-2.404.574Zm.492-2.486c.674 0 1.293-.164 1.858-.492a3.853 3.853 0 0 0 1.366-1.339c.346-.565.519-1.166.519-1.803a6.334 6.334 0 0 0-3.088-.793c-1.001 0-1.785.219-2.35.656-.564.437-.846.993-.846 1.667 0 .62.246 1.13.737 1.53.51.382 1.111.574 1.804.574ZM43.774 16.01h2.842v2.023h.164c.291-.692.82-1.266 1.584-1.722.766-.473 1.549-.71 2.35-.71.656 0 1.193.091 1.612.273v3.142c-.62-.31-1.311-.464-2.076-.464-.984 0-1.813.382-2.487 1.148-.655.746-.983 1.666-.983 2.759v7.104h-3.006V16.01ZM54.527 16.01h2.842v1.804h.164c.4-.655.983-1.193 1.748-1.612a5.093 5.093 0 0 1 2.487-.628c1.675 0 2.941.492 3.797 1.475.875.984 1.312 2.34 1.312 4.071v8.443h-3.005V21.53c0-2.131-.993-3.197-2.979-3.197-1.002 0-1.812.401-2.431 1.203-.62.801-.93 1.748-.93 2.841v7.186h-3.005V16.01Z" fill="#3C4043"/><path d="M0 59.31V39.958h6.784c1.189 0 2.252.253 3.189.757a5.67 5.67 0 0 1 2.216 2.108c.559.883.838 1.901.838 3.054 0 1.262-.396 2.406-1.19 3.433-.774 1.009-1.873 1.712-3.296 2.108l5.378 7.73v.162h-3.433l-5.162-7.595H2.973v7.595H0Zm6.81-16.568H2.974v6.244h3.73c.919 0 1.702-.289 2.351-.865.649-.595.973-1.352.973-2.27a3.09 3.09 0 0 0-.378-1.487 2.863 2.863 0 0 0-1.108-1.162c-.469-.307-1.046-.46-1.73-.46Z" fill="url(#a_wx)"/><path d="M22.043 59.742c-1.351 0-2.559-.315-3.622-.946a6.82 6.82 0 0 1-2.513-2.594c-.595-1.1-.892-2.352-.892-3.757 0-1.315.288-2.532.865-3.649a6.903 6.903 0 0 1 2.405-2.675c1.045-.685 2.243-1.027 3.595-1.027 1.423 0 2.63.306 3.621.919a5.954 5.954 0 0 1 2.298 2.513c.522 1.063.783 2.261.783 3.595 0 .198-.009.378-.027.54 0 .162-.009.288-.027.378H17.881c.144 1.37.621 2.397 1.432 3.082.829.684 1.766 1.027 2.81 1.027.938 0 1.713-.208 2.325-.622a4.927 4.927 0 0 0 1.46-1.595l2.405 1.163a7.457 7.457 0 0 1-2.432 2.648c-1.027.667-2.307 1-3.838 1Zm-.135-12.162c-.973 0-1.802.297-2.487.892-.684.595-1.144 1.387-1.378 2.378h7.649c-.037-.468-.19-.955-.46-1.46-.27-.504-.685-.927-1.243-1.27-.54-.36-1.234-.54-2.081-.54Z" fill="url(#b_wx)"/><path d="M36.45 59.742c-1.657 0-2.982-.36-3.973-1.08-.99-.74-1.675-1.614-2.054-2.623l2.622-1.135c.324.74.793 1.307 1.405 1.703.613.379 1.307.568 2.081.568.721 0 1.343-.127 1.865-.379.523-.27.784-.702.784-1.297 0-.577-.261-1-.784-1.27-.522-.27-1.17-.505-1.946-.703l-1.648-.378a6.759 6.759 0 0 1-1.865-.757 4.304 4.304 0 0 1-1.405-1.324c-.36-.559-.541-1.208-.541-1.946 0-.811.243-1.514.73-2.108.486-.613 1.126-1.082 1.919-1.406a6.67 6.67 0 0 1 2.621-.513c1.28 0 2.397.252 3.351.756a4.483 4.483 0 0 1 2.136 2.217l-2.514 1.135c-.324-.613-.748-1.036-1.27-1.27a3.695 3.695 0 0 0-1.676-.379c-.684 0-1.261.144-1.73.433-.45.288-.675.648-.675 1.08 0 .469.198.838.594 1.109.415.27.92.486 1.514.648l2 .487c1.37.342 2.396.865 3.081 1.567.685.685 1.027 1.523 1.027 2.514 0 .883-.252 1.657-.757 2.324-.504.649-1.189 1.153-2.054 1.514-.847.342-1.793.513-2.838.513Z" fill="url(#c_wx)"/><path d="M44.487 65.148V45.526h2.73v1.865h.162c.36-.595.92-1.126 1.676-1.595.775-.468 1.694-.702 2.757-.702 1.261 0 2.387.315 3.378.945.991.631 1.775 1.496 2.352 2.595.594 1.1.892 2.36.892 3.784 0 1.423-.298 2.694-.892 3.81-.577 1.1-1.36 1.965-2.352 2.595-.99.613-2.117.92-3.378.92-1.063 0-1.982-.226-2.757-.676-.757-.469-1.315-1-1.676-1.595h-.162l.162 1.919v5.757h-2.892Zm6.892-8.081c.721 0 1.397-.19 2.028-.568.63-.378 1.144-.91 1.54-1.595.396-.702.595-1.531.595-2.486 0-.955-.199-1.775-.595-2.46-.396-.702-.91-1.243-1.54-1.621a3.874 3.874 0 0 0-2.028-.568c-.72 0-1.396.19-2.027.568-.63.378-1.144.919-1.54 1.621-.396.685-.595 1.505-.595 2.46 0 .955.199 1.784.595 2.486.396.685.91 1.217 1.54 1.595.631.378 1.307.568 2.027.568Z" fill="url(#d_wx)"/><path d="M67.603 59.742c-1.424 0-2.676-.324-3.757-.973a6.958 6.958 0 0 1-2.54-2.621c-.613-1.1-.92-2.343-.92-3.73 0-1.37.307-2.604.92-3.703.612-1.117 1.459-2 2.54-2.648 1.08-.65 2.333-.973 3.757-.973 1.405 0 2.648.324 3.73.973a6.903 6.903 0 0 1 2.54 2.648c.612 1.1.919 2.333.919 3.703 0 1.387-.306 2.63-.92 3.73a6.958 6.958 0 0 1-2.54 2.621c-1.08.649-2.324.973-3.73.973Zm0-2.675c.756 0 1.46-.18 2.108-.541a4.296 4.296 0 0 0 1.567-1.595c.415-.702.622-1.54.622-2.513 0-.973-.207-1.802-.622-2.487-.396-.702-.919-1.234-1.567-1.594a4.112 4.112 0 0 0-2.108-.568c-.757 0-1.469.19-2.135.568-.65.36-1.18.892-1.595 1.594-.396.685-.595 1.514-.595 2.487 0 .973.199 1.81.595 2.513a4.505 4.505 0 0 0 1.595 1.595c.666.36 1.378.54 2.135.54Z" fill="url(#e_wx)"/><path d="M77.216 59.31V45.526h2.757v1.892h.162c.396-.667.982-1.216 1.757-1.649a5.162 5.162 0 0 1 2.595-.675c1.693 0 2.964.504 3.81 1.513.847 1.01 1.27 2.342 1.27 4v8.703h-2.891v-8.325c0-1.117-.28-1.927-.838-2.432-.559-.522-1.288-.784-2.19-.784-.702 0-1.315.199-1.837.595a3.967 3.967 0 0 0-1.243 1.513 4.817 4.817 0 0 0-.433 2.027v7.406h-2.919Z" fill="url(#f_wx)"/><path d="M97.79 59.742c-1.659 0-2.983-.36-3.974-1.08-.99-.74-1.676-1.614-2.054-2.623l2.622-1.135c.324.74.793 1.307 1.405 1.703.613.379 1.306.568 2.081.568.72 0 1.343-.127 1.865-.379.523-.27.784-.702.784-1.297 0-.577-.261-1-.784-1.27-.522-.27-1.171-.505-1.946-.703l-1.649-.378a6.759 6.759 0 0 1-1.864-.757 4.305 4.305 0 0 1-1.406-1.324c-.36-.559-.54-1.208-.54-1.946 0-.811.243-1.514.73-2.108.486-.613 1.126-1.082 1.918-1.406a6.67 6.67 0 0 1 2.622-.513c1.28 0 2.396.252 3.351.756a4.48 4.48 0 0 1 2.135 2.217l-2.513 1.135c-.324-.613-.748-1.036-1.27-1.27a3.695 3.695 0 0 0-1.676-.379c-.685 0-1.261.144-1.73.433-.45.288-.675.648-.675 1.08 0 .469.198.838.594 1.109.415.27.919.486 1.514.648l2 .487c1.369.342 2.396.865 3.081 1.567.684.685 1.027 1.523 1.027 2.514 0 .883-.253 1.657-.757 2.324-.505.649-1.189 1.153-2.054 1.514-.847.342-1.793.513-2.838.513Z" fill="url(#g_wx)"/><path d="M107.529 43.499c-.541 0-1.009-.19-1.405-.568a1.965 1.965 0 0 1-.568-1.405c0-.54.189-1 .568-1.378a1.965 1.965 0 0 1 1.405-.568c.54 0 1 .19 1.378.568.397.378.595.837.595 1.378a1.92 1.92 0 0 1-.595 1.405 1.876 1.876 0 0 1-1.378.568Zm-1.46 15.81V45.527h2.919V59.31h-2.919Z" fill="url(#h_wx)"/><path d="m116.799 59.31-5.702-13.784h3.243l3.865 10.027h.135l3.946-10.027h3.189l-5.757 13.784h-2.919Z" fill="url(#i_wx)"/><path d="M133.265 59.742c-1.351 0-2.558-.315-3.621-.946a6.823 6.823 0 0 1-2.514-2.594c-.594-1.1-.892-2.352-.892-3.757 0-1.315.289-2.532.865-3.649a6.908 6.908 0 0 1 2.406-2.675c1.045-.685 2.243-1.027 3.594-1.027 1.424 0 2.631.306 3.622.919a5.95 5.95 0 0 1 2.297 2.513c.523 1.063.784 2.261.784 3.595 0 .198-.009.378-.027.54 0 .162-.009.288-.027.378h-10.649c.144 1.37.622 2.397 1.433 3.082.829.684 1.765 1.027 2.81 1.027.937 0 1.712-.208 2.325-.622a4.929 4.929 0 0 0 1.459-1.595l2.406 1.163a7.463 7.463 0 0 1-2.433 2.648c-1.027.667-2.306 1-3.838 1Zm-.135-12.162c-.973 0-1.802.297-2.486.892-.685.595-1.144 1.387-1.379 2.378h7.649c-.036-.468-.189-.955-.459-1.46-.271-.504-.685-.927-1.244-1.27-.54-.36-1.234-.54-2.081-.54Z" fill="url(#j_wx)"/><path d="M149.308 59.31V39.958h6.19c2.036 0 3.783.415 5.243 1.244 1.477.81 2.613 1.946 3.405 3.405.811 1.46 1.217 3.135 1.217 5.027 0 1.91-.406 3.595-1.217 5.054-.792 1.442-1.928 2.577-3.405 3.406-1.46.81-3.207 1.216-5.243 1.216h-6.19Zm2.973-2.811h3.136c2.198 0 3.901-.613 5.108-1.838 1.225-1.225 1.838-2.9 1.838-5.027 0-2.126-.613-3.802-1.838-5.027-1.207-1.225-2.91-1.838-5.108-1.838h-3.136V56.5Z" fill="url(#k_wx)"/><path d="M174.175 59.742c-1.351 0-2.558-.315-3.621-.946a6.823 6.823 0 0 1-2.514-2.594c-.594-1.1-.892-2.352-.892-3.757 0-1.315.289-2.532.865-3.649a6.908 6.908 0 0 1 2.406-2.675c1.045-.685 2.243-1.027 3.594-1.027 1.424 0 2.631.306 3.622.919a5.95 5.95 0 0 1 2.297 2.513c.523 1.063.784 2.261.784 3.595 0 .198-.009.378-.027.54 0 .162-.009.288-.027.378h-10.649c.144 1.37.622 2.397 1.433 3.082.829.684 1.766 1.027 2.811 1.027.936 0 1.711-.208 2.324-.622a4.929 4.929 0 0 0 1.459-1.595l2.406 1.163a7.463 7.463 0 0 1-2.433 2.648c-1.027.667-2.306 1-3.838 1Zm-.135-12.162c-.973 0-1.801.297-2.486.892-.685.595-1.144 1.387-1.379 2.378h7.649c-.036-.468-.189-.955-.459-1.46-.271-.504-.685-.927-1.244-1.27-.54-.36-1.234-.54-2.081-.54Z" fill="url(#l_wx)"/><path d="M188.583 59.742c-1.658 0-2.982-.36-3.973-1.08-.991-.74-1.676-1.614-2.054-2.623l2.622-1.135c.324.74.792 1.307 1.405 1.703.613.379 1.306.568 2.081.568.721 0 1.342-.127 1.865-.379.522-.27.784-.702.784-1.297 0-.577-.262-1-.784-1.27-.523-.27-1.171-.505-1.946-.703l-1.649-.378a6.774 6.774 0 0 1-1.865-.757 4.305 4.305 0 0 1-1.405-1.324c-.36-.559-.54-1.208-.54-1.946 0-.811.243-1.514.729-2.108.487-.613 1.126-1.082 1.919-1.406a6.673 6.673 0 0 1 2.622-.513c1.279 0 2.396.252 3.351.756a4.48 4.48 0 0 1 2.135 2.217l-2.513 1.135c-.325-.613-.748-1.036-1.271-1.27a3.692 3.692 0 0 0-1.675-.379c-.685 0-1.261.144-1.73.433-.45.288-.676.648-.676 1.08 0 .469.199.838.595 1.109.414.27.919.486 1.514.648l2 .487c1.369.342 2.396.865 3.081 1.567.684.685 1.027 1.523 1.027 2.514 0 .883-.253 1.657-.757 2.324-.505.649-1.189 1.153-2.054 1.514-.847.342-1.793.513-2.838.513Z" fill="url(#m_wx)"/><path d="M198.323 43.499c-.541 0-1.009-.19-1.406-.568a1.968 1.968 0 0 1-.567-1.405c0-.54.189-1 .567-1.378a1.97 1.97 0 0 1 1.406-.568c.54 0 1 .19 1.378.568.397.378.595.837.595 1.378a1.92 1.92 0 0 1-.595 1.405 1.876 1.876 0 0 1-1.378.568Zm-1.46 15.81V45.527h2.919V59.31h-2.919Z" fill="url(#n_wx)"/><path d="M209.488 65.58c-1.207 0-2.252-.198-3.135-.594-.865-.379-1.568-.874-2.108-1.487-.541-.595-.928-1.207-1.162-1.838l2.702-1.135c.289.72.748 1.306 1.379 1.757.649.468 1.423.703 2.324.703 1.261 0 2.252-.379 2.973-1.136.739-.756 1.108-1.828 1.108-3.216V57.31h-.162c-.432.648-1.036 1.171-1.811 1.567-.756.379-1.621.568-2.594.568a6.053 6.053 0 0 1-3.217-.892c-.972-.594-1.756-1.423-2.351-2.486-.594-1.081-.892-2.343-.892-3.784 0-1.46.298-2.72.892-3.784.595-1.081 1.379-1.919 2.351-2.514a6.052 6.052 0 0 1 3.217-.891c.973 0 1.838.198 2.594.594.775.397 1.379.92 1.811 1.568h.162v-1.73h2.784V58.58c0 1.496-.297 2.766-.892 3.81a5.77 5.77 0 0 1-2.405 2.38c-1.027.54-2.216.81-3.568.81Zm.027-8.784a4.03 4.03 0 0 0 2-.513c.613-.36 1.108-.874 1.487-1.54.378-.685.567-1.505.567-2.46 0-.991-.189-1.82-.567-2.487-.379-.684-.874-1.198-1.487-1.54a4.029 4.029 0 0 0-2-.514 4.02 4.02 0 0 0-2.027.54c-.612.343-1.108.848-1.486 1.514-.379.667-.568 1.496-.568 2.487 0 .973.189 1.802.568 2.486.378.667.874 1.171 1.486 1.514a4.184 4.184 0 0 0 2.027.513Z" fill="url(#o_wx)"/><path d="M219.768 59.31V45.526h2.757v1.892h.162c.396-.667.982-1.216 1.757-1.649a5.157 5.157 0 0 1 2.594-.675c1.694 0 2.964.504 3.811 1.513.847 1.01 1.27 2.342 1.27 4v8.703h-2.892v-8.325c0-1.117-.279-1.927-.837-2.432-.559-.522-1.289-.784-2.19-.784-.702 0-1.315.199-1.837.595a3.97 3.97 0 0 0-1.244 1.513 4.821 4.821 0 0 0-.432 2.027v7.406h-2.919Z" fill="url(#p_wx)"/><path d="m236.094 53.148-.27-7.109v-6.08h2.919v6.08l-.297 7.109h-2.352Zm1.19 6.324a1.986 1.986 0 0 1-1.46-.595 1.954 1.954 0 0 1-.594-1.432c0-.559.198-1.036.594-1.432a1.986 1.986 0 0 1 1.46-.595c.558 0 1.036.198 1.432.595.396.396.595.873.595 1.432 0 .559-.199 1.036-.595 1.432a1.952 1.952 0 0 1-1.432.595Z" fill="url(#q_wx)"/><defs><linearGradient id="a_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="b_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="c_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="d_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="e_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="f_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="g_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="h_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="i_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="j_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="k_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="l_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="m_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="n_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="o_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="p_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient><linearGradient id="q_wx" x1="0" y1="65.58" x2="171.249" y2="-56.16" gradientUnits="userSpaceOnUse"><stop offset=".068" stop-color="#F39"/><stop offset=".38" stop-color="#93F"/><stop offset=".948" stop-color="#06F"/></linearGradient></defs></svg>
+
+        
+      </div>
+    </div>
+    <web-search class="course__search" results-id="search-course-results" tag="course-design" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <div class="over-scroll">
+      <course-links data-current="/learn/design/intro/" data-course-key="design">
+        <ul class="stack-nav">
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/design/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">000</span>
+        <span>Learn Responsive Design</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel " aria-current="page"  href="/learn/design/intro/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">001</span>
+        <span>Introduction</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/design/media-queries/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">002</span>
+        <span>Media queries</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/design/internationalization/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">003</span>
+        <span>Internationalization</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/design/macro-layouts/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">004</span>
+        <span>Macro layouts</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/design/micro-layouts/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">005</span>
+        <span>Micro layouts</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+      
+      
+    
+    
+    <a class="repel "   href="/learn/design/typography/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">006</span>
+        <span>Typography</span>
+      </span>
+      <span class="cluster">
+        
+          <span class="stack-nav__meta tt-upper color-action-text">new</span>
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+      
+      
+    
+    
+    <a class="repel "   href="/learn/design/responsive-images/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">007</span>
+        <span>Responsive images</span>
+      </span>
+      <span class="cluster">
+        
+          <span class="stack-nav__meta tt-upper color-action-text">new</span>
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+      
+      
+    
+    
+    <a class="repel "   href="/learn/design/picture-element/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">008</span>
+        <span>The picture element</span>
+      </span>
+      <span class="cluster">
+        
+          <span class="stack-nav__meta tt-upper color-action-text">new</span>
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+      
+      
+    
+    
+    <a class="repel "   href="/learn/design/icons/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">009</span>
+        <span>Icons</span>
+      </span>
+      <span class="cluster">
+        
+          <span class="stack-nav__meta tt-upper color-action-text">new</span>
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+      
+      
+    
+    
+    <a class="repel "   href="/learn/design/theming/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">010</span>
+        <span>Theming</span>
+      </span>
+      <span class="cluster">
+        
+          <span class="stack-nav__meta tt-upper color-action-text">new</span>
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+      
+      
+    
+    
+    <a class="repel "   href="/learn/design/accessibility/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">011</span>
+        <span>Accessibility</span>
+      </span>
+      <span class="cluster">
+        
+          <span class="stack-nav__meta tt-upper color-action-text">new</span>
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+      
+      
+    
+    
+    <a class="repel "   href="/learn/design/ui-patterns/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">012</span>
+        <span>User interface patterns</span>
+      </span>
+      <span class="cluster">
+        
+          <span class="stack-nav__meta tt-upper color-action-text">new</span>
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+      
+      
+    
+    
+    <a class="repel "   href="/learn/design/media-features/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">013</span>
+        <span>Media features</span>
+      </span>
+      <span class="cluster">
+        
+          <span class="stack-nav__meta tt-upper color-action-text">new</span>
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+      
+      
+    
+    
+    <a class="repel "   href="/learn/design/screen-configurations/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">014</span>
+        <span>Screen configurations</span>
+      </span>
+      <span class="cluster">
+        
+          <span class="stack-nav__meta tt-upper color-action-text">new</span>
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+          <li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <a class="repel "   href="/learn/design/conclusion/" >
+      <span class="cluster">
+        <span class="stack-nav__meta">015</span>
+        <span>Conclusion and next steps</span>
+      </span>
+      <span class="cluster">
+        
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="done" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="currentColor" role="img" aria-label="Check">
+  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+</svg>
+
+
+      </span>
+    </a>
+  
+
+  
+  
+</li>
+        
+        </ul>
+      </course-links>
+    </div>
+    <web-course-search-results class="course__search-results" id="search-course-results"></web-course-search-results>
+  </nav>
+</web-navigation-drawer>
+
+    </div>
+
+    <div class="course__main">
+      
+<nav class="breadcrumbs pad-inline-size-1" aria-label="breadcrumbs">
+  <div class="repel">
+    <ul class="breadcrumbs__list" role="list">
+      <li>
+        <a href="/">
+
+
+  <svg class="breadcrumbs__brand" role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+</a>
+      </li>
+      <li>
+        <a href="/learn/">Learn</a>
+      </li>
+      <li>
+        <a href="/learn/design">Learn Responsive Design!</a>
+      </li>
+    </ul>
+    <share-action class="gc-analytics-event breadcrumbs__share"
+      authors="@adactio"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="share" xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+
+
+
+      <span>Share</span>
+    </share-action>
+  </div>
+</nav>
+
+      <div class="sticky-observer"></div>
+      <div class="gap-top-size-2">
+        <div class="sidebar flex-align-start flex-dir-rev flex-wrap-no">
+          
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#fixed-width-design">Fixed-width design</a></li><li class="toc__listitem"><a class="toc__anchor" href="#liquid-layouts">Liquid layouts</a></li><li class="toc__listitem"><a class="toc__anchor" href="#small-screens">Small screens</a></li><li class="toc__listitem"><a class="toc__anchor" href="#separate-sites">Separate sites</a></li><li class="toc__listitem"><a class="toc__anchor" href="#adaptive-layouts">Adaptive layouts</a></li><li class="toc__listitem"><a class="toc__anchor" href="#responsive-web-design">Responsive web design</a></li><li class="toc__listitem"><a class="toc__anchor" href="#a-meta-element-for-viewport">A meta element for viewport</a></li><li class="toc__listitem"><a class="toc__anchor" href="#modern-responsive-design">Modern responsive design</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+          <main id="main">
+            <div class="prose">
+              <div class="course__intro flow">
+                
+                  
+                
+                  
+                    <div class="eyebrow">001</div>
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                <h1>Introduction</h1>
+                
+                <div class="color-mid-text unstyled-code">
+                  
+                  
+                  <p>Find out where responsive design came from.</p>
+
+                </div>
+                
+                
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#fixed-width-design">Fixed-width design</a></li><li class="toc__listitem"><a class="toc__anchor" href="#liquid-layouts">Liquid layouts</a></li><li class="toc__listitem"><a class="toc__anchor" href="#small-screens">Small screens</a></li><li class="toc__listitem"><a class="toc__anchor" href="#separate-sites">Separate sites</a></li><li class="toc__listitem"><a class="toc__anchor" href="#adaptive-layouts">Adaptive layouts</a></li><li class="toc__listitem"><a class="toc__anchor" href="#responsive-web-design">Responsive web design</a></li><li class="toc__listitem"><a class="toc__anchor" href="#a-meta-element-for-viewport">A meta element for viewport</a></li><li class="toc__listitem"><a class="toc__anchor" href="#modern-responsive-design">Modern responsive design</a></li></ul></div>
+    </details>
+  </div>
+
+
+              </div>
+            </div>
+            <div class="prose gap-top-size-2">
+              
+              <p>Right from the start,
+the World Wide Web was designed to be agnostic.
+It doesn't matter what hardware you've got.
+It doesn't matter what operating system your device is running.
+As long as you can connect to the internet, the World Wide Web is accessible to you.</p>
+<p>In the early days of the web, most people were using desktop computers.
+These days the web is available on desktops, laptops, tablets, foldable phones, fridges, and cars.
+People rightly expect that websites will look good no matter what device they're using.
+Responsive design makes this possible.</p>
+<p>Responsive design isn't the first approach to designing websites.
+In the years before responsive design, web designers and developers tried many different techniques.</p>
+<h2 id="fixed-width-design">Fixed-width design <a class="w-headline-link" href="#fixed-width-design">#</a></h2>
+<p>In the early 1990s, when the web was first becoming popular,
+most monitors had screen dimensions of 640 pixels wide by 480 pixels tall.
+These were convex cathode ray tubes,
+not like the flat liquid crystal displays we have now.</p>
+<figure class="w-figure">
+<img     alt="The Microsoft website with two simple columns of text plus a navbar."          decoding="async"     height="480"          loading="lazy"     sizes="(min-width: 640px) 640px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format"     srcset="https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/0a8vHe4LgChVZvaZQfYs.png?auto=format&w=1280 1280w"          width="640"   />
+  <figcaption class="w-figcaption">The Microsoft website in the late 90s designed for a width of 640 pixels. Screenshot from <a href="https://archive.org">archive.org</a></figcaption>
+</figure>
+<p>In the formative days of early web design,
+it was a safe bet to design web pages with a width of 640 pixels.
+But while other technologies like phones and cameras were miniaturizing,
+screens were getting bigger (and eventually, flatter).
+Before long, most screens had dimensions of 800 by 600 pixels.
+Web designs changed accordingly. Designers and developers started assuming that 800 pixels was a safe default.</p>
+<figure class="w-figure">
+<img     alt="The Microsoft website using a three-column, mostly text-based design."          decoding="async"     height="600"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format"     srcset="https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/C88van0yWyvbz5l746pB.png?auto=format&w=1600 1600w"          width="800"   />
+<figcaption class="w-figcaption">The Microsoft website in the learly 2000s designed for a width of 800 pixels. Screenshot from <a href="https://archive.org">archive.org</a></figcaption>
+</figure>
+<p>Then the screens got bigger again. 1024 by 768 became the default.
+It felt like an arms race between web designers and hardware manufacturers.</p>
+<p>​​<figure class="w-figure">
+<img     alt="The Microsoft website with a more complex design using images as well as text."          decoding="async"     height="600"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format"     srcset="https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/nuHSqBVgInTvLti73Qz2.png?auto=format&w=1600 1600w"          width="800"   /></p>
+<figcaption class="w-figcaption">The Microsoft website in the mid 2000s designed for a width of 1024 pixels. Screenshot from <a href="https://archive.org">archive.org</a></figcaption>
+</figure>
+<p>Whether it was 640, 800, or 1024 pixels,
+choosing one specific width to design for was called fixed-width design.</p>
+<p>If you specify a fixed width for your layout,
+then your layout will only look good at that specific width.
+If a visitor to your site has a wider screen than the width you have chosen, then there'll be wasted space on the screen.
+You can center the content of your pages to distribute that space more evenly
+(instead of having empty space on one side) but you still wouldn't be taking full advantage of the available space.</p>
+<figure class="w-figure">
+<img     alt="A narrow layour with a lot of white space around it."          decoding="async"     height="320"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format"     srcset="https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/t0Zd1eGEJeeqMO8ItsqK.png?auto=format&w=1600 1600w"          width="800"   />
+<figcaption class="w-figcaption">The Yahoo website from the early 2000s as experienced in a browser that's wider than the site's 800 pixel wide design. Screenshot from <a href="https://archive.org">archive.org</a></figcaption>
+</figure>
+<p>Similarly, if a visitor arrives with a narrower screen than the width you've chosen,
+then your content won't fit horizontally.
+The browser generates a crawlbar—the horizontal equivalent of a scrollbar—and the user has to move the whole page left and right to see all the content.</p>
+<figure class="w-figure">
+<img     alt="A website that appears cut-off to the right due to being too wide for the viewport."          decoding="async"     height="640"          loading="lazy"     sizes="(min-width: 420px) 420px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/bnh7fDiGjFhdBHTD5CJ8.png?auto=format"     srcset="https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/bnh7fDiGjFhdBHTD5CJ8.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/bnh7fDiGjFhdBHTD5CJ8.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/bnh7fDiGjFhdBHTD5CJ8.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/bnh7fDiGjFhdBHTD5CJ8.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/bnh7fDiGjFhdBHTD5CJ8.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/bnh7fDiGjFhdBHTD5CJ8.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/bnh7fDiGjFhdBHTD5CJ8.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/bnh7fDiGjFhdBHTD5CJ8.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/bnh7fDiGjFhdBHTD5CJ8.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/bnh7fDiGjFhdBHTD5CJ8.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/bnh7fDiGjFhdBHTD5CJ8.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/bnh7fDiGjFhdBHTD5CJ8.png?auto=format&w=840 840w"          width="420"   />
+<figcaption class="w-figcaption">The Yahoo website from the early 2000s as experienced in a browser that's narrower than the site's 800 pixel wide design. Screenshot from <a href="https://archive.org">archive.org</a></figcaption>
+</figure>
+<div style="height: 500px; width: 100%">
+<iframe
+  allow="camera; clipboard-read; clipboard-write; encrypted-media; geolocation; microphone; midi;"
+  loading="lazy"
+  src="https://codepen.io/web-dot-dev/embed/RwZjwoQ?height=500&theme-id=dark&default-tab=result&editable=true"
+  style="height: 100%; width: 100%; border: 0;"
+  title="Pen RwZjwoQ by web-dot-dev on Codepen"
+></iframe></div>
+<h2 id="liquid-layouts">Liquid layouts <a class="w-headline-link" href="#liquid-layouts">#</a></h2>
+<p>While the majority of designers used fixed-width layouts, some chose to make their layouts flexible.
+Instead of using fixed widths for your layouts you could make a flexible layout using percentages for your column widths.
+These designs work in more situations than a fixed-width layout that only looks right at one specific size.</p>
+<p>These were called liquid layouts.
+But while a liquid layout will look good across a wide range of widths, it will begin to worsen at the extremes.
+On a wide screen the layout looks stretched.
+On a narrow screen the layout looks squashed. Both scenarios aren't ideal.</p>
+<figure class="w-figure">
+<img     alt="A layout that is squashed into a narrow window."          decoding="async"     height="640"          loading="lazy"     sizes="(min-width: 420px) 420px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/oBAbgP2JCt2zVENHVCnc.png?auto=format"     srcset="https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/oBAbgP2JCt2zVENHVCnc.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/oBAbgP2JCt2zVENHVCnc.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/oBAbgP2JCt2zVENHVCnc.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/oBAbgP2JCt2zVENHVCnc.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/oBAbgP2JCt2zVENHVCnc.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/oBAbgP2JCt2zVENHVCnc.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/oBAbgP2JCt2zVENHVCnc.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/oBAbgP2JCt2zVENHVCnc.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/oBAbgP2JCt2zVENHVCnc.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/oBAbgP2JCt2zVENHVCnc.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/oBAbgP2JCt2zVENHVCnc.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/oBAbgP2JCt2zVENHVCnc.png?auto=format&w=840 840w"          width="420"   />
+<figcaption class="w-figcaption">Wikipedia's liquid layout from the mid 2000s as experienced in a narrow browser window. Screenshot from <a href="https://archive.org">archive.org</a></figcaption>
+</figure>
+​​
+<figure class="w-figure">
+<img     alt="A layout stretched horizontally with very long line lengths."          decoding="async"     height="320"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format"     srcset="https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/KT4TDYaWOHYfN59zz6Rc0X4k4MH3/zRBSmS1xCgYPTueUBMd9.png?auto=format&w=1600 1600w"          width="800"   />
+<figcaption class="w-figcaption">Wikipedia's liquid layout from the mid 2000s as experienced in a wide browser window. Screenshot from <a href="https://archive.org">archive.org</a></figcaption>
+</figure>
+<p>You can mitigate these problems by using <code>min-width</code> and <code>max-width</code> for your layout.
+But then at any size below the minimum width or above the maximum width you've got the same issues you'd have with a fixed-width layout.
+On a wide screen there'd be unused space going to waste.
+On a narrow screen, the user would have to move the whole page left and right to see everything.</p>
+<figure class="w-figure">
+<div style="height: 500px; width: 100%">
+<iframe
+  allow="camera; clipboard-read; clipboard-write; encrypted-media; geolocation; microphone; midi;"
+  loading="lazy"
+  src="https://codepen.io/web-dot-dev/embed/YzxEzpE?height=500&theme-id=dark&default-tab=result&editable=true"
+  style="height: 100%; width: 100%; border: 0;"
+  title="Pen YzxEzpE by web-dot-dev on Codepen"
+></iframe></div>
+<figcaption class="w-figcaption">Open <a href="https://codepen.io/web-dot-dev/pen/YzxEzpE">the liquid layout example</a> 
+in a new browser window to see how changing the size of the window stretches the design.</figcaption>
+</figure>
+<p>The word <em>liquid</em> is just one of the terms used to describe this kind of layout.
+These kinds of designs were also called fluid layouts or flexible layouts.
+The terminology was as fluid as the technique.</p>
+<h2 id="small-screens">Small screens <a class="w-headline-link" href="#small-screens">#</a></h2>
+<p>In the 21st century, the web continued to get bigger and bigger.
+So did monitors. But new screens arrived that were smaller than any desktop device.
+With the arrival of mobile phones with fully-featured web browsers, designers faced a dilemma.
+How could they ensure their designs would look good on a desktop computer and a mobile phone?
+They needed a way of styling their content for screens as small as 240 pixels wide and as large as thousands of pixels wide.</p>
+<h2 id="separate-sites">Separate sites <a class="w-headline-link" href="#separate-sites">#</a></h2>
+<p>One option is to make a separate subdomain for mobile visitors.
+But then you have to maintain two separate codebases and designs.
+And in order to redirect visitors on mobile devices, you'd need to do
+<a href="https://en.wikipedia.org/wiki/Browser_sniffing" rel="noopener">user-agent sniffing</a>,
+which can be unreliable and easily spoofed.
+Chrome will be deprecating its user-agent string for privacy reasons.
+Also, there's no clear line between mobile and not-mobile. Which site do you send tablet devices to?</p>
+<h2 id="adaptive-layouts">Adaptive layouts <a class="w-headline-link" href="#adaptive-layouts">#</a></h2>
+<p>Instead of having separate sites on different subdomains,
+you could have a single site with two or three fixed-width layouts.</p>
+<p>When media queries first arrived in CSS, they opened the door to making layouts more flexible.
+But many developers were still most comfortable making fixed-width layouts.
+One technique involved switching between a handful of fixed-width layouts at specified widths.
+Some people call this an adaptive design.</p>
+<p>Adaptive design allowed designers to provide layouts that looked good at a few different sizes,
+but the design never looked quite right when viewed between those sizes.
+The problem of excess space persisted although it wasn't as bad as in a fixed-width layout.</p>
+<p>Using CSS media queries, you can give people the layout that's closest to their browser width.
+But given the variety of device sizes, chances are the layout will look less than perfect for most people.</p>
+<figure class="w-figure">
+<div style="height: 500px; width: 100%">
+<iframe
+  allow="camera; clipboard-read; clipboard-write; encrypted-media; geolocation; microphone; midi;"
+  loading="lazy"
+  src="https://codepen.io/web-dot-dev/embed/oNeoNYw?height=500&theme-id=dark&default-tab=result&editable=true"
+  style="height: 100%; width: 100%; border: 0;"
+  title="Pen oNeoNYw by web-dot-dev on Codepen"
+></iframe></div>
+<figcaption class="w-figcaption">Open <a href="https://codepen.io/web-dot-dev/pen/oNeoNYw">the adaptive layout example</a> 
+in a new browser window to see how changing the size of the window causes the design to jump between layouts.</figcaption>
+</figure>
+<h2 id="responsive-web-design">Responsive web design <a class="w-headline-link" href="#responsive-web-design">#</a></h2>
+<p>If adaptive layouts are a mashup of media queries and fixed-width layouts, responsive web design is a mashup of media queries and liquid layouts.</p>
+<figure class="w-figure">
+<div style="height: 500px; width: 100%">
+<iframe
+  allow="camera; clipboard-read; clipboard-write; encrypted-media; geolocation; microphone; midi;"
+  loading="lazy"
+  src="https://codepen.io/web-dot-dev/embed/JjyOjbE?height=500&theme-id=dark&default-tab=result&editable=true"
+  style="height: 100%; width: 100%; border: 0;"
+  title="Pen JjyOjbE by web-dot-dev on Codepen"
+></iframe></div>
+<figcaption class="w-figcaption">Open <a href="https://codepen.io/web-dot-dev/pen/JjyOjbE">the responsive design example</a> 
+in a new browser window to see how changing the size of the window causes the design to fluidly change layout.</figcaption>
+</figure>
+<p>The term was coined by <a href="https://ethanmarcotte.com/" rel="noopener">Ethan Marcotte</a> in
+<a href="https://alistapart.com/article/responsive-web-design/" rel="noopener">an article in A List Apart</a> in 2010.</p>
+<p>Ethan defined three criteria for responsive design:</p>
+<ol>
+<li>Fluid grids</li>
+<li>Fluid media</li>
+<li>Media queries</li>
+</ol>
+<p>The layout and images of a responsive site would look good on any device. But there was one problem.</p>
+<h2 id="a-meta-element-for-viewport">A <code>meta</code> element for <code>viewport</code> <a class="w-headline-link" href="#a-meta-element-for-viewport">#</a></h2>
+<p>Browsers on mobile phones had to deal with websites that were designed with fixed-width layouts for wider screens.
+By default mobile browsers assumed that 980 pixels was the width that people were designing for (and they weren't wrong).
+So even if you used a liquid layout,
+the browser would apply a width of 980 pixels and then scale the rendered web page down to the actual width of the screen.</p>
+<p>If you're using responsive design you need to tell the browser not to do that scaling.
+You can do that with a <code>meta</code> element in the <code>head</code> of the web page:</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>viewport<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>width=device-width, initial-scale=1<span class="token punctuation">"</span></span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><p>There are two values, separated by commas.
+The first one is <code>width=device-width</code>.
+This tells the browser to assume the width of the website is the same as the width of the device
+(instead of assuming the width of the website is 980 pixels).
+The second value is <code>initial-scale=1</code>.
+This tells the browser how much or how little scaling to do.
+With a responsive design, you don't want the browser to do any scaling at all.</p>
+<figure class="w-figure">
+<img     alt="Images of two mobile phones containing text, one appearing zoomed out due to not having the meta tag in place."          decoding="async"     height="748"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format"     srcset="https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/kheDArv5csY6rvQUJDbWRscckLr1/HahSW2IXIkGux7cMCMpE.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">The phone on the left shows how the layout looks before the meta tag is in place, when compared to the layout on the right.</figcaption>
+</figure>
+<p>With that <code>meta</code> element in place, your web pages are ready to be responsive.</p>
+<h2 id="modern-responsive-design">Modern responsive design <a class="w-headline-link" href="#modern-responsive-design">#</a></h2>
+<p>Today we have the ability to make websites that are responsive in ways far beyond viewport sizes.
+Media features give developers access to user preferences and enable customized experiences.
+Container queries enable components to own their own responsive information.<br>
+The <code>picture</code> element empowers designers to make art-direction decisions based on screen ratios.</p>
+<html><head></head><body><web-assessment class="w-callout unresolved " aria-label="Check your understanding">   <div class="w-callout__blurb web-assessment__set-leader">     Test your knowledge of responsive web design   </div> <web-tabs class="web-assessment__content unresolved" label="questions for knowledge self check">         <web-question data-label="question">    <web-response-mc cardinality="1" correct-answer="1" data-role="response">      <p data-role="stem">In 2021, it's a safe bet to design web pages at a fixed width?</p>      <span data-role="option">true</span>      <span data-role="option">false</span>      <div data-role="rationale"><p>It's unsafe to bet on fixed width design in 2021.</p> </div>      <div data-role="rationale"><p>🎉 Correct! The number of possible screen sizes is too great to assume visitors will come from one size.</p> </div>    </web-response-mc> </web-question>         <web-question data-label="question">    <web-response-mc cardinality="2+" correct-answer="0,2" data-role="response">      <p data-role="stem">Liquid layouts generally struggle at which kind of screen sizes?</p>      <span data-role="option">Narrow screens</span>      <span data-role="option">Average screens</span>      <span data-role="option">Wide screens</span>      <span data-role="option">Short screens</span>      <span data-role="option">Tall screens</span>      <span data-role="option">All screens</span>      <div data-role="rationale"><p>🎉 Correct! The extreme size of a narrow display can make liquid layouts appear squished.</p> </div>      <div data-role="rationale"><p>Try again. Liquid layouts do well on average sized screens.</p> </div>      <div data-role="rationale"><p>🎉 The extreme size of a wide, or even ultrawide, display can make liquid layouts appear stretches out to uncomfortable reading lengths.</p> </div>      <div data-role="rationale"><p>Try again. Short screens generally do not struggle to support liquid layouts.</p> </div>      <div data-role="rationale"><p>Try again. Tall screens generally do not struggle to support liquid layouts.</p> </div>      <div data-role="rationale"><p>Try again. Liquid layouts are a great choice for many screen sizes.</p> </div>    </web-response-mc> </web-question>         <web-question data-label="question">    <web-response-mc cardinality="3+" correct-answer="1,3,5" data-role="response">      <p data-role="stem">The original three criteria for responsive design are?</p>      <span data-role="option">Fluid typography</span>      <span data-role="option">Fluid grids</span>      <span data-role="option">Adaptive grids</span>      <span data-role="option">Fluid media</span>      <span data-role="option">Fixed width design</span>      <span data-role="option">Media Queries</span>      <div data-role="rationale"><p>Try again!</p> </div>      <div data-role="rationale"><p>🎉 Correct!</p> </div>      <div data-role="rationale"><p>Try again!</p> </div>      <div data-role="rationale"><p>🎉 Correct!</p> </div>      <div data-role="rationale"><p>`try again!</p> </div>      <div data-role="rationale"><p>🎉 Correct!</p> </div>    </web-response-mc> </web-question>       </web-tabs> </web-assessment></body></html>
+<p>Responsive design is an exciting, growing world of possibilities.
+In the rest of this course, you'll learn about these technologies and how to use them to create beautiful,
+responsive websites for everyone.</p>
+
+            </div>
+          </main>
+        </div>
+      </div>
+
+      
+
+
+
+<h2 class="visually-hidden">Next and previous lessons</h2>
+<nav class="preview-pagination gap-top-size-2" aria-label="pagination">
+  
+    
+  
+    
+      
+        
+        <a class="preview-pagination__item flow" href="/learn/design/" data-dir="prev">
+          <div class="preview-pagination__meta cluster">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="previous" xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+
+
+            <span>Prev</span>
+            <span>000</span>
+          </div>
+          <h3 class="preview-pagination__heading">Learn Responsive Design</h3>
+        </a>
+      
+      
+        
+        <a class="preview-pagination__item flow" href="/learn/design/media-queries/" data-dir="next">
+          <div class="preview-pagination__meta cluster">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="next" xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+
+
+
+            <span>Next</span>
+            <span>002</span>
+          </div>
+          <h3 class="preview-pagination__heading">Media queries</h3>
+          <p>Adapt your designs to different screen sizes using CSS media queries. 
+</p>
+        </a>
+      
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+</nav>
+
+      <footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+    </div>
+  </div>
+</div>
+
+  </body>
+</html>

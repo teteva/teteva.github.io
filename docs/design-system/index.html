@@ -1,0 +1,619 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=da5487ce67894">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=6be2589419e21">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+<meta name="robots" content="noindex" />
+
+
+<title>Welcome to the web.dev design system</title>
+<meta name="description" content="" />
+
+<link rel="canonical" href="https://web.dev/design-system/" />
+
+<meta itemprop="name" content="Welcome to the web.dev design system" />
+<meta itemprop="description" content="" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/design-system/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Welcome to the web.dev design system" />
+<meta property="og:description" content="" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Welcome to the web.dev design system" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=59ac5fd035b09', 'module');
+
+
+
+
+  loadScript('/js/default.js?v=fdae219fc07fd', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+    <!-- some hacky styles to get through this populating effort -->
+  </head>
+  <body class="design-system">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    <a class="skip-link button" href="#main">Skip to main</a>
+
+    <div class="flex-auto box-flex flex-dir-column">
+      <div class="sidebar flex-auto">
+        <nav class="flow bg-mid-bg pad-block-size-1" aria-label="design system">
+          <div class="repel pad-inline-base flex-align-end">
+            <div class="brand">
+              
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+              <p class="brand__byline">Design System</p>
+            </div>
+            <div>
+              <theme-toggle>
+  <label class="toggle-switch" for="theme-toggle">
+    <span class="toggle-switch__label ">Dark theme</span>
+    <input type="checkbox" role="switch" class="toggle-switch__input" id="theme-toggle" />
+    <div class="toggle-switch__decor focus-ring" aria-hidden="true">
+      <div class="toggle-switch__thumb"></div>
+    </div>
+  </label>
+</theme-toggle>
+            </div>
+          </div>
+          <ul class="stack-nav flow-space-size-2" role="list">
+            
+              <li>
+  <a class="repel" href="/design-system/" aria-current="page">Welcome</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/colors/" >Colors</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/typography/" >Typography</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/spacing/" >Spacing</a> 
+</li>
+            
+          </ul>
+          <h2 class="text-size-3 pad-inline-base flow-space-size-2">CSS</h2>
+          <ul class="stack-nav" role="list">
+            
+              <li>
+  <a class="repel" href="/design-system/css-utilities/" >Utilities</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/css-compositions/" >Compositions</a> 
+</li>
+            
+          </ul>
+          <h2 class="text-size-3 pad-inline-base flow-space-size-2">Component Library</h2>
+          <ul class="stack-nav" role="list">
+            
+              <li>
+  <a class="repel" href="/design-system/component/aside/" >Aside</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/audio-player/" >Audio Player</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/authors/" >Authors</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/banners/" >Banners</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/block-quotes/" >Block quotes</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/brand/" >Brand</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/breadcrumbs/" >Breadcrumbs</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/browser-compat/" >Browser compatibility table</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/button/" >Button</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/callout/" >Callout</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/cards/" >Cards</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/carousel/" >Carousel</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/code-blocks/" >Code blocks</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/compare/" >Compare</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/counter/" >Counter</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/details/" >Details</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/eyebrow/" >Eyebrow</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/fab/" >Floating Action Button</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/feature-card/" >Feature Card</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/figure/" >Figure</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/fixed-width-img/" >Fixed width Image</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/form-fields/" >Form Fields</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/headline/" >Headline</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/hero/" >Hero</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/hero-image/" >Hero Image</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/icon-button/" >Icon Button</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/indicator/" >Indicator</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/labels/" >Labels</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/lists/" >Lists</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/numbered-headers/" >Numbered headers</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/page-header/" >Page Header</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/pagination/" >Pagination</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/pill/" >Pill</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/preview-pagination/" >Preview Pagination</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/prose/" >Prose</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/stack-nav/" >Stack Nav</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/stats/" >Stats</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/status-list/" >Status List</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/tables/" >Tables</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/tabs/" >Tabs</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/toc/" >Generated table of contents</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/toggle-switch/" >Toggle Switch</a> 
+</li>
+            
+              <li>
+  <a class="repel" href="/design-system/component/tooltips/" >Tooltips</a> 
+</li>
+            
+          </ul>
+        </nav>
+        <div class="pad-block-size-1">
+          <article class="prose">
+            <h1>Welcome to the web.dev design system</h1>
+            
+            
+<nav class="cluster" aria-label="key sections">
+<a href="#for-developers">For developers</a>
+<a href="#for-authors">For authors</a>
+<a href="#about-the-css">About the CSS</a>
+</nav>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>This design system will help you to maintain consistency around the web.dev website by providing CSS structure, design tokens, typography rules and spacing rules, along with a comprehensive component library.</p>
+</div></aside>
+<h2 id="quick-start">Quick start <a class="w-headline-link" href="#quick-start">#</a></h2>
+<div class="breakout">
+<div class="auto-grid gap-top-size-2">
+  <a class="card flow bg-mid-bg" href="/design-system/colors">
+    <h3>Colors</h3>
+    <p>All the available colors and guides for their usage</p>
+  </a><a class="card flow bg-mid-bg" href="/design-system/colors/#theme-usage">
+    <h3>Themes</h3>
+    <p>How the theming stying works and how to use it</p>
+  </a><a class="card flow bg-mid-bg" href="/design-system/typography/">
+    <h3>Typography</h3>
+    <p>Font sizes, the size scale and available fonts</p>
+  </a><a class="card flow bg-mid-bg" href="/design-system/spacing/">
+    <h3>Spacing</h3>
+    <p>The spacing scale and spacing utilities</p>
+  </a><a class="card flow bg-mid-bg" href="/design-system/css-compositions/">
+    <h3>CSS Compositions</h3>
+    <p>Flexible and skeletal compositional layouts that work site-wide</p>
+  </a><a class="card flow bg-mid-bg" href="/design-system/css-utilities/">
+    <h3>Utilities</h3>
+    <p>Flexible utilities that solve common UI problems</p>
+  </a><a class="card flow bg-mid-bg" href="https://cube.fyi/">
+    <h3>CUBE CSS</h3>
+    <p>The CSS Methodology all of the CSS in this system uses</p>
+  </a><a class="card flow bg-mid-bg" href="https://github.com/hankchizljaw/gorko">
+    <h3>Gorko CSS Framework</h3>
+    <p>Documentation for the CSS (Sass) framework that’s used in this design system</p>
+  </a>
+</div>
+</div>
+<h2 id="for-developers">For developers <a class="w-headline-link" href="#for-developers">#</a></h2>
+<p>This design system should be treated as the source of truth for <strong>any</strong> front-end development work that requires CSS.</p>
+<h3 id="about-the-css">About the CSS <a class="w-headline-link" href="#about-the-css">#</a></h3>
+<p>The design system is built around <a href="https://cube.fyi/" rel="noopener">CUBE CSS</a>, a methodology that’s orientated towards simplicity and pragmatism. Versus the previous system on web.dev, a lot of CSS is declared as high up as possible—globally—rather than concentrated on complex BEM components.</p>
+<p>The CSS is pre-processed using SCSS, which in turn, uses <a href="https://github.com/hankchizljaw/gorko" rel="noopener">Gorko</a> to provide structure, mixins and generated utility classes. The design system uses utilities regularly, so ensure you read up on <a href="https://github.com/hankchizljaw/gorko#utility-class-generator" rel="noopener">how Gorko generates them</a>. They are <a href="https://github.com/GoogleChrome/web.dev/blob/main/src/scss/_config.scss#L19" rel="noopener">defined here</a>.</p>
+<p>Everything in CSS is powered by <a href="https://piccalil.li/tutorial/what-are-design-tokens/" rel="noopener">design tokens</a>, which are <a href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/_data/design/tokens.json" rel="noopener">defined here</a>. The design tokens mainly define colors, fonts, spacing, sizes, transitions and decorative elements, such as border radius.</p>
+<p>Lastly, the whole design system is <strong>theme-driven</strong>. This means that tokens are applied to contexts, rather than directly to elements. This makes working with dark/light themes much easier with less authored code. <a href="/design-system/colors/#theme-usage">Read more in the color section</a>.</p>
+<h3 id="scss-file-and-folder-structure">SCSS file and folder structure <a class="w-headline-link" href="#scss-file-and-folder-structure">#</a></h3>
+<p>The structure is as follows:</p>
+<web-copy-code><pre class="language-plaintext"><code class="language-plaintext">src<br>└── scss<br>    ├── blocks<br>    ├── compositions<br>    ├── functions<br>    ├── mixins<br>    ├── pages<br>    ├── utilities<br>    ├── web-components<br>    ├── _config.scss<br>    ├── _fonts.scss<br>    ├── _reset.scss<br>    ├── _rollout.scss<br>    ├── _themes.scss (generated)<br>    ├── _tokens.scss (generated)<br>    └── next.scss</code></pre>
+</web-copy-code><p>The Sass folder mostly resembles the CUBE CSS structure and is as follows:</p>
+<ol>
+<li><code>blocks</code>: <a href="https://cube.fyi/block.htm" rel="noopener">contained components</a></li>
+<li><code>compositions</code>: <a href="/design-system/css-compositions/">layout compositions</a></li>
+<li><code>functions</code>: Sass functions used across the SCSS files</li>
+<li><code>mixins</code>: Sass mixins used across the SCSS files</li>
+<li><code>pages</code>: specific styles for pages and page types</li>
+<li><code>utilities</code>: <a href="/design-system/css-utilities/">core utilities</a></li>
+<li><code>web-components</code>: styles for <a href="https://github.com/GoogleChrome/web.dev/tree/main/src/lib/components" rel="noopener">specific web-components</a></li>
+<li><code>_config.scss</code>: core <a href="https://github.com/andy-piccalilli/gorko#configuration" rel="noopener">Gorko configuration</a></li>
+<li><code>_fonts.scss</code>: <code>@font-face</code> declarations</li>
+<li><code>_reset.scss</code>: a <a href="https://piccalil.li/blog/a-modern-css-reset/" rel="noopener">lightweight CSS reset</a></li>
+<li><code>_rollout.scss</code>: Temporary styles to provide a bridge between the old system and new system while the new system is rolled out</li>
+<li><code>_themes.scss</code>: an auto-generated file by <code>src/site/_data/design/themes.js</code></li>
+<li><code>_tokens.scss</code>: an auto-generated file by <code>src/site/_data/design/tokens.js</code></li>
+<li><code>next.css</code>: the main SCSS file that pulls everything together and defines <a href="https://cube.fyi/css.html" rel="noopener">global CSS</a></li>
+</ol>
+<h2 id="for-authors">For authors <a class="w-headline-link" href="#for-authors">#</a></h2>
+<p>Please use the same <a href="https://web.dev/handbook/web-dev-components/">component guide in the handbook</a> as always.</p>
+<h2 id="how-to-use-the-patterncomponent-generator">How to use the pattern/component generator <a class="w-headline-link" href="#how-to-use-the-patterncomponent-generator">#</a></h2>
+<p>To prevent repetitive file creation, you can use the pattern generator to create a new pattern, or pattern's variant with a npm task.</p>
+<h3 id="example">Example <a class="w-headline-link" href="#example">#</a></h3>
+<p>Let's say you want a new pattern called &quot;my-pattern&quot;:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> run patterns:create -- -p my-pattern -n my-pattern -t My<span class="token punctuation">\</span> Pattern</code></pre>
+</web-copy-code><p>This will create the following folder and file structure:</p>
+<web-copy-code><pre class="language-plaintext"><code class="language-plaintext">web.dev<br>└── src/<br>    └── component-library/<br>        └── my-pattern/<br>            ├── my-pattern.njk<br>            ├── my-pattern.json<br>            └── my-pattern.md</code></pre>
+</web-copy-code><p>Let's you want to create a variant of &quot;my-pattern&quot;:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash"><span class="token function">npm</span> run patterns:create -- -p my-pattern/variants -n my-pattern-primary -t Primary</code></pre>
+</web-copy-code><p>It'll result in this structure:</p>
+<web-copy-code><pre class="language-plaintext"><code class="language-plaintext">web.dev<br>└── src/<br>    └── components/<br>        └── patterns/<br>            └── my-pattern/<br>                ├── my-pattern.njk<br>                ├── my-pattern.json<br>                ├── my-pattern.md<br>                └── variants/<br>                    ├── my-pattern-primary.njk<br>                    └── my-pattern-primary.json</code></pre>
+</web-copy-code><h3 id="arguments">Arguments <a class="w-headline-link" href="#arguments">#</a></h3>
+<p>There are 2 required arguments to pass in—<code>-p</code> and <code>-n</code>. The rest are optional.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Make sure you add the <code>--</code> <em>after</em> <code>npm run patterns:create</code> so the arguments get passed into the task.</p>
+<p>Also make sure you escape spaces with a <code>\</code>.</p>
+</div></aside>
+<ul>
+<li><code>-p</code> is the path from <code>src/components/patterns</code></li>
+<li><code>-n</code> is the file name</li>
+<li><code>-t</code> is the title. If this is not set, the <code>-n</code> will be used</li>
+<li><code>-sm</code> allows you to skip markup being generated if you are generating a variant</li>
+</ul>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+    <footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+  </body>
+</html>

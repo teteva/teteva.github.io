@@ -1,0 +1,883 @@
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=b72a44ba107aa">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=c8ac67ca8da42">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Optimice Largest Contentful Paint</title>
+<meta name="description" content="Largest Contentful Paint (LCP) se puede utilizar para determinar cuándo el contenido principal de la página se terminó de renderizar en la pantalla. Aprenda a optimizar LCP mejorando los tiempos de respuesta lentos del servidor, los tiempos de carga de recursos y renderización del lado del cliente." />
+
+<link rel="canonical" href="https://web.dev/i18n/es/optimize-lcp/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/optimize-lcp/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/optimize-lcp/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/optimize-lcp/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/optimize-lcp/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/optimize-lcp/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/optimize-lcp/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/optimize-lcp/" />
+<meta itemprop="name" content="Optimice Largest Contentful Paint" />
+<meta itemprop="description" content="Largest Contentful Paint (LCP) se puede utilizar para determinar cuándo el contenido principal de la página se terminó de renderizar en la pantalla. Aprenda a optimizar LCP mejorando los tiempos de respuesta lentos del servidor, los tiempos de carga de recursos y renderización del lado del cliente." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="es_ALL" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/es/optimize-lcp/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Optimice Largest Contentful Paint" />
+<meta property="og:description" content="Largest Contentful Paint (LCP) se puede utilizar para determinar cuándo el contenido principal de la página se terminó de renderizar en la pantalla. Aprenda a optimizar LCP mejorando los tiempos de respuesta lentos del servidor, los tiempos de carga de recursos y renderización del lado del cliente." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="Optimizar el banner LCP" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Optimice Largest Contentful Paint" />
+<meta name="twitter:description" content="Largest Contentful Paint (LCP) se puede utilizar para determinar cuándo el contenido principal de la página se terminó de renderizar en la pantalla. Aprenda a optimizar LCP mejorando los tiempos de respuesta lentos del servidor, los tiempos de carga de recursos y renderización del lado del cliente." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=d409df571f87a', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=3e24e24502a97', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Aprender
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Medir
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Cerrar</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="Optimizar el banner LCP"     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/qqTKhxUFqdLXnST2OFWN.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="En esta página">
+    <div class="course-toc__heading font-google-sans weight-medium">En esta página</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#slow-servers">Tiempos de respuesta lentos del servidor</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#optimizar-su-servidor">Optimizar su servidor</a></li><li class="toc__listitem"><a class="toc__anchor" href="#enrutar-a-los-usuarios-a-una-cdn-cercana">Enrutar a los usuarios a una CDN cercana</a></li><li class="toc__listitem"><a class="toc__anchor" href="#activos-del-cache">Activos del caché</a></li><li class="toc__listitem"><a class="toc__anchor" href="#publicar-las-paginas-html-en-cache-first">Publicar las páginas HTML en cache-first</a></li><li class="toc__listitem"><a class="toc__anchor" href="#establecer-conexiones-con-terceros-con-anticipacion">Establecer conexiones con terceros con anticipación</a></li><li class="toc__listitem"><a class="toc__anchor" href="#utilizar-intercambios-firmados-(sxg)">Utilizar intercambios firmados (SXG)</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#render-blocking-resources">Renderización que bloquea JavaScript y CSS</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#reducir-el-tiempo-de-bloqueo-de-css">Reducir el tiempo de bloqueo de CSS</a></li><li class="toc__listitem"><a class="toc__anchor" href="#minificar-css">Minificar CSS</a></li><li class="toc__listitem"><a class="toc__anchor" href="#retrasar-css-no-critico">Retrasar CSS no crítico</a></li><li class="toc__listitem"><a class="toc__anchor" href="#css-critico-con-estilos-integrados-en-el-codigo">CSS crítico con estilos integrados en el código</a></li><li class="toc__listitem"><a class="toc__anchor" href="#reducir-el-tiempo-de-bloqueo-de-javascript">Reducir el tiempo de bloqueo de JavaScript</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#slow-resource-load-times">Tiempos de carga de recursos lentos</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#optimizar-y-comprimir-imagenes">Optimizar y comprimir imágenes</a></li><li class="toc__listitem"><a class="toc__anchor" href="#precargar-recursos-importantes">Precargar recursos importantes</a></li><li class="toc__listitem"><a class="toc__anchor" href="#comprimir-archivos-de-texto">Comprimir archivos de texto</a></li><li class="toc__listitem"><a class="toc__anchor" href="#servicio-adaptativo">Servicio adaptativo</a></li><li class="toc__listitem"><a class="toc__anchor" href="#almacenar-activos-en-el-cache-con-un-service-worker">Almacenar activos en el caché con un service worker</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#client-side-rendering">Representación del lado del cliente</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#minimizar-javascript-critico">Minimizar JavaScript crítico</a></li><li class="toc__listitem"><a class="toc__anchor" href="#utilizar-la-renderizacion-del-lado-del-servidor">Utilizar la renderización del lado del servidor</a></li><li class="toc__listitem"><a class="toc__anchor" href="#utilizar-la-renderizacion-previa">Utilizar la renderización previa</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#herramientas-para-desarrolladores">Herramientas para desarrolladores</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="optimice-largest-contentful-paint">Optimice Largest Contentful Paint</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            Cómo renderizar su contenido principal más rápido.
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>May 5, 2020</time>
+             — Actualizado <time>Aug 20, 2020</time> 
+          </div>
+        
+
+        
+        
+        <div class="flow">
+          <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/optimize-lcp/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/optimize-lcp/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/optimize-lcp/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/optimize-lcp/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/optimize-lcp/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/optimize-lcp/">
+      English</a></span>
+        </div>
+        
+
+        <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        >
+</div>
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/houssein/"> <img     alt="Houssein Djirdeh"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/BibySYHD7JweNcHZCCOe.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/houssein/">Houssein Djirdeh</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/hdjirdeh">Twitter</a>
+               <a href="https://github.com/housseindjirdeh">GitHub</a>
+               <a href="https://glitch.com/@housseindjirdeh">Glitch</a>
+               <a href="https://houssein.me/">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="En esta página">
+      <summary>
+        En esta página
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#slow-servers">Tiempos de respuesta lentos del servidor</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#optimizar-su-servidor">Optimizar su servidor</a></li><li class="toc__listitem"><a class="toc__anchor" href="#enrutar-a-los-usuarios-a-una-cdn-cercana">Enrutar a los usuarios a una CDN cercana</a></li><li class="toc__listitem"><a class="toc__anchor" href="#activos-del-cache">Activos del caché</a></li><li class="toc__listitem"><a class="toc__anchor" href="#publicar-las-paginas-html-en-cache-first">Publicar las páginas HTML en cache-first</a></li><li class="toc__listitem"><a class="toc__anchor" href="#establecer-conexiones-con-terceros-con-anticipacion">Establecer conexiones con terceros con anticipación</a></li><li class="toc__listitem"><a class="toc__anchor" href="#utilizar-intercambios-firmados-(sxg)">Utilizar intercambios firmados (SXG)</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#render-blocking-resources">Renderización que bloquea JavaScript y CSS</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#reducir-el-tiempo-de-bloqueo-de-css">Reducir el tiempo de bloqueo de CSS</a></li><li class="toc__listitem"><a class="toc__anchor" href="#minificar-css">Minificar CSS</a></li><li class="toc__listitem"><a class="toc__anchor" href="#retrasar-css-no-critico">Retrasar CSS no crítico</a></li><li class="toc__listitem"><a class="toc__anchor" href="#css-critico-con-estilos-integrados-en-el-codigo">CSS crítico con estilos integrados en el código</a></li><li class="toc__listitem"><a class="toc__anchor" href="#reducir-el-tiempo-de-bloqueo-de-javascript">Reducir el tiempo de bloqueo de JavaScript</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#slow-resource-load-times">Tiempos de carga de recursos lentos</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#optimizar-y-comprimir-imagenes">Optimizar y comprimir imágenes</a></li><li class="toc__listitem"><a class="toc__anchor" href="#precargar-recursos-importantes">Precargar recursos importantes</a></li><li class="toc__listitem"><a class="toc__anchor" href="#comprimir-archivos-de-texto">Comprimir archivos de texto</a></li><li class="toc__listitem"><a class="toc__anchor" href="#servicio-adaptativo">Servicio adaptativo</a></li><li class="toc__listitem"><a class="toc__anchor" href="#almacenar-activos-en-el-cache-con-un-service-worker">Almacenar activos en el caché con un service worker</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#client-side-rendering">Representación del lado del cliente</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#minimizar-javascript-critico">Minimizar JavaScript crítico</a></li><li class="toc__listitem"><a class="toc__anchor" href="#utilizar-la-renderizacion-del-lado-del-servidor">Utilizar la renderización del lado del servidor</a></li><li class="toc__listitem"><a class="toc__anchor" href="#utilizar-la-renderizacion-previa">Utilizar la renderización previa</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#herramientas-para-desarrolladores">Herramientas para desarrolladores</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <div class="youtube">  <lite-youtube    videoid="AQqFZ5t8uNc"    videoStartAt="1073"  >  </lite-youtube></div>
+<blockquote>
+  <p>No puedo ver ningún contenido útil. ¿Por qué tarda tanto en cargar? 😖</p>
+</blockquote>
+<p>Uno de los factores que contribuyen a una mala experiencia de usuario es el tiempo que tarda el usuario en ver cualquier contenido renderizado en la pantalla. <a href="/fcp">First Contentful Paint: Primer despliegue del contenido</a> (FCP) mide el tiempo que tarda en renderizarse el contenido del DOM inicial, pero no captura el tiempo que tarda en renderizarse el contenido más grande (generalmente más significativo) de la página.</p>
+<p><a href="/lcp">Largest Contentful Paint : Despliegue del contenido más extenso</a> (LCP) es una métrica de <a href="/vitals/">Core Web Vitals</a> y mide cuándo se hace visible el elemento de contenido más grande en la ventana de visualización. Puede utilizarse para determinar cuándo el contenido principal de la página terminó la renderización en la pantalla.</p>
+<picture>
+  <source srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/elqsdYqQEefWJbUM2qMO.svg" media="(min-width: 640px)">
+  <img     alt="Los valores buenos de LCP son 2,5 segundos, los valores malos son superiores a 4,0 segundos y cualquier cosa intermedia necesita mejora"     class="w-screenshot w-screenshot--filled width-full"     decoding="async"     height="96"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/9trpfS9wruEPGekHqBdn.svg"               width="384"   />
+</picture>
+<p>Las causas más comunes de una LCP deficiente son:</p>
+<ul>
+<li><a href="#slow-servers">Tiempos de respuesta lentos del servidor</a></li>
+<li><a href="#render-blocking-resources">JavaScript y CSS bloquean la renderización</a></li>
+<li><a href="#slow-resource-load-times">Tiempos de carga de recursos lentos</a></li>
+<li><a href="#client-side-rendering">Renderización del lado del cliente</a></li>
+</ul>
+<h2 id="slow-servers">Tiempos de respuesta lentos del servidor <a class="w-headline-link" href="#slow-servers">#</a></h2>
+<p>Cuanto más tarda un navegador en recibir el contenido del servidor, más tiempo tarda en renderizar cualquier cosa en la pantalla. Un tiempo de respuesta del servidor más rápido mejora directamente cada métrica de carga de la página, incluido el LCP.</p>
+<p>Antes que nada, mejore cómo y dónde su servidor maneja su contenido. Utilice <a href="/time-to-first-byte"><strong>Time to First Byte: Tiempo hasta el primer byte</strong></a> (TTFB) para medir los tiempos de respuesta de su servidor. Puede mejorar su TTFB de varias formas:</p>
+<ul>
+<li><a>Optimizar su servidor</a></li>
+<li>Enrutar a los usuarios a una CDN cercana</li>
+<li>Activos del caché</li>
+<li>Publicar las páginas HTML en cache-first</li>
+<li>Establecer conexiones con terceros con anticipación</li>
+<li>Utilizar intercambios firmados</li>
+</ul>
+<h3 id="optimizar-su-servidor">Optimizar su servidor <a class="w-headline-link" href="#optimizar-su-servidor">#</a></h3>
+<p>¿Ejecuta consultas costosas que le toman a su servidor una cantidad significativa de tiempo en completar? ¿O hay otras operaciones complejas en el lado del servidor que retrasan el proceso para devolver el contenido de la página? Analizar y mejorar la eficiencia de su código del lado del servidor mejorará directamente el tiempo que tarda el navegador en recibir los datos.</p>
+<p>En vez de publicar inmediatamente una página estática cuando el navegador la solicita, muchos frameworks web del lado del servidor necesitan crear la página web de forma dinámica. En otras palabras, en vez de enviar un archivo HTML completo que ya está listo cuando el navegador lo solicita, los frameworks necesitan ejecutar la lógica para crear la página. Esto podría deberse a los resultados pendientes de una consulta a la base de datos o incluso porque los componentes se deben generar en el marcado por un framework de interfaz de usuario (como <a href="https://reactjs.org/docs/react-dom-server.html" rel="noopener">React</a>). Muchos frameworks web que se ejecutan en el servidor tienen una guía de rendimiento que se puede utilizar para acelerar este proceso.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Consulte <a href="/overloaded-server/">Cómo reparar un servidor sobrecargado</a>, para obtener más sugerencias.</p>
+</div></aside>
+<h3 id="enrutar-a-los-usuarios-a-una-cdn-cercana">Enrutar a los usuarios a una CDN cercana <a class="w-headline-link" href="#enrutar-a-los-usuarios-a-una-cdn-cercana">#</a></h3>
+<p>Una Red de distribución de contenidos (CDN) es una red de servidores que se distribuyen en diferentes ubicaciones. Si el contenido de su página web se aloja en un solo servidor, su sitio web se cargará más lentamente para los usuarios que se encuentren geográficamente más lejos, porque las solicitudes de su navegador literalmente tienen que viajar por todo el mundo. Considere la posibilidad de utilizar una CDN para garantizar que sus usuarios nunca tengan que esperar las solicitudes de red a servidores lejanos.</p>
+<h3 id="activos-del-cache">Activos del caché <a class="w-headline-link" href="#activos-del-cache">#</a></h3>
+<p>Si su HTML es estática y no necesita cambiar en cada solicitud, el almacenamiento en caché puede evitar que se vuelva a crear innecesariamente. Al almacenar una copia del HTML generado en el disco, el almacenamiento en el caché del lado del servidor puede reducir la TTFB y minimizar el uso de los recursos.</p>
+<p>Dependiendo de su cadena de herramientas, hay muchas maneras diferentes de aplicar el almacenamiento en el caché del servidor:</p>
+<ul>
+<li>Configure proxies inversos (<a href="https://varnish-cache.org/" rel="noopener">Varnish</a>, <a href="https://www.nginx.com/" rel="noopener">nginx</a>) para publicar contenido en el caché o actuar como un servidor del caché cuando se instala frente a un servidor de aplicaciones</li>
+<li>Configure y administre el comportamiento del caché de su proveedor en la nube (<a href="https://firebase.google.com/docs/hosting/manage-cache" rel="noopener">Firebase</a>, <a href="https://aws.amazon.com/caching/" rel="noopener">AWS</a>, <a href="https://docs.microsoft.com/en-us/azure/architecture/best-practices/caching" rel="noopener">Azure)</a>)</li>
+<li>Utilice una CDN que proporcione servidores perimetrales para que su contenido se almacene en el caché y esté más cerca de sus usuarios</li>
+</ul>
+<h3 id="publicar-las-paginas-html-en-cache-first">Publicar las páginas HTML en cache-first <a class="w-headline-link" href="#publicar-las-paginas-html-en-cache-first">#</a></h3>
+<p>Cuando se instala, un <a href="https://developer.mozilla.org/docs/Web/API/Service_Worker_API" rel="noopener">service worker</a> se ejecuta en segundo plano del navegador y puede interceptar las solicitudes del servidor. Este nivel de control programático del caché permite almacenar en el caché parte o todo el contenido de la página HTML y solo actualizar el caché cuando el contenido cambió.</p>
+<p>En la siguiente gráfica se muestra cómo se han reducido las distribuciones de LCP en un sitio utilizando este patrón:</p>
+<figure class="w-figure">
+  <img     alt="Las distribuciones de Largest Contentful Paint antes y después de utilizar el almacenamiento en el caché de HTML"          decoding="async"     height="495"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/uB0Sm56R88MRF16voQ1k.png?auto=format&w=1600 1600w"          width="800"   />
+  <figcaption class="w-figcaption">
+    La distribución Contentful Paint más grande, para cargas de páginas mediante, y sin utilizar, un service worker - 
+    <a href="https://philipwalton.com/articles/smaller-html-payloads-with-service-workers/">philipwalton.com</a>
+  </figcaption>
+</figure>
+<p>En la gráfica se muestra la distribución de la LCP de un solo sitio durante los últimos 28 días, segmentado por el estado del service worker. Observe cómo muchas más cargas de páginas tienen un valor de LCP más rápido después de que se introdujo el servicio de páginas HTML cache-first en el service worker (parte azul de la gráfica).</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Para obtener más información sobre las técnicas para publicar páginas HTML completas o parciales en cache-first, eche un vistazo a <a href="https://philipwalton.com/articles/smaller-html-payloads-with-service-workers/" rel="noopener">Cargas útiles HTML más pequeñas con Service Workers</a></p>
+</div></aside>
+<h3 id="establecer-conexiones-con-terceros-con-anticipacion">Establecer conexiones con terceros con anticipación <a class="w-headline-link" href="#establecer-conexiones-con-terceros-con-anticipacion">#</a></h3>
+<p>Las solicitudes del servidor a orígenes de terceros también pueden afectar a LCP, especialmente si son necesarias para mostrar contenido crítico en la página. Utilice <code>rel=&quot;preconnect&quot;</code> para informar al navegador que su página tiene la intención de establecer una conexión lo antes posible.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preconnect<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>También puede utilizar <code>dns-prefetch</code> para resolver las búsquedas de DNS de forma más rápida.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dns-prefetch<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>Aunque ambas sugerencias funcionan de manera diferente, considere utilizar <code>dns-prefetch</code> como alternativa para los navegadores que no admiten <code>preconnect</code>.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span><br>  …<br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preconnect<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dns-prefetch<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://example.com<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Obtenga más información leyendo <a href="/preconnect-and-dns-prefetch/">Establecer conexiones de red con anticipación para mejorar la velocidad que se percibe en la página</a></p>
+</div></aside>
+<h3 id="utilizar-intercambios-firmados-(sxg)">Utilizar intercambios firmados (SXG) <a class="w-headline-link" href="#utilizar-intercambios-firmados-(sxg)">#</a></h3>
+<p><a href="https://web.dev/signed-exchanges">Los intercambios firmados (SXG)</a> son un mecanismo de entrega que permite experiencias de usuario más rápidas al proporcionar contenido en un formato que se puede almacenar en el caché fácilmente. Específicamente, la <a href="https://developers.google.com/search/docs/advanced/experience/signed-exchange" rel="noopener">Google Search</a> almacenará en el caché y, a veces, buscará previamente los SXG. Para los sitios que reciben una gran parte de su tráfico de Google Search, los SXG pueden ser una herramienta importante para mejorar LCP. Para obtener más información, consulte <a href="/signed-exchanges">Intercambios firmados</a>.</p>
+<h2 id="render-blocking-resources">Renderización que bloquea JavaScript y CSS <a class="w-headline-link" href="#render-blocking-resources">#</a></h2>
+<p>Antes de que un navegador pueda renderizar cualquier contenido, necesita analizar el marcado HTML en un árbol DOM. El analizador HTML se detendrá si encuentra hojas de estilo externas (<code>&lt;link rel=&quot;stylesheet&quot;&gt;</code>) o etiquetas de JavaScript sincrónicas (<code>&lt;script src=&quot;main.js&quot;&gt;</code>).</p>
+<p>Los scripts y las hojas de estilo son recursos que bloquean la renderización y retrasan la FCP y, como consecuencia, la LCP. Retrasa cualquier JavaScript y CSS no crítico para acelerar la carga del contenido principal de su página web.</p>
+<h3 id="reducir-el-tiempo-de-bloqueo-de-css">Reducir el tiempo de bloqueo de CSS <a class="w-headline-link" href="#reducir-el-tiempo-de-bloqueo-de-css">#</a></h3>
+<p>Asegúrese de que solo la cantidad mínima de CSS necesaria esté bloqueando la renderización en su sitio con lo siguiente:</p>
+<ul>
+<li>Minificar CSS</li>
+<li>Retrasar CSS no crítico</li>
+<li>CSS crítico con estilos integrados en el código</li>
+</ul>
+<h3 id="minificar-css">Minificar CSS <a class="w-headline-link" href="#minificar-css">#</a></h3>
+<p>Para facilitar la legibilidad, los archivos CSS pueden contener caracteres como espaciado, sangría o comentarios. Todos estos caracteres son innecesarios para el navegador, y la minificación de estos archivos garantizará que se eliminen. En última instancia, reducir la cantidad de CSS de bloqueo siempre mejorará el tiempo que se tarda en renderizar completamente el contenido principal de la página (LCP).</p>
+<p>Si utiliza un agrupador de módulos o una herramienta de compilación, incluya un complemento adecuado para minificar los archivos CSS en cada compilación:</p>
+<ul>
+<li>Para webpack: <a href="https://github.com/NMFR/optimize-css-assets-webpack-plugin" rel="noopener">optimice-css-assets-webpack-plugin</a></li>
+<li>Para Gulp: <a href="https://www.npmjs.com/package/gulp-clean-css" rel="noopener">gulp-clean-css</a></li>
+<li>Para Rollup: <a href="https://www.npmjs.com/package/rollup-plugin-css-porter" rel="noopener">rollup-plugin-css-porter</a></li>
+</ul>
+<figure class="w-figure"><img     alt="Ejemplo de mejora de LCP: antes y después de minificar CSS"          decoding="async"     height="139"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/vQXSKrY1Eq3CKkNbu9Td.png?auto=format&w=1600 1600w"          width="800"   /><figcaption class="w-figcaption"> Ejemplo de mejora de LCP: antes y después de minificar CSS</figcaption></figure>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Para obtener más información, consulte la guía <a href="/minify-css/">Minify CSS</a>.</p>
+</div></aside>
+<h3 id="retrasar-css-no-critico">Retrasar CSS no crítico <a class="w-headline-link" href="#retrasar-css-no-critico">#</a></h3>
+<p>Utilice la pestaña <a href="https://developers.google.com/web/tools/chrome-devtools/coverage" rel="noopener">Coverage</a> de Chrome DevTools para encontrar cualquier CSS que no utilice en su página web.</p>
+<img     alt="Pestaña Coverage de Chrome DevTools"          decoding="async"     height="559"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/wjS4NrU5EsJeCuvK0zhn.png?auto=format&w=1600 1600w"          width="800"   />
+<p>Para optimizar:</p>
+<ul>
+<li>
+<p>Elimine por completo cualquier CSS que no utilice o muévalo a otra hoja de estilo si se utiliza en una página separada de su sitio.</p>
+</li>
+<li>
+<p>Para cualquier CSS que no sea necesaria para la renderización inicial, utilice <a href="https://github.com/filamentgroup/loadCSS/blob/master/README.md" rel="noopener">loadCSS</a> para cargar los archivos de forma asincrónica, lo que aprovecha <code>rel=&quot;preload&quot;</code> y <code>onload</code>.</p>
+</li>
+</ul>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preload<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet.css<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>style<span class="token punctuation">"</span></span> <span class="token special-attr"><span class="token attr-name">onload</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value javascript language-javascript"><span class="token keyword">this</span><span class="token punctuation">.</span>rel<span class="token operator">=</span><span class="token string">'stylesheet'</span></span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><figure class="w-figure"><img     alt="Ejemplo de como mejorar LCP: antes y después de aplazar CSS no crítico"          decoding="async"     height="139"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/2fcwrkXQRQrM8w1qyy3P.png?auto=format&w=1600 1600w"          width="800"   /> <figcaption class="w-figcaption"> Ejemplo de como mejorar LCP: antes y después de aplazar CSS no crítico </figcaption></figure>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Para obtener más información, consulte la guía <a href="/defer-non-critical-css/">Retrasar CSS no crítico</a>.</p>
+</div></aside>
+<h3 id="css-critico-con-estilos-integrados-en-el-codigo">CSS crítico con estilos integrados en el código <a class="w-headline-link" href="#css-critico-con-estilos-integrados-en-el-codigo">#</a></h3>
+<p>Estilos integrados en el código de cualquier CSS de ruta crítica que se utilice para el contenido de la mitad superior de la página que lo incluya directamente en el <code>&lt;head&gt;.</code></p>
+<figure class="w-figure"><img     alt="CSS crítico con estilos integrados en el código"     class="w-screenshot w-screenshot--filled"     decoding="async"     height="325"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/m0n0JsLpH9JsNnXywSwz.png?auto=format&w=1600 1600w"          width="800"   /> <figcaption class="w-figcaption">CSS crítico con estilos integrados en el código</figcaption></figure>
+<p>La inserción de estilos importantes elimina la necesidad de realizar una solicitud de ida y vuelta para obtener CSS crítico. Retrasar el resto minimiza el tiempo de bloqueo de CSS.</p>
+<p>Si no puede agregar manualmente estilos integrados en el código a su sitio, utilice una biblioteca para automatizar el proceso. Algunos ejemplos son:</p>
+<ul>
+<li><a href="https://github.com/addyosmani/critical" rel="noopener">Critical</a> , <a href="https://github.com/filamentgroup/criticalCSS" rel="noopener">CriticalCSS</a> y <a href="https://github.com/pocketjoso/penthouse" rel="noopener">Penthouse</a> son paquetes que extraen e incorporan estilos integrados en el código de CSS, en la parte superior de la página.</li>
+<li><a href="https://github.com/GoogleChromeLabs/critters" rel="noopener">Critters</a> es un complemento de webpack que integra estilos integrados en el código de CSS crítico y carga diferida de REST</li>
+</ul>
+<figure class="w-figure"><img     alt="Ejemplo de como mejorar LCP antes y después de incorporar estilos integrados en el código de CSS crítico"          decoding="async"     height="175"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/L8sc51bd3ckxwnUfczC4.png?auto=format&w=1600 1600w"          width="800"   /> <figcaption class="w-figcaption"> Ejemplo de como mejorar LCP antes y después de incorporar estilos integrados en el código de CSS crítico </figcaption></figure>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Eche un vistazo a la guía sobre <a href="/extract-critical-css/">Cómo extraer CSS crítico</a> para obtener más información.</p>
+</div></aside>
+<h3 id="reducir-el-tiempo-de-bloqueo-de-javascript">Reducir el tiempo de bloqueo de JavaScript <a class="w-headline-link" href="#reducir-el-tiempo-de-bloqueo-de-javascript">#</a></h3>
+<p>Descargue y publique la cantidad mínima de JavaScript necesaria a los usuarios. La reducción de la cantidad que JavaScript bloquea el sitio se traduce en una renderización más rápida y, en consecuencia, en una mejor LCP.</p>
+<p>Esto se puede lograr optimizando sus scripts de diferentes formas:</p>
+<ul>
+<li><a href="https://web.dev/reduce-network-payloads-using-text-compression/">Minificar y comprimir archivos JavaScript</a></li>
+<li><a href="https://web.dev/reduce-javascript-payloads-with-code-splitting/">Retrasar JavaScript no utilizado</a></li>
+<li><a href="https://web.dev/serve-modern-code-to-modern-browsers/">Minimice los polyfills no utilizados</a></li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>La guía <a href="/optimize-fid/">Optimizar First Input Delay</a> cubre todas las técnicas necesarias para reducir el tiempo de bloqueo de JavaScript con un poco más de detalle.</p>
+</div></aside>
+<h2 id="slow-resource-load-times">Tiempos de carga de recursos lentos <a class="w-headline-link" href="#slow-resource-load-times">#</a></h2>
+<p>Aunque un aumento en el tiempo de bloqueo de CSS o JavaScript se traduce directamente en un peor rendimiento, el tiempo que se tarda en cargar muchos otros tipos de recursos también puede afectar los tiempos de despliegue. Los tipos de elementos que afectan a LCP son:</p>
+<ul>
+<li><code>&lt;img&gt;</code> elementos</li>
+<li><code>&lt;image&gt;</code> elementos dentro de un elemento <code>&lt;svg&gt;</code></li>
+<li><code>&lt;video&gt;</code> elementos (la imagen del <a href="https://developer.mozilla.org/docs/Web/HTML/Element/video#attr-poster" rel="noopener">cartel</a> se utilizan para medir LCP)</li>
+<li>Un elemento con una imagen de segundo plano que se carga a través de la función <a href="https://developer.mozilla.org/docs/Web/CSS/url()" rel="noopener"><code>url()</code></a> (a diferencia de un <a>gradiente CSS</a>)</li>
+<li>Elementos a <a href="https://developer.mozilla.org/docs/Web/HTML/Block-level_elements" rel="noopener">nivel de bloque</a> que contienen nodos de texto u otros elementos de texto con estilos integrados en el código.</li>
+</ul>
+<p>El tiempo que se tarda en cargar estos elementos si se renderizan en la mitad superior de la página tendrá un efecto directo en LCP. Hay algunas formas de garantizar que estos archivos se carguen lo más rápido posible:</p>
+<ul>
+<li>Optimizar y comprimir imágenes</li>
+<li>Precargar recursos importantes</li>
+<li>Comprimir archivos de texto</li>
+<li>Entregar diferentes activos basados en la conexión de la red (servicio adaptable)</li>
+<li>Almacenar activos en el caché con un service worker</li>
+</ul>
+<h3 id="optimizar-y-comprimir-imagenes">Optimizar y comprimir imágenes <a class="w-headline-link" href="#optimizar-y-comprimir-imagenes">#</a></h3>
+<p>En muchos sitios, las imágenes son el elemento más grande a la vista cuando la página terminó de cargarse. En las imágenes hero los grandes carruseles o los banners son ejemplos comunes de esto.</p>
+<figure class="w-figure"><img     alt=""          decoding="async"     height="925"          loading="lazy"     sizes="(min-width: 459px) 459px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format"     srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/unWra6cq0hPJJJT7Y3ye.png?auto=format&w=918 918w"          width="459"   /> <figcaption>Imagen como elemento más grande de la página: <a href="https://design.google/">design.google</a></figcaption></figure>
+<p>Mejorar el tiempo que se tarda en cargar y renderizar este tipo de imágenes acelerará directamente la LCP. Para hacer esto:</p>
+<ul>
+<li>En primer lugar, considere la posibilidad de no utilizar una imagen. Si no es relevante para el contenido, elimínela.</li>
+<li>Comprima imágenes (por ejemplo con <a href="/use-imagemin-to-compress-images">Imagemin</a>)</li>
+<li>Convierta imágenes a formatos más nuevos (JPEG 2000, JPEG XR o WebP)</li>
+<li>Utilice imágenes responsive</li>
+<li>Considere utilizar una imagen CDN</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Eche un vistazo a <a href="/fast/#optimize-your-images">Optimice sus imágenes</a> para obtener guías y recursos que expliquen todas estas técnicas en detalle.</p>
+</div></aside>
+<h3 id="precargar-recursos-importantes">Precargar recursos importantes <a class="w-headline-link" href="#precargar-recursos-importantes">#</a></h3>
+<p>A veces, los recursos importantes que se declaran o utilizan en un determinado archivo CSS o JavaScript pueden recuperarse más tarde de lo que le gustaría, como una fuente escondida en uno de los muchos archivos CSS de una aplicación.</p>
+<p>Si sabe que un recurso en particular debe ser prioritario, utilice <code>&lt;link rel=&quot;preload&quot;&gt;</code> para recuperarlo antes. <a href="https://developer.mozilla.org/docs/Web/HTML/Preloading_content#What_types_of_content_can_be_preloaded" rel="noopener">Se pueden precargar muchos tipos de recursos</a>, pero debería centrarse primero en <a href="/preload-critical-assets/">precargar activos críticos</a>, como fuentes, imágenes o videos en la mitad superior de la página, y CSS o JavaScript de ruta crítica.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preload<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>script<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>script.js<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preload<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>style<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>style.css<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preload<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>image<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>img.png<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preload<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>video<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>vid.webm<span class="token punctuation">"</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>video/webm<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preload<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>font.woff2<span class="token punctuation">"</span></span> <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>font<span class="token punctuation">"</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>font/woff2<span class="token punctuation">"</span></span> <span class="token attr-name">crossorigin</span> <span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><p>Desde Chrome 73, la precarga se puede utilizar junto con <a href="/preload-responsive-images/">imágenes responsivas</a> para combinar ambos patrones y conseguir una carga de imágenes mucho más rápida.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span><br>  <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>preload<span class="token punctuation">"</span></span><br>  <span class="token attr-name">as</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>image<span class="token punctuation">"</span></span><br>  <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wolf.jpg<span class="token punctuation">"</span></span><br>  <span class="token attr-name">imagesrcset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wolf_400px.jpg 400w, wolf_800px.jpg 800w, wolf_1600px.jpg 1600w<span class="token punctuation">"</span></span><br>  <span class="token attr-name">imagesizes</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>50vw<span class="token punctuation">"</span></span><br><span class="token punctuation">/></span></span></code></pre>
+</web-copy-code><h3 id="comprimir-archivos-de-texto">Comprimir archivos de texto <a class="w-headline-link" href="#comprimir-archivos-de-texto">#</a></h3>
+<p>Los algoritmos de compresión, como <a href="https://www.youtube.com/watch?v=whGwm0Lky2s&amp;feature=youtu.be&amp;t=14m11s" rel="noopener">Gzip</a> y <a href="https://opensource.googleblog.com/2015/09/introducing-brotli-new-compression.html" rel="noopener">Brotli</a>, pueden reducir significativamente el tamaño de los archivos de texto (HTML, CSS, JavaScript) conforme se transfieren entre el servidor y el navegador. Gzip efectivamente es compatible con todos los navegadores y Brotli, que proporciona resultados de compresión aún mejores, <a href="https://caniuse.com/#feat=brotli" rel="noopener">se puede utilizar en casi todos los navegadores más recientes</a>.</p>
+<p>La compresión de sus recursos minimizará su tamaño de entrega, mejorando los tiempos de carga y, en consecuencia, la LCP.</p>
+<ol>
+<li>En primer lugar, verifique si su servidor ya comprime archivos automáticamente. La mayoría de las plataformas de alojamiento, CDN y servidores proxy inversos codifican activos con compresión de forma predeterminada o le permiten configurarlos fácilmente.</li>
+<li>Si necesita modificar su servidor para comprimir los archivos, considere la posibilidad de utilizar Brotli en vez de gzip, ya que puede proporcionar mejores índices de compresión.</li>
+<li>Una vez que elija un algoritmo de compresión, comprima los activos con anticipación durante el proceso de creación en vez de hacerlo sobre la marcha, según lo solicite el navegador. Esto minimiza la sobrecarga del servidor y se evitan retrasos en las solicitudes, especialmente cuando se utilizan índices de compresión elevados.</li>
+</ol>
+<figure class="w-figure"><img     alt="Ejemplo de como mejorar LCP: antes y después de utilizar la compresión Brotli"          decoding="async"     height="139"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/Ckh2Jjkoh7ojLj5Wxeqc.png?auto=format&w=1600 1600w"          width="800"   /> <figcaption class="w-figcaption"> Ejemplo de como mejorar LCP: antes y después de utilizar la compresión Brotli </figcaption></figure>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Para obtener más información, consulte la guía <a href="/reduce-network-payloads-using-text-compression/">Minificar y comprimir cargas útiles de la red</a>.</p>
+</div></aside>
+<h3 id="servicio-adaptativo">Servicio adaptativo <a class="w-headline-link" href="#servicio-adaptativo">#</a></h3>
+<p>Cuando se cargan los recursos que conforman el contenido principal de una página, puede ser efectivo obtener de forma condicional diferentes activos dependiendo del dispositivo del usuario o de las condiciones de la red. Esto se puede hacer utilizando las API <a href="https://wicg.github.io/netinfo/" rel="noopener">Información de la red</a>, <a href="https://www.w3.org/TR/device-memory/" rel="noopener">Memoria del dispositivo</a> y <a href="https://html.spec.whatwg.org/multipage/workers.html#navigator.hardwareconcurrency" rel="noopener">Concurrencia del hardware</a>.</p>
+<p>Si tienes activos grandes que son críticos para la renderización inicial, puedes utilizar diferentes variaciones del mismo recurso dependiendo de la conexión o el dispositivo del usuario. Por ejemplo, puedes mostrar una imagen en vez de un video para cualquier velocidad de conexión inferior a 4G:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">if</span> <span class="token punctuation">(</span>navigator<span class="token punctuation">.</span>connection <span class="token operator">&amp;&amp;</span> navigator<span class="token punctuation">.</span>connection<span class="token punctuation">.</span>effectiveType<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  <span class="token keyword">if</span> <span class="token punctuation">(</span>navigator<span class="token punctuation">.</span>connection<span class="token punctuation">.</span>effectiveType <span class="token operator">===</span> <span class="token string">'4g'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token comment">// Load video</span><br>  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span><br>    <span class="token comment">// Load image</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span></code></pre>
+</web-copy-code><p>Una lista de propiedades útiles que puede utilizar son:</p>
+<ul>
+<li><code>navigator.connection.effectiveType</code>: tipo de conexión efectiva</li>
+<li><code>navigator.connection.saveData</code>: ahorro de datos habilitado/deshabilitado</li>
+<li><code>navigator.hardwareConcurrency</code>: recuento de núcleos del CPU</li>
+<li><code>navigator.deviceMemory</code>: memoria del dispositivo</li>
+</ul>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Para obtener más información, consulte <a href="/adaptive-serving-based-on-network-quality/">Servicio adaptativo basado en la calidad de la red</a>.</p>
+</div></aside>
+<h3 id="almacenar-activos-en-el-cache-con-un-service-worker">Almacenar activos en el caché con un service worker <a class="w-headline-link" href="#almacenar-activos-en-el-cache-con-un-service-worker">#</a></h3>
+<p>Los service workers se pueden utilizar para muchas tareas útiles, incluyendo publicar respuestas en HTML más pequeñas como se mencionó anteriormente en este artículo. También se pueden utilizar para almacenar en el caché cualquier recurso estático que se pueda publicar en el navegador en vez de desde la red en solicitudes repetidas.</p>
+<p>El almacenamiento previo en el caché de recursos críticos mediante un service worker puede reducir sus tiempos de carga de manera significativa, especialmente para los usuarios que recargan la página web con una conexión más débil (o incluso acceden a ella sin conexión). Las librerías como <a href="https://developers.google.com/web/tools/workbox/" rel="noopener">Workbox</a> pueden hacer que el proceso de actualización de activos almacenados previamente en el caché sea más fácil que escribir en un service worker personalizado para que lo maneje usted mismo.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Eche un vistazo a la <a href="/reliable/">confiabilidad de la red</a> para obtener más información sobre los service workers y Workbox.</p>
+</div></aside>
+<h2 id="client-side-rendering">Representación del lado del cliente <a class="w-headline-link" href="#client-side-rendering">#</a></h2>
+<p>Muchos sitios utilizan la lógica de JavaScript del lado del cliente para renderizar las páginas directamente en el navegador. Los frameworks y las librerías, como <a href="https://reactjs.org/" rel="noopener">React</a>, <a href="https://angular.io/" rel="noopener">Angular</a> y <a href="https://vuejs.org/" rel="noopener">Vue</a>, han facilitado la creación de aplicaciones de una sola página que manejan diferentes facetas de una página web completamente en el cliente y no en el servidor.</p>
+<p>Si está creando un sitio que se renderiza principalmente en el lado del cliente, debe tener cuidado con el efecto que puede tener en LCP si se utiliza un gran paquete de JavaScript. Si no se implementan optimizaciones para evitarlo, es posible que los usuarios no vean ni interactúen con ningún contenido de la página hasta que todo el JavaScript crítico haya terminado de descargarse y ejecutarse.</p>
+<p>Al crear un sitio renderizado del lado del cliente, considere las siguientes optimizaciones:</p>
+<ul>
+<li>Minimizar JavaScript crítico</li>
+<li>Utilizar la renderización del lado del servidor</li>
+<li>Utilizar la renderización previa</li>
+</ul>
+<h3 id="minimizar-javascript-critico">Minimizar JavaScript crítico <a class="w-headline-link" href="#minimizar-javascript-critico">#</a></h3>
+<p>Si el contenido de su sitio solo se vuelve visible, o se puede interactuar con él, después de que se descargue una cierta cantidad de JavaScript: es aún más importante reducir el tamaño de su paquete tanto como sea posible. Esto se puede hacer al:</p>
+<ul>
+<li>Minificar JavaScript</li>
+<li>Retrasar JavaScript no utilizado</li>
+<li>Minimizar los polyfills no utilizados</li>
+</ul>
+<p>Vuelva a la sección <a href="#reduce-javascript-blocking-time">Reducir el tiempo de bloqueo de JavaScript</a> para obtener más información sobre estas optimizaciones.</p>
+<h3 id="utilizar-la-renderizacion-del-lado-del-servidor">Utilizar la renderización del lado del servidor <a class="w-headline-link" href="#utilizar-la-renderizacion-del-lado-del-servidor">#</a></h3>
+<p>Minimizar la cantidad de JavaScript siempre debe ser lo primero en lo que se debe centrar para los sitios que en su mayoría se renderizan por el cliente. Sin embargo, también debería considerar la posibilidad de combinar una experiencia de renderizado en el servidor para mejorar la LCP tanto como sea posible.</p>
+<p>Este concepto funciona utilizando el servidor para renderizar la aplicación en HTML, donde el cliente luego &quot;<a href="https://www.gatsbyjs.org/docs/react-hydration/" rel="noopener">hidrata</a>&quot; todo el JavaScript y los datos requeridos en el mismo contenido DOM. Esto puede mejorar la LCP al garantizar que el contenido principal de la página se renderice primero en el servidor en vez de solo en el lado del cliente, pero hay algunos inconvenientes:</p>
+<ul>
+<li>Mantener la misma aplicación renderizada en JavaScript en el servidor y el cliente puede aumentar la complejidad.</li>
+<li>Ejecutar JavaScript para renderizar un archivo HTML en el servidor siempre aumentará los tiempos de respuesta del servidor (TTFB) en comparación con solo publicar páginas estáticas desde el servidor.</li>
+<li>Puede parecer que se puede interactuar con una página renderizada por el servidor, pero no puede responder a ninguna entrada del usuario hasta que se haya ejecutado todo el JavaScript del lado del cliente. En resumen, puede hacer que el <a href="/tti/"><strong>Time to Interactive: Tiempo de Interacción</strong></a> (TTI) empeore.</li>
+</ul>
+<h3 id="utilizar-la-renderizacion-previa">Utilizar la renderización previa <a class="w-headline-link" href="#utilizar-la-renderizacion-previa">#</a></h3>
+<p>La renderización previa es una técnica independiente que es menos compleja que la renderización del lado del servidor y también proporciona una forma de mejorar LCP en su aplicación. Se utiliza un navegador sin encabezado, el cual es un navegador sin interfaz de usuario, para generar archivos HTML estáticos de cada ruta durante el tiempo de la creación. Estos archivos se pueden enviar junto con los paquetes de JavaScript necesarios para la aplicación.</p>
+<p>Con la renderización previa, la TTI sigue teniendo un impacto negativo, pero los tiempos de respuesta del servidor no se ven tan afectados como lo harían con una solución de la renderización del lado del servidor que renderiza dinámicamente cada página solo después de que se solicita.</p>
+<figure class="w-figure"><img     alt="Ejemplo de como mejorar LCP: antes y después de hacer una renderización previa"          decoding="async"     height="139"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/sm9s16UHfh8a5MDEWjxa.png?auto=format&w=1600 1600w"          width="800"   /> <figcaption class="w-figcaption"> Ejemplo de como mejorar LCP: antes y después de hacer una renderización previa </figcaption></figure>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>Para profundizar en las diferentes arquitecturas de renderización de servidores, eche un vistazo a la <a href="https://developers.google.com/web/updates/2019/02/rendering-on-the-web" rel="noopener">Renderización en la web</a>.</p>
+</div></aside>
+<h2 id="herramientas-para-desarrolladores">Herramientas para desarrolladores <a class="w-headline-link" href="#herramientas-para-desarrolladores">#</a></h2>
+<p>Hay varias herramientas disponibles para medir y depurar LCP:</p>
+<ul>
+<li>
+<p><a href="https://developers.google.com/web/tools/lighthouse" rel="noopener">Lighthouse 6.0</a> incluye soporte para medir LCP en un entorno de laboratorio.</p>
+  <img     alt="Lighthouse 6.0"          decoding="async"     height="309"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/Sar3Pa7TDe9ibny6sfq4.jpg?auto=format&w=1600 1600w"          width="800"   />
+</li>
+<li>
+<p>La sección de <strong>sincronizaciones</strong> del <a href="https://developers.google.com/web/tools/chrome-devtools/evaluate-performance" rel="noopener">rendimiento</a> en el panel en Chrome DevTools incluye un marcador de LCP y muestra qué elemento se asocia con LCP cuando se pasa sobre el campo <strong>Nodo relacionado</strong>.</p>
+  <img     alt="LCP en Chrome DevTools"          decoding="async"     height="509"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format"     srcset="https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/admin/sxczQPKH0cvMBsNCx5uH.png?auto=format&w=1600 1600w"          width="800"   />
+</li>
+<li>
+<p><a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome User Experience Report</a> proporciona valores de LCP del mundo real agregados a nivel de origen.</p>
+</li>
+</ul>
+<p><em>Agradecemos a Philip Walton, Katie Hempenius, Kayce Basques e Ilya Grigorik por sus comentarios.</em></p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+          
+            
+            <a class="pill" href="/tags/performance/">Rendimiento</a>
+          
+        
+          
+            
+            <a class="pill" href="/tags/web-vitals/">Web Vitals</a>
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Última actualización: <time>Aug 20, 2020</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/es/blog/optimize-lcp/index.md"
+        >
+          Mejorar el artículo
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="@hdjirdeh"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Compartir</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Presentar un error
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Ver fuente
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contenido relevante</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome Actualizaciones
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Conectar</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          Todos los productos
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="es"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Condiciones y privacidad
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Principios de la Comunidad
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

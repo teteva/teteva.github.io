@@ -1,0 +1,950 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=a94054c90d295">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Why lab and field data can be different (and what to do about it)</title>
+<meta name="description" content="Learn why tools that monitor Core Web Vitals metrics may report different numbers, and how to interpret those differences. " />
+
+<link rel="canonical" href="https://web.dev/lab-and-field-data-differences/" />
+
+<meta itemprop="name" content="Why lab and field data can be different (and what to do about it)" />
+<meta itemprop="description" content="Learn why tools that monitor Core Web Vitals metrics may report different numbers, and how to interpret those differences. " />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/lab-and-field-data-differences/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Why lab and field data can be different (and what to do about it)" />
+<meta property="og:description" content="Learn why tools that monitor Core Web Vitals metrics may report different numbers, and how to interpret those differences. " />
+<meta property="og:image" content="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="Users on their phones" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="web-vitals" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Why lab and field data can be different (and what to do about it)" />
+<meta name="twitter:description" content="Learn why tools that monitor Core Web Vitals metrics may report different numbers, and how to interpret those differences. " />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=6f13ff0079b88', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=5509c126b413b', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Open menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Open menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Learn
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Measure
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        About
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Close"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Close</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Learn
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Measure
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        About
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+    <img     alt="Users on their phones"     class="w-hero w-hero--cover"     decoding="auto"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format"     srcset="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/OKW9sizk0a8UloNOFx9g.jpeg?auto=format&w=1600 1600w"          width="1600"   />
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#why-lab-and-field-data-can-be-different-(and-what-to-do-about-it)" class="w-toc__header--link">
+        Why lab and field data can be different (and what to do about it)
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#lab-data-versus-field-data">Lab data versus field data</a><ol><li><a href="#lab-data">Lab data</a></li><li><a href="#field-data">Field data</a></li></ol></li><li><a href="#why-lab-and-field-data-are-different">Why lab and field data are different</a><ol><li><a href="#lcp">LCP</a></li><li><a href="#fid">FID</a></li><li><a href="#cls">CLS</a></li></ol></li><li><a href="#what-to-do-when-the-results-are-different">What to do when the results are different</a></li><li><a href="#further-reading">Further reading</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@philwalton"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Share</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+        
+        <div class="w-post-breadcrumbs">
+          <ul class="w-breadcrumbs">
+  <li class="w-breadcrumbs__crumb">
+    <a
+      class="w-breadcrumbs__link w-breadcrumbs__link--left-justify gc-analytics-event"
+      data-category="web.dev"
+      data-label="post, home breadcrumb"
+      data-action="click"
+      href="/"
+    >
+      Home
+    </a>
+  </li>
+
+  <svg
+    class="w-breadcrumbs__icon"
+    xmlns="http://www.w3.org/2000/svg"
+    height="24"
+    viewBox="0 0 24 24"
+    width="24"
+    aria-hidden="true"
+  >
+    <path d="M0 0h24v24H0V0z" fill="none" />
+    <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+  </svg>
+
+  <li class="w-breadcrumbs__crumb">
+    <a
+      class="w-breadcrumbs__link gc-analytics-event"
+      data-category="web.dev"
+      data-label="post, path breadcrumb"
+      data-action="click"
+      href=/blog
+    >
+      All articles
+    </a>
+  </li>
+</ul>
+        </div>
+      
+
+      <h1 id="why-lab-and-field-data-can-be-different-(and-what-to-do-about-it)" class="w-article-header__headline">Why lab and field data can be different (and what to do about it)</h1>
+      
+        <p class="w-article-header__subhead w-mb--non">
+          <p>Learn why tools that monitor Core Web Vitals metrics may report different numbers, and how to interpret those differences.</p>
+
+        </p>
+      
+
+      
+        <div class="w-author__published">
+          <time>Aug 17, 2021</time>
+           <span class="w-author__separator">•</span> Updated <time>Aug 17, 2021</time> 
+        </div>
+      
+
+      
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/philipwalton/"><img     alt="Philip Walton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/philipwalton/">Philip Walton</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/philwalton"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/philipwalton">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://philipwalton.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <p>Google provides <a href="/vitals-tools/">a number of tools</a> to help site owners monitor
+their <a href="/vitals/#core-web-vitals">Core Web Vitals</a> scores. These tools fall into
+two main categories:</p>
+<ul>
+<li>Tools that report <strong>lab data</strong>—data collected in a controlled environment with
+predefined device and network settings.</li>
+<li>Tools that report <strong>field data</strong>—data collected from the real users visiting
+your site.</li>
+</ul>
+<p>The problem is that sometimes the data reported by lab tools can be quite a bit
+different from the data reported by field tools! Your lab data might indicate
+that your site performs great, but your field data suggests it needs
+improvement. Alternatively, your field data may say all your pages are good, but
+your lab data may report a very low score.</p>
+<p>The following real example of a PageSpeed Insights report from web.dev shows
+that in some cases lab and field data can be different across all of the Core
+Web Vitals metrics:</p>
+<img     alt="Screenshot of a PageSpeed Insights report with conflicting lab and field data"          decoding="async"     height="509"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format"     srcset="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/YvQK3wA9AQ2fmEuNSzKK.png?auto=format&w=1600 1600w"          width="800"   />
+<p>Differences between tools is an understandable source of confusion for
+developers. This post explains the main reasons these differences could
+exist—with specific examples covering each of the Core Web Vitals metrics—and
+what to do when you find differences on your pages.</p>
+<h2 id="lab-data-versus-field-data">Lab data versus field data <a class="w-headline-link" href="#lab-data-versus-field-data">#</a></h2>
+<p>To understand why lab and field tools might report different values—even for the
+exact same web page—you need to understand the difference between lab and field
+data.</p>
+<h3 id="lab-data">Lab data <a class="w-headline-link" href="#lab-data">#</a></h3>
+<p>Lab data is determined by loading a web page in a controlled environment with a
+predefined set of network and device conditions. These conditions are known as a
+<em>lab</em> environment, sometimes also referred to as a <em>synthetic</em> environment.</p>
+<p>Chrome tools that report lab data are generally running
+<a href="https://developers.google.com/web/tools/lighthouse" rel="noopener">Lighthouse</a>.</p>
+<p>The purpose of a lab test is to control for as many factors as you can, so the
+results are (as much as possible) consistent and reproducible from run to run.</p>
+<h3 id="field-data">Field data <a class="w-headline-link" href="#field-data">#</a></h3>
+<p>Field data is determined by monitoring all users who visit a page and measuring
+a given set of performance metrics for each one of those users' individual
+experiences. Because field data is based on real-user visits, it reflects the
+actual devices, network conditions, and geographic locations of your users.</p>
+<p>Field data is also commonly known as <a href="https://en.wikipedia.org/wiki/Real_user_monitoring" rel="noopener">Real User Monitoring
+(RUM)</a> data; the two terms
+are interchangeable.</p>
+<p>Chrome tools that report <em>field data</em> generally get that data from the <a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome
+User Experience Report
+(CrUX)</a>.
+It's also common (and recommended) for site owners to <a href="/vitals-field-measurement-best-practices/">collect field data
+themselves</a> because it can provide
+<a href="/vitals-ga4/">more actionable insights</a> than just using CrUX alone.</p>
+<p>The most important thing to understand about field data is that it is not just
+one number, it's a distribution of numbers. That is, for some people who visit
+your site, it may load very quickly, while for others it may load very slowly.
+The <em>field data</em> for your site is the complete set of all performance data
+collected from your users.</p>
+<p>As an example, CrUX reports show a distribution of performance metrics from real
+Chrome users over a 28-day period. If you look at almost any CrUX report you can
+see that some users who visit a site might have a very good experience while
+others might have a very poor experience.</p>
+<p>If a tool does report a single number for a given metric, it will generally
+represent a specific point in the distribution. Tools that report Core Web
+Vitals field scores do so <a href="/defining-core-web-vitals-thresholds/#choice-of-percentile">using the 75th
+percentile</a>.</p>
+<p>Looking at LCP from the field data in the screenshot above, you can see a
+distribution where:</p>
+<ul>
+<li>88% of visits saw an LCP of 2.5 seconds or less (good).</li>
+<li>8% of visits saw an LCP between 2.5 and 4 seconds (needs improvement).</li>
+<li>4% of visits saw an LCP greater than 4 seconds (poor).</li>
+</ul>
+<p>At the 75th percentile, LCP was 1.8 seconds:</p>
+<img     alt="Distribution of LCP scores in the field"          decoding="async"     height="100"          loading="lazy"     sizes="(min-width: 400px) 400px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/HttRJY6Drm09UdmbuyyB.png?auto=format"     srcset="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/HttRJY6Drm09UdmbuyyB.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/HttRJY6Drm09UdmbuyyB.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/HttRJY6Drm09UdmbuyyB.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/HttRJY6Drm09UdmbuyyB.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/HttRJY6Drm09UdmbuyyB.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/HttRJY6Drm09UdmbuyyB.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/HttRJY6Drm09UdmbuyyB.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/HttRJY6Drm09UdmbuyyB.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/HttRJY6Drm09UdmbuyyB.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/HttRJY6Drm09UdmbuyyB.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/HttRJY6Drm09UdmbuyyB.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/HttRJY6Drm09UdmbuyyB.png?auto=format&w=800 800w"          width="400"   />
+<p>Lab data from the same page shows an LCP value of 3.0 second. While this value
+is greater than the 1.8 seconds shown in the field data, it's still a valid LCP
+value for this page—it's one of many values that make up the full distribution
+of load experiences.</p>
+<img     alt="LCP score in the lab"          decoding="async"     height="50"          loading="lazy"     sizes="(min-width: 400px) 400px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/kztPvvnwuTrCzo318cZP.png?auto=format"     srcset="https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/kztPvvnwuTrCzo318cZP.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/kztPvvnwuTrCzo318cZP.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/kztPvvnwuTrCzo318cZP.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/kztPvvnwuTrCzo318cZP.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/kztPvvnwuTrCzo318cZP.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/kztPvvnwuTrCzo318cZP.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/kztPvvnwuTrCzo318cZP.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/kztPvvnwuTrCzo318cZP.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/kztPvvnwuTrCzo318cZP.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/kztPvvnwuTrCzo318cZP.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/kztPvvnwuTrCzo318cZP.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/eqprBhZUGfb8WYnumQ9ljAxRrA72/kztPvvnwuTrCzo318cZP.png?auto=format&w=800 800w"          width="400"   />
+<h2 id="why-lab-and-field-data-are-different">Why lab and field data are different <a class="w-headline-link" href="#why-lab-and-field-data-are-different">#</a></h2>
+<p>As the above section explains, lab data and field data actually measure very
+different things.</p>
+<p>Field data includes a wide variety of network and device conditions as well as a
+myriad of different types of user behavior. It also includes any other factors
+that affect the user experience, such as browser optimizations like the
+<a href="/bfcache/">back/forward cache</a> (bfcache), or platform optimizations like the
+<a href="https://developers.google.com/amp/cache" rel="noopener">AMP cache</a>.</p>
+<p>By contrast, lab data intentionally limits the number of variables involved. A
+lab test consists of:</p>
+<ul>
+<li>A single device…</li>
+<li>connected to a single network…</li>
+<li>run from a single geographic location.</li>
+</ul>
+<p>The particulars of any given lab test may or may not accurately represent the
+75th percentile of field data for a given page or site.</p>
+<p>The controlled environment of the lab is useful when debugging issues or testing
+features before deploying to production, but when you control for these factors
+you are explicitly not representing the variance that you see in the real world
+across all types of networks, device capabilities, or geographic locations. You
+are also generally not capturing the performance impact of real-user behavior,
+such as scrolling, selecting text, or tapping elements on the page.</p>
+<p>In addition to the possible disconnect between lab conditions and the conditions
+of most real-world users, there are also a number of more subtle differences
+that are important to understand in order to make the most sense out of your lab
+and field data, as well as any differences you may find.</p>
+<p>The next few sections go into detail highlighting the most common reasons there
+could be differences between lab data and field data for each of the Core Web
+Vitals metrics:</p>
+<ul>
+<li><a href="/lcp/">Largest Contentful Paint (LCP)</a></li>
+<li><a href="/fid/">First Input Delay (FID)</a></li>
+<li><a href="/cls/">Cumulative Layout Shift (CLS)</a></li>
+</ul>
+<h3 id="lcp">LCP <a class="w-headline-link" href="#lcp">#</a></h3>
+<h4 id="different-lcp-elements">Different LCP elements <a class="w-headline-link" href="#different-lcp-elements">#</a></h4>
+<p>The LCP element identified in a lab test may not be the same LCP
+element users see when visiting your page.</p>
+<p>If you run a Lighthouse report for a given page, it's going to return the same
+LCP element every single time. But if you look at field data for the same page,
+you'll usually find a variety of different LCP elements, which depend on a
+number of circumstances specific to each page visit.</p>
+<p>For example, the following factors could all contribute to a different LCP
+element being determined for the same page:</p>
+<ul>
+<li>Different device screen sizes result in different elements being visible
+within the  viewport.</li>
+<li>If the user is logged in, or if personalized content is being shown in some
+way, the LCP element could be very different from user to user.</li>
+<li>Similar to the previous point, if an A/B test is running on the page it could
+result in very different elements being displayed.</li>
+<li>The set of fonts installed on the user's system can affect the size of text on
+the page (and thus which element is the LCP element).</li>
+<li>Lab tests are usually run on a page's &quot;base&quot; URL—without any query parameters
+or hash fragments added. But in the real world, users often share URLs
+containing a <a href="/text-fragments/#fragment-identifiers">fragment identifier</a> or
+<a href="/text-fragments/#text-fragments">text fragment</a>, so the LCP element may
+actually be from the middle or bottom of the page (rather than &quot;above the
+fold&quot;).</li>
+</ul>
+<p>Since LCP in the field is calculated as the 75th percentile of all user visits
+to a page, if a large percentage of those users had an LCP element that loaded
+very quickly—for example a paragraph of text rendered with a system font—then
+even if some of those users had a large, slow-loading image as their LCP
+element, it might not affect that page's score if that happens to less than 25%
+of visitors.</p>
+<p>Alternatively, the opposite could be true. A lab test might identify a block of
+text as the LCP element because it's emulating a Moto G4 phone which has a
+relatively small viewport and your page's hero image is initially rendered
+off-screen. Your field data, though, may include mostly Pixel XL users with
+larger screens, so for them the slow-loading hero image <em>is</em> their LCP element.</p>
+<h4 id="effects-of-cache-state-on-lcp">Effects of cache state on LCP <a class="w-headline-link" href="#effects-of-cache-state-on-lcp">#</a></h4>
+<p>Lab tests typically load a page with a cold cache, but when real users visit
+that page they may already have some of its resources cached.</p>
+<p>The first time a user loads a page it may load slowly, but if the page has
+<a href="/http-cache/">proper caching configured</a>, the next time that user returns the
+page might load right away.</p>
+<p>While some lab tools do support multiple runs of the same page (to simulate the
+experience for returning visitors), it's not possible for a lab tool to know
+what percentage of real-world visits occur from new versus returning users.</p>
+<p>Sites with well-optimized cache configurations and lots of repeat visitors may
+discover that their real-world LCP is much faster than their lab data indicates.</p>
+<h4 id="amp-or-signed-exchange-optimizations">AMP or Signed Exchange optimizations <a class="w-headline-link" href="#amp-or-signed-exchange-optimizations">#</a></h4>
+<p>Sites built with <a href="https://amp.dev/" rel="noopener">AMP</a> or that use <a href="/signed-exchanges/">Signed Exchanges
+(SXG)</a> can be preloaded by content aggregators like Google
+Search. This can result in significantly better load performance for users
+visiting your pages from those platforms.</p>
+<p>In addition to cross-origin preloading, sites themselves can
+<a href="/preload-critical-assets/">preload</a> content for subsequent pages on their site,
+which could improve LCP for those pages as well.</p>
+<p>Lab tools do not simulate the gains seen from these optimizations, and even if
+they did, they could not know what percentage of your traffic comes from
+platforms like Google Search compared to other sources.</p>
+<h4 id="effects-of-bfcache-on-lcp">Effects of bfcache on LCP <a class="w-headline-link" href="#effects-of-bfcache-on-lcp">#</a></h4>
+<p>When pages are restored from the bfcache, the load experience is near
+instantaneous, and <a href="/bfcache/#impact-on-core-web-vitals">these experiences are included in your field
+data</a>.</p>
+<p>Lab tests do not consider bfcache, so if your pages are
+<a href="/bfcache/#optimize-your-pages-for-bfcache">bfcache-friendly</a>, it will likely
+result in faster LCP scores reported in the field.</p>
+<h4 id="effects-of-user-interaction-on-lcp">Effects of user interaction on LCP <a class="w-headline-link" href="#effects-of-user-interaction-on-lcp">#</a></h4>
+<p>LCP identifies the render time of the largest image or text block in the
+viewport, but that largest element can change as the page is loaded or if new
+content gets dynamically added to the viewport.</p>
+<p>In the lab, the browser will wait until the page is fully loaded before
+determining what the LCP element was. But in the field, the browser will <a href="/lcp/#when-is-largest-contentful-paint-reported">stop
+monitoring</a> for larger elements
+after the user scrolls or interacts with the page.</p>
+<p>This makes sense (and is necessary) because users typically will wait to
+interact with a page until it &quot;appears&quot; loaded, which is exactly what the LCP
+metric aims to detect. It also wouldn't make sense to consider elements added to
+the viewport after a user interacts because those elements might have only been
+loaded <em>because</em> of something the user did.</p>
+<p>The implication of this, though, is that field data for a page may report faster
+LCP times, depending on how users behave on that page.</p>
+<h3 id="fid">FID <a class="w-headline-link" href="#fid">#</a></h3>
+<h4 id="fid-requires-real-user-interaction">FID requires real-user interaction <a class="w-headline-link" href="#fid-requires-real-user-interaction">#</a></h4>
+<p>The FID metric measures how responsive a page is to user interactions,
+<em>at the time when users actually chose to interact with it.</em></p>
+<p>The second part of that sentence is critical because lab tests, even those that
+support script user behavior, cannot accurately predict when users will choose
+to interact with a page, and thus cannot accurately measure FID.</p>
+<h4 id="tbt-and-tti-do-not-consider-user-behavior">TBT and TTI do not consider user behavior <a class="w-headline-link" href="#tbt-and-tti-do-not-consider-user-behavior">#</a></h4>
+<p>Lab metrics such as <a href="/tbt/">Total Blocking Time (TBT)</a> and <a href="/tti/">Time to Interactive
+(TTI)</a> are intended to help diagnose issues with FID because they
+quantify how much the main thread is blocked during page load.</p>
+<p>The idea is that pages with lots of synchronous JavaScript or other intensive
+rendering tasks are more likely to have a blocked main thread when the user
+first interacts. However, if users wait to interact with the page until after
+the JavaScript finishes executing, FID may be very low.</p>
+<p>When users will choose to interact with a page depends largely on whether or not
+it <em>looks</em> interactive, and this cannot be measured with TBT or TTI.</p>
+<h4 id="tbt-and-tti-do-not-consider-tap-delay">TBT and TTI do not consider tap delay <a class="w-headline-link" href="#tbt-and-tti-do-not-consider-tap-delay">#</a></h4>
+<p>If a site is not optimized for mobile viewing, browsers will <a href="https://developers.google.com/web/updates/2013/12/300ms-tap-delay-gone-away" rel="noopener">add a 300 ms
+delay</a>
+after any tap before running event handlers. They do this because they need to
+determine whether the user is trying to double-tap to zoom before they can fire
+mouse or click events.</p>
+<p>This delay counts toward a page's FID because it contributes to the real input
+latency that users experience. But since this delay is not technically a <a href="https://w3c.github.io/longtasks/" rel="noopener">Long
+Task</a>, it doesn't affect a page's TBT or TTI.
+This means a page may have poor FID despite having very good TBT and TTI scores.</p>
+<div class="w-aside w-aside--note">
+<p>To avoid the tab delay issue on a page, always specify a <a href="https://developers.google.com/web/updates/2013/12/300ms-tap-delay-gone-away" rel="noopener">mobile viewport</a>.</p>
+</div>
+<h4 id="effects-of-cache-state-and-bfcache-on-fid">Effects of cache state and bfcache on FID <a class="w-headline-link" href="#effects-of-cache-state-and-bfcache-on-fid">#</a></h4>
+<p>In the same way that proper caching can improve LCP in the field, it can also
+improve FID.</p>
+<p>In the real world, a user might have the JavaScript for a site already in their
+cache, so processing it could <a href="https://v8.dev/blog/code-caching-for-devs" rel="noopener">take less
+time</a> and result in smaller delays.</p>
+<p>The same is also true for pages restored from bfcache. In those cases the
+JavaScript is restored from memory, so there could be little or no processing
+time at all.</p>
+<h3 id="cls">CLS <a class="w-headline-link" href="#cls">#</a></h3>
+<h4 id="effects-of-user-interaction-on-cls">Effects of user interaction on CLS <a class="w-headline-link" href="#effects-of-user-interaction-on-cls">#</a></h4>
+<p>CLS measured in the lab only considers layout shifts that occur above
+the fold and during load, but this is only a subset of what CLS actually
+measures.</p>
+<p>In the field, CLS considers all <a href="/cls/#expected-vs.-unexpected-layout-shifts">unexpected layout
+shifts</a> that occur throughout the
+lifespan of the page, including content that shifts as the user scrolls or in
+response to slow network requests after user interaction.</p>
+<p>For example, it's quite common for pages to lazy-load images or iframes <a href="/optimize-cls/#images-without-dimensions">without
+dimensions</a>, and that can cause layout
+shifts when a user scrolls to those sections of the page. But those shifts may
+only happen if the user scrolls down, which often won't be caught in a lab test.</p>
+<h4 id="personalized-content">Personalized content <a class="w-headline-link" href="#personalized-content">#</a></h4>
+<p>Personalized content—including targeted ads and A/B tests—affects what elements
+are loaded on a page. It also affects how they are loaded since personalized
+content is often loaded later and inserted into a page's main content, causing
+layout shifts.</p>
+<p>In the lab, a page is usually loaded either without personalized content, or
+with content for a generic &quot;test user&quot;, which may or may not trigger the shifts
+real users are seeing.</p>
+<p>Since field data includes the experiences of all users, the amount (and degree)
+of layout shifts experienced on any given page is very dependent on what content
+is loaded.</p>
+<h4 id="effects-of-cache-state-and-bfcache-on-cls">Effects of cache state and bfcache on CLS <a class="w-headline-link" href="#effects-of-cache-state-and-bfcache-on-cls">#</a></h4>
+<p>Two of the most common causes of layout shifts during load are images and
+iframes without dimensions (as mentioned above) and <a href="/font-best-practices/">slow loading web
+fonts</a>, and both of these issues are more likely to
+affect the experience the first time a user visits a site, when their cache is
+empty.</p>
+<p>If a page's resources are cached, or if the page itself is restored from
+bfcache, the browser can usually render images and fonts right away, without
+waiting for them to download. This can result in lower CLS values in the field
+than what a lab tool may report.</p>
+<h2 id="what-to-do-when-the-results-are-different">What to do when the results are different <a class="w-headline-link" href="#what-to-do-when-the-results-are-different">#</a></h2>
+<p>As a general rule, if you have both field data and lab data for a given page,
+field data is what you should use to prioritize your efforts. Since field data
+represents what real users are experiencing, it's the most accurate way to
+really understand what your users are struggling with and what needs to be
+improved.</p>
+<p>On the flip side, if your field data shows good scores across the board, but
+your lab data suggests there's still room for improvement, it's worth
+understanding what further optimizations can be made.</p>
+<p>In addition, while field data does capture real-user experiences, <em>it only does
+so for users who are successfully able to load your site</em>. Lab data can
+sometimes help identify opportunities to expand your site's reach and make it
+more accessible to users with slower networks or lower-end devices.</p>
+<p>Overall, both lab data and field data are important parts of effective
+performance measurement. They both have their strengths and limitations, and if
+you're only using one you may be missing an opportunity to improve the
+experience for your users.</p>
+<h2 id="further-reading">Further reading <a class="w-headline-link" href="#further-reading">#</a></h2>
+<ul>
+<li><a href="/debug-web-vitals-in-the-field/">Debug Web Vitals in the Field</a></li>
+<li><a href="/vitals-tools-workflow/">A performance-focused workflow based on Google
+tools</a></li>
+</ul>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">Performance</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/web-vitals/">Web Vitals</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Aug 17, 2021</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/learn-web-vitals/lab-and-field-data-differences/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/blog"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              File a bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              View source
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Related content</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome updates
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Case studies
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Connect</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            All products
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="en"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Terms &amp; Privacy
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Community Guidelines
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

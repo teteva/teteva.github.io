@@ -1,0 +1,860 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+<script>
+  // A global function that the theme toggle can use to apply the current theme.
+  window.applyThemeSetting = function(override) {
+    const currentSetting = override || localStorage.getItem('user-color-scheme');
+    const currentAttribute = document.documentElement.getAttribute('data-user-theme');
+
+    if (currentSetting && currentSetting !== currentAttribute) {
+      document.documentElement.setAttribute('data-user-theme', currentSetting);
+    }
+  };
+window.applyThemeSetting();
+</script>
+
+  
+  <link rel="stylesheet" href="/css/next.css?v=98510007505ea">
+  <link rel="stylesheet" href="/css/legacy-rollout.css?v=7ab237db72a7d">
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>JavaScript eventing deep dive</title>
+<meta name="description" content="" />
+
+<link rel="canonical" href="https://web.dev/eventing-deepdive/" />
+
+<meta itemprop="name" content="JavaScript eventing deep dive" />
+<meta itemprop="description" content="" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/eventing-deepdive/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="JavaScript eventing deep dive" />
+<meta property="og:description" content="" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="Binders in many colors." />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="JavaScript eventing deep dive" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=fd9f503ef82d1', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=9f411830d878f', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+<a href="#main" class="skip-link button" data-type="primary">Skip to content</a>
+
+
+<web-header role="banner" class="site-header">
+  <div class="cluster gutter-base">
+    <button class="icon-button tooltip color-core-text md:hidden-yes" data-open-drawer-button data-alignment="right">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="tooltip__content">Open menu</span>
+    </button>
+    <a href="/" class="site-header__brand brand">
+      
+
+
+  <svg role="img" aria-label="web.dev" xmlns="http://www.w3.org/2000/svg" width="119.79" height="22.32" viewBox="0 0 119.79 22.32"><path class="brand__text" d="M114.99 19.32h-2.2l-4.8-11.9h2.4l3.5 9.2 3.5-9.2h2.4Zm-16.8-7.3h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.56 3.56 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-14 0c-3.1 0-5.7-2.8-5.7-6.3s2.6-6.3 5.7-6.3a5 5 0 0 1 4.1 2h.1l-.1-1.6v-5.5h2.2v17.3h-2.1v-1.6h-.1a5.12 5.12 0 0 1-4.1 2Zm.3-2c2.2 0 3.8-1.7 3.8-4.3s-1.6-4.3-3.8-4.3a4 4 0 0 0-3.8 4.3 4 4 0 0 0 3.8 4.3Zm-6.8.1a1.61 1.61 0 0 1-1.7 1.6 1.74 1.74 0 0 1-1.7-1.6 1.67 1.67 0 0 1 1.7-1.6 1.61 1.61 0 0 1 1.7 1.6Zm-10.5-.1a4 4 0 0 0 3.8-4.3 4 4 0 0 0-3.8-4.3c-2.2 0-3.8 1.8-3.8 4.3s1.6 4.3 3.8 4.3Zm.4 2a5 5 0 0 1-4.1-2h-.1v1.6h-2.1V2.02h2.2v5.5l-.1 1.6h.1a4.84 4.84 0 0 1 4.1-2c3.1 0 5.7 2.8 5.7 6.3s-2.6 6.3-5.7 6.3Zm-17.4-7.7h6.8a3.17 3.17 0 0 0-3.4-2.9 3.42 3.42 0 0 0-3.4 2.9Zm3.6 7.7a6 6 0 0 1-6-6.3c0-3.6 2.5-6.3 5.9-6.3s5.8 2.4 5.8 6.5v.2h-9.3a3.88 3.88 0 0 0 3.8 3.9 3.67 3.67 0 0 0 3.3-2.1l2 1a6.22 6.22 0 0 1-5.5 3.1Zm-6.3-12.2-3.8 11.9h-2.3l-3-9.1-2.9 9.1h-2.3l-3.9-11.9h2.3l2.6 9 2.9-9h2.3l2.9 9 2.6-9Z" fill="#5f6368" fill-rule="evenodd"/><path d="M0 19.28a3 3 0 0 1 3-3h16.27a3.045 3.045 0 0 1 0 6.09H3.04A3 3 0 0 1 0 19.28Z" fill="#6cf"/><path d="M.89.9a3 3 0 0 1 4.3 0l8.12 8.11a3.05 3.05 0 0 1 0 4.3l-8.12 8.12a3.04 3.04 0 1 1-4.3-4.3l5.6-5.61a.51.51 0 0 0 0-.72L.89 5.22A3 3 0 0 1 .89.9Z" fill="#06f" fill-rule="evenodd"/><path d="m10.39 16.22-5.2 5.2a3.04 3.04 0 1 1-4.3-4.3l.89-.9Z" fill="#c6f"/><circle cx="19.27" cy="19.27" r="3.04" fill="#06f"/></svg>
+
+
+    </a>
+  </div>
+  <web-navigation-drawer type="standard">
+    <nav class="site-header__nav" aria-label="main navigation" data-drawer-container>
+      <a
+        class="site-header__link"
+        href="/learn/" data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+        >
+          Learn
+      </a>
+      <a
+        class="site-header__link"
+        href="/measure/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+        >
+        Measure
+      </a>
+      <a
+        class="site-header__link"
+        href="/blog/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+        >
+        Blog
+      </a>
+      <a
+        class="site-header__link"
+        href="/tags/case-study/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Case Studies"
+        >
+        Case studies
+      </a>
+      <a
+        class="site-header__link"
+        href="/about/"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About" >
+        About
+      </a>
+      <button class="icon-button tooltip color-core-text md:hidden-yes" data-drawer-close-button>
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+        <span class="tooltip__content">Close</span>
+      </button>
+    </nav>
+  </web-navigation-drawer>
+  <div class="site-header__actions cluster">
+    <div class="site-header__search">
+      <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+      <web-search-results id="search-main-results"></web-search-results>
+    </div>
+  </div>
+</web-header>
+
+<main id="main">
+  
+    
+  
+  
+
+
+
+
+
+  <img     alt="Binders in many colors."     class="hero-image"     decoding="async"     height="480"               sizes="100vw"     src="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format"     srcset="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=200 200w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=228 228w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=260 260w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=296 296w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=338 338w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=385 385w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=439 439w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=500 500w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=571 571w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=650 650w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=741 741w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=845 845w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=964 964w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/tPQ30G1QPF3ETAVf1Q40.jpg?auto=format&w=1600 1600w"          width="1600"   />
+
+
+<div class="post wrapper" data-flush>
+  
+    
+    
+    
+  
+  
+
+  <div class="sidebar region flex-align-start flex-dir-rev flex-wrap-no">
+    
+
+  <nav class="course__toc toc over-scroll hidden-yes xl:hidden-no" data-type="side" aria-label="On this page">
+    <div class="course-toc__heading font-google-sans weight-medium">On this page</div>
+    <web-scroll-spy>
+      <div class="toc__wrapper flow-recursive">
+        <ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#event.stoppropagation()-and-event.preventdefault()">Event.stopPropagation() and Event.preventDefault()</a></li><li class="toc__listitem"><a class="toc__anchor" href="#eventing-styles-(capturing-and-bubbling)">Eventing styles (capturing and bubbling)</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#event-capturing">Event capturing</a></li><li class="toc__listitem"><a class="toc__anchor" href="#event-bubbling">Event bubbling</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#event.stoppropagation()">event.stopPropagation()</a></li><li class="toc__listitem"><a class="toc__anchor" href="#but-what-does-stoppropagation-do">But what does stopPropagation do?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#event.stopimmediatepropagation()">event.stopImmediatePropagation()</a></li><li class="toc__listitem"><a class="toc__anchor" href="#event.preventdefault()">event.preventDefault()</a></li><li class="toc__listitem"><a class="toc__anchor" href="#a-fun-practical-joke">A fun practical joke?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#live-demos">Live demos</a></li><li class="toc__listitem"><a class="toc__anchor" href="#acknowledgements">Acknowledgements</a></li></ul>
+      </div>
+    </web-scroll-spy>
+  </nav>
+
+
+    
+    <article class="prose legacy-rollout">
+      <header class="flow gap-bottom-size-3">
+        
+          <nav class="breadcrumbs" aria-label="breadcrumbs">
+            <ul class="breadcrumbs__list" role="list">
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, home breadcrumb"
+                  data-action="click"
+                  href="/"
+                >
+                  Home
+                </a>
+              </li>
+              
+              <li>
+                <a
+                  class="gc-analytics-event"
+                  data-category="web.dev"
+                  data-label="post, path breadcrumb"
+                  data-action="click"
+                  href="/blog"
+                >
+                  All articles
+                </a>
+              </li>
+              
+            </ul>
+          </nav>
+        
+
+        <h1 id="javascript-eventing-deep-dive">JavaScript eventing deep dive</h1>
+        
+          <p class="color-mid-text flow-space-base">
+            <code>preventDefault</code> and <code>stopPropagation</code>: when to use which and what exactly each method does.
+          </p>
+        
+
+        
+          <div class="flow-space-size-1 color-mid-text text-size-0">
+            <time>Sep 10, 2021</time>
+            
+          </div>
+        
+
+        
+        
+
+        
+
+        
+          <div class="cluster flow-space-size-2">
+            
+              <div class="author">
+  <a class="avatar" href="/authors/stephenstchur/"> <img     alt="Stephen Stchur"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/117HjdRQMScu0EouANUl.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/117HjdRQMScu0EouANUl.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/117HjdRQMScu0EouANUl.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/117HjdRQMScu0EouANUl.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/117HjdRQMScu0EouANUl.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/8WbTDNrhLsU0El80frMBGE4eMCD3/117HjdRQMScu0EouANUl.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/stephenstchur/">Stephen Stchur</a>
+    </cite>
+    <div class="author__links cluster">
+               
+               
+               
+               
+             </div>
+  </div>
+</div>
+            
+              <div class="author">
+  <a class="avatar" href="/authors/thomassteiner/"> <img     alt="Thomas Steiner"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/8PLpVmFef6mj72MVWeiN.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /> </a>
+  <div class="flow">
+    <cite class="author__name">
+      <a href="/authors/thomassteiner/">Thomas Steiner</a>
+    </cite>
+    <div class="author__links cluster">
+               <a href="https://twitter.com/tomayac">Twitter</a>
+               <a href="https://github.com/tomayac">GitHub</a>
+               <a href="https://glitch.com/@tomayac">Glitch</a>
+               <a href="https://blog.tomayac.com/">Homepage</a>
+             </div>
+  </div>
+</div>
+            
+          </div>
+        
+      </header>
+
+      
+
+      
+
+  
+
+  <div class="xl:hidden-yes flow-space-size-1">
+    <details data-type="inner" role="navigation" aria-label="On this page">
+      <summary>
+        On this page
+      </summary>
+      <div class="toc"><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#event.stoppropagation()-and-event.preventdefault()">Event.stopPropagation() and Event.preventDefault()</a></li><li class="toc__listitem"><a class="toc__anchor" href="#eventing-styles-(capturing-and-bubbling)">Eventing styles (capturing and bubbling)</a><ul class="toc__list"><li class="toc__listitem"><a class="toc__anchor" href="#event-capturing">Event capturing</a></li><li class="toc__listitem"><a class="toc__anchor" href="#event-bubbling">Event bubbling</a></li></ul></li><li class="toc__listitem"><a class="toc__anchor" href="#event.stoppropagation()">event.stopPropagation()</a></li><li class="toc__listitem"><a class="toc__anchor" href="#but-what-does-stoppropagation-do">But what does stopPropagation do?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#event.stopimmediatepropagation()">event.stopImmediatePropagation()</a></li><li class="toc__listitem"><a class="toc__anchor" href="#event.preventdefault()">event.preventDefault()</a></li><li class="toc__listitem"><a class="toc__anchor" href="#a-fun-practical-joke">A fun practical joke?</a></li><li class="toc__listitem"><a class="toc__anchor" href="#live-demos">Live demos</a></li><li class="toc__listitem"><a class="toc__anchor" href="#acknowledgements">Acknowledgements</a></li></ul></div>
+    </details>
+  </div>
+
+
+
+      <h2 id="event.stoppropagation()-and-event.preventdefault()">Event.stopPropagation() and Event.preventDefault() <a class="w-headline-link" href="#event.stoppropagation()-and-event.preventdefault()">#</a></h2>
+<p>JavaScript event handling is often straightforward. This is especially true when dealing with a
+simple (relatively flat) HTML structure. Things get a bit more involved though when events are
+traveling (or propagating) through a hierarchy of elements. This is typically when developers reach
+for <code>stopPropagation()</code> and/or <code>preventDefault()</code> to solve the problems they're experiencing. If
+you've ever thought to yourself &quot;I'll just try <code>preventDefault()</code> and if that doesn't work I'll try
+<code>stopPropagation()</code> and if that doesn't work, I'll try both,&quot; then this article is for you! I will
+explain exactly what each method does, when to use which one, and provide you with a variety of
+working examples for you to explore. My goal is to end your confusion once and for all.</p>
+<p>Before we dive too deeply though, it's important to briefly touch on the two kinds of event handling
+possible in JavaScript (in all modern browsers that is—Internet Explorer prior to version 9 did not
+support event capturing at all).</p>
+<h2 id="eventing-styles-(capturing-and-bubbling)">Eventing styles (capturing and bubbling) <a class="w-headline-link" href="#eventing-styles-(capturing-and-bubbling)">#</a></h2>
+<p>All modern browsers support event capturing, but it is very rarely used by developers.
+Interestingly, it was the only form of eventing that Netscape originally supported. Netscape's
+biggest rival, Microsoft Internet Explorer, did not support event capturing at all, but rather, only
+supported another style of eventing called event bubbling. When the W3C was formed, they found merit
+in both styles of eventing and declared that browsers should support both, via a third parameter to
+the <code>addEventListener</code> method. Originally, that parameter was just a boolean, but all modern
+browsers support an <code>options</code> object as the third parameter, which you can use to specify (among
+other things) if you want to use event capturing or not:</p>
+<web-copy-code><pre class="language-js"><code class="language-js">someElement<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> myClickHandler<span class="token punctuation">,</span> <span class="token punctuation">{</span> capture<span class="token operator">:</span> <span class="token boolean">true</span> <span class="token operator">|</span> <span class="token boolean">false</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>Note that the <code>options</code> object is optional, as is its <code>capture</code> property. If either is omitted, the
+default value for <code>capture</code> is <code>false</code>, meaning event bubbling will be used.</p>
+<aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>For more details about <code>addEventListener</code>, including its legacy syntax, see
+<a href="https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener" rel="noopener"><code>EventTarget.addEventListener</code></a>.</p>
+</div></aside>
+<h3 id="event-capturing">Event capturing <a class="w-headline-link" href="#event-capturing">#</a></h3>
+<p>What does it mean if your event handler is &quot;listening in the capturing phase?&quot; To understand this,
+we need to know how events originate and how they travel. The following is true of <em>all</em> events,
+even if you, as the developer, don't leverage it, care about it, or think about it.</p>
+<p>All events begin at the window and first go through the capturing phase. This means that when an
+event is dispatched, it starts the window and travels &quot;downwards&quot; towards its target element
+<em>first</em>. This happens even if you are only listening in the bubbling phase. Consider the following
+example markup and JavaScript:</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>A<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>B<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>C<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><br>      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><web-copy-code><pre class="language-js"><code class="language-js">document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'C'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'#C was clicked'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">true</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>When a user clicks on element <code>#C</code>, an event, originating at the <code>window</code>, is dispatched. This event
+will then propagate through its descendants as follows:</p>
+<p><code>window</code> =&gt; <code>document</code> =&gt; <code>&lt;html&gt;</code> =&gt; <code>&lt;body&gt;</code> =&gt; and so on, until it reaches the target.</p>
+<p>It does not matter if nothing is listening for a click event at the <code>window</code> or <code>document</code> or
+<code>&lt;html&gt;</code> element or <code>&lt;body&gt;</code> element (or any other element on the way to its target). An event still
+originates at the <code>window</code> and begins its journey as just described.</p>
+<p>In our example, the click event will then <em>propagate</em> (this is an important word as it will tie
+directly into how the <code>stopPropagation()</code> method works and will be explained later in this document)
+<em>from the <code>window</code></em> to its target element (in this case, <code>#C</code>) by way of every element between the
+<code>window</code> and <code>#C</code>.</p>
+<p>This means that the click event will begin at <code>window</code> and the browser will ask the following
+questions:</p>
+<p>&quot;Is anything listening for a click event on the <code>window</code> in the capturing phase?&quot; If so, the
+appropriate event handlers will fire. In our example, nothing is, so no handlers will fire.</p>
+<p>Next, the event will <em>propagate</em> to the <code>document</code> and the browser will ask: &quot;Is anything listening
+for a click event on the <code>document</code> in the capturing phase?&quot; If so, the appropriate event handlers
+will fire.</p>
+<p>Next, the event will <em>propagate</em> to the <code>&lt;html&gt;</code> element and the browser will ask: &quot;Is anything
+listening for a click on the <code>&lt;html&gt;</code> element in the capturing phase?&quot; If so, the appropriate event
+handlers will fire.</p>
+<p>Next, the event will <em>propagate</em> to the <code>&lt;body&gt;</code> element and the browser will ask: &quot;Is anything
+listening for a click event on the <code>&lt;body&gt;</code> element in the capturing phase?&quot; If so, the appropriate
+event handlers will fire.</p>
+<p>Next, the event will <em>propagate</em> to the <code>#A</code> element. Again, the browser will ask: &quot;Is anything
+listening for a click event on <code>#A</code> in the capturing phase and if so, the appropriate event handlers
+will fire.</p>
+<p>Next, the event will <em>propagate</em> to the <code>#B</code> element (and the same question will be asked).</p>
+<p>Finally, the event will reach its target and the browser will ask: &quot;Is anything listening for a
+click event on the <code>#C</code> element in the capturing phase?&quot; The answer this time is &quot;yes!&quot; This brief
+period of time when the event is <em>at</em> the target, is known as the &quot;target phase.&quot; At this point, the
+event handler will fire, the browser will console.log &quot;#C was clicked&quot; and then we're done, right?
+<em>Wrong!</em> We're not done at all. The process continues, but now it changes to the bubbling phase.</p>
+<h3 id="event-bubbling">Event bubbling <a class="w-headline-link" href="#event-bubbling">#</a></h3>
+<p>The browser will ask:</p>
+<p>&quot;Is anything listening for a click event on <code>#C</code> in the bubbling phase?&quot; Pay close attention here.
+It is completely possible to listen for clicks (or any event type) in <em>both</em> the capturing <em>and</em>
+bubbling phases. And if you had wired up event handlers in both phases (e.g. by calling
+<code>.addEventListener()</code> twice, once with <code>capture = true</code> and once with <code>capture = false</code>), then yes,
+both event handlers would absolutely fire for the same element. But it's also important to note that
+they fire in different phases (one in the capturing phase and one in the bubbling phase).</p>
+<p>Next, the event will <em>propagate</em> (more commonly stated as &quot;bubble&quot; because it seems as though the
+event is traveling &quot;up&quot; the DOM tree) to its parent element, <code>#B</code>, and the browser will ask: &quot;Is
+anything listening for click events on <code>#B</code> in the bubbling phase?&quot; In our example, nothing is, so
+no handlers will fire.</p>
+<p>Next, the event will bubble to <code>#A</code> and the browser will ask: &quot;Is anything listening for click
+events on <code>#A</code> in the bubbling phase?&quot;</p>
+<p>Next, the event will bubble to <code>&lt;body&gt;</code>: &quot;Is anything listening for click events on the <code>&lt;body&gt;</code>
+element in the bubbling phase?&quot;</p>
+<p>Next, the <code>&lt;html&gt;</code> element: &quot;Is anything listening for click events on the <code>&lt;html&gt;</code> element in the
+bubbling phase?</p>
+<p>Next, the <code>document</code>: &quot;Is anything listening for click events on the <code>document</code> in the bubbling
+phase?&quot;</p>
+<p>Finally, the <code>window</code>: &quot;Is anything listening for click events on the window in the bubbling phase?&quot;</p>
+<p>Phew! That was a long journey, and our event is probably very tired by now, but believe it or not,
+that is the journey every event goes through! Most of the time, this is never noticed because
+developers are typically only interested in one event phase or the other (and it is usually the
+bubbling phase).</p>
+<p>It's worth spending some time playing around with event capturing and event bubbling and logging
+some notes to the console as handlers fire. It's very insightful to see the path that an event
+takes. Here is an example that listens to every element in both phases.</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>A<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>B<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>C<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><br>      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><web-copy-code><pre class="language-js"><code class="language-js">document<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'click on document in capturing phase'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">true</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token comment">// document.documentElement == &lt;html></span><br>document<span class="token punctuation">.</span>documentElement<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'click on &lt;html> in capturing phase'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">true</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span><br>document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'click on &lt;body> in capturing phase'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">true</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span><br>document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'A'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'click on #A in capturing phase'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">true</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span><br>document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'B'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'click on #B in capturing phase'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">true</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span><br>document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'C'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'click on #C in capturing phase'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">true</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>document<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'click on document in bubbling phase'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">false</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token comment">// document.documentElement == &lt;html></span><br>document<span class="token punctuation">.</span>documentElement<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'click on &lt;html> in bubbling phase'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">false</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span><br>document<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'click on &lt;body> in bubbling phase'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">false</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span><br>document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'A'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'click on #A in bubbling phase'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">false</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span><br>document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'B'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'click on #B in bubbling phase'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">false</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span><br>document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'C'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'click on #C in bubbling phase'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">false</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>The console output will depend on which element you click. If you were to click on the &quot;deepest&quot;
+element in the DOM tree (the <code>#C</code> element), you will see every single one of these event handlers
+fire. With a bit of CSS styling to make it more obvious which element is which, here is the console
+output <code>#C</code> element (with a screenshot as well):</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash"><span class="token string">"click on document in capturing phase"</span><br><span class="token string">"click on &lt;html> in capturing phase"</span><br><span class="token string">"click on &lt;body> in capturing phase"</span><br><span class="token string">"click on #A in capturing phase"</span><br><span class="token string">"click on #B in capturing phase"</span><br><span class="token string">"click on #C in capturing phase"</span><br><span class="token string">"click on #C in bubbling phase"</span><br><span class="token string">"click on #B in bubbling phase"</span><br><span class="token string">"click on #A in bubbling phase"</span><br><span class="token string">"click on &lt;body> in bubbling phase"</span><br><span class="token string">"click on &lt;html> in bubbling phase"</span><br><span class="token string">"click on document in bubbling phase"</span></code></pre>
+</web-copy-code><p>You can interactively play with this in the live demo below. Click on the <code>#C</code> element and observe the console output.</p>
+<div style="height: 680px; width: 100%;">
+  <iframe src="https://silicon-brawny-cardinal.glitch.me/event-capturing-and-bubbling.html" loading="lazy" style="height: 100%; width: 100%; border: 0;"></iframe>
+</div>
+<h2 id="event.stoppropagation()"><code>event.stopPropagation()</code> <a class="w-headline-link" href="#event.stoppropagation()">#</a></h2>
+<p>With an understanding of where events originate and how they travel (i.e. propagate) through the DOM
+in both the capturing phase and the bubbling phase, we can now turn our attention to
+<code>event.stopPropagation()</code>.</p>
+<p>The <code>stopPropagation()</code> method can be called on (most) native DOM events. I say &quot;most&quot; because there
+are a few on which calling this method won't do anything (because the event doesn't propagate to
+begin with). Events like <code>focus</code>, <code>blur</code>, <code>load</code>, <code>scroll</code>, and a few others fall into this
+category. You can call <code>stopPropagation()</code> but nothing interesting will happen, since these events
+don't propagate.</p>
+<h2 id="but-what-does-stoppropagation-do">But what does <code>stopPropagation</code> do? <a class="w-headline-link" href="#but-what-does-stoppropagation-do">#</a></h2>
+<p>It does, pretty much, just what it says. When you call it, the event will, from that point, cease
+propagating to any elements it would otherwise travel to. This is true of <em>both</em> directions
+(capturing and bubbling). So if you call <code>stopPropagation()</code> anywhere in the capturing phase, the
+event will never make it to the target phase or bubbling phase. If you call it in the bubbling
+phase, it will have already gone through the capturing phase, but it will cease &quot;bubbling up&quot; from
+the point at which you called it.</p>
+<p>Returning to our same example markup, what do you think would happen, if we called
+<code>stopPropagation()</code> in the capturing phase at the <code>#B</code> element?</p>
+<p>It would result in the following output:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash"><span class="token string">"click on document in capturing phase"</span><br><span class="token string">"click on &lt;html> in capturing phase"</span><br><span class="token string">"click on &lt;body> in capturing phase"</span><br><span class="token string">"click on #A in capturing phase"</span><br><span class="token string">"click on #B in capturing phase"</span></code></pre>
+</web-copy-code><p>You can interactively play with this in the live demo below. Click on the <code>#C</code> element in the live demo and observe the console output.</p>
+<div style="height: 680px; width: 100%;">
+  <iframe src="https://silicon-brawny-cardinal.glitch.me/stop-propagation-capturing-B.html" loading="lazy" style="height: 100%; width: 100%; border: 0;"></iframe>
+</div>
+<p>How about stopping propagation at <code>#A</code> in the bubbling phase? That would result in the following
+output:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash"><span class="token string">"click on document in capturing phase"</span><br><span class="token string">"click on &lt;html> in capturing phase"</span><br><span class="token string">"click on &lt;body> in capturing phase"</span><br><span class="token string">"click on #A in capturing phase"</span><br><span class="token string">"click on #B in capturing phase"</span><br><span class="token string">"click on #C in capturing phase"</span><br><span class="token string">"click on #C in bubbling phase"</span><br><span class="token string">"click on #B in bubbling phase"</span><br><span class="token string">"click on #A in bubbling phase"</span></code></pre>
+</web-copy-code><p>You can interactively play with this in the live demo below. Click on the <code>#C</code> element in the live demo and observe the console output.</p>
+<div style="height: 680px; width: 100%;">
+  <iframe src="https://silicon-brawny-cardinal.glitch.me/stop-propagation-bubbling-A.html" loading="lazy" style="height: 100%; width: 100%; border: 0;"></iframe>
+</div>
+<p>One more, just for fun. What happens if we call <code>stopPropagation()</code> in the <em>target phase</em> for <code>#C</code>?
+Recall that the &quot;target phase&quot; is the name given to the period of time when the event is <em>at</em> its
+target. It would result in the following output:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash"><span class="token string">"click on document in capturing phase"</span><br><span class="token string">"click on &lt;html> in capturing phase"</span><br><span class="token string">"click on &lt;body> in capturing phase"</span><br><span class="token string">"click on #A in capturing phase"</span><br><span class="token string">"click on #B in capturing phase"</span><br><span class="token string">"click on #C in capturing phase"</span></code></pre>
+</web-copy-code><aside class="aside flow bg-state-info-bg color-state-info-text">
+<div class=" flow">
+<p>It would be technically more accurate if I had logged &quot;click on #C in target phase&quot;.
+However, I chose to use the term &quot;capturing&quot; and &quot;bubbling&quot; for both of <code>#C</code>'s event handlers to
+make it clear that handlers can be executed in both phases of the event's lifecycle. Just know that
+technically, the time when the event is at <code>#C</code> is officially known as the &quot;target phase&quot;.</p>
+</div></aside>
+<p>Note that the event handler for <code>#C</code> in which we log &quot;click on #C in the capturing phase&quot; <em>still</em>
+executes, but the one in which we log &quot;click on #C in the bubbling phase&quot; does not. This should make
+perfect sense. We called <code>stopPropagation()</code> <em>from</em> the former, so that is the point at which the
+event's propagation will cease.</p>
+<p>You can interactively play with this in the live demo below. Click on the <code>#C</code> element in the live demo and observe the console output.</p>
+<div style="height: 680px; width: 100%;">
+  <iframe src="https://silicon-brawny-cardinal.glitch.me/stop-propagation-capturing-C.html" loading="lazy" style="height: 100%; width: 100%; border: 0;"></iframe>
+</div>
+<p>In any of these live demos, I encourage you to play around. Try clicking on the <code>#A</code> element only or
+the <code>body</code> element only. Try to predict what will happen and then observe if you are correct. At
+this point, you should be able to predict pretty accurately.</p>
+<h2 id="event.stopimmediatepropagation()"><code>event.stopImmediatePropagation()</code> <a class="w-headline-link" href="#event.stopimmediatepropagation()">#</a></h2>
+<p>What is this strange, and not oft-used method? It's similar to <code>stopPropagation</code>, but rather than
+stopping an event from traveling to descendents (capturing) or ancestors (bubbling), this method
+only applies when you have more than one event handler wired up to a single element. Since
+<code>addEventListener()</code> supports a multicast style of eventing, it's completely possible to wire up an
+event handler to a single element more than once. When this happens, (in most browsers), event
+handlers are executed in the order they were wired up. Calling <code>stopImmediatePropagation()</code> prevents
+any subsequent handlers from firing. Consider the following example:</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>A<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>I am the #A element<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><web-copy-code><pre class="language-js"><code class="language-js">document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'A'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'When #A is clicked, I shall run first!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">false</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'A'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'When #A is clicked, I shall run second!'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>    e<span class="token punctuation">.</span><span class="token function">stopImmediatePropagation</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">false</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'A'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'When #A is clicked, I would have run third, if not for stopImmediatePropagation'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">false</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>The above example will result in the following console output:</p>
+<web-copy-code><pre class="language-bash"><code class="language-bash"><span class="token string">"When #A is clicked, I shall run first!"</span><br><span class="token string">"When #A is clicked, I shall run second!"</span></code></pre>
+</web-copy-code><p>Note that the third event handler never runs due to the fact that the second event handler calls
+<code>e.stopImmediatePropagation()</code>. If we had instead called <code>e.stopPropagation()</code>, the third handler
+would still run.</p>
+<div style="height: 680px; width: 100%;">
+  <iframe src="https://silicon-brawny-cardinal.glitch.me/stop-immediate-propagation.html" loading="lazy" style="height: 100%; width: 100%; border: 0;"></iframe>
+</div>
+<h2 id="event.preventdefault()"><code>event.preventDefault()</code> <a class="w-headline-link" href="#event.preventdefault()">#</a></h2>
+<p>If <code>stopPropagation()</code> prevents an event from traveling &quot;downwards&quot; (capturing) or &quot;upwards&quot;
+(bubbling), what then, does <code>preventDefault()</code> do? It sounds like it does something similar. Does
+it?</p>
+<p>Not really. While the two are often confused, they actually don't have much to do with each other.
+When you see <code>preventDefault()</code>, in your head, add the word &quot;action.&quot; Think &quot;prevent the default
+action.&quot;</p>
+<p>And what is the default action you may ask? Unfortunately, the answer to that isn't quite as clear
+because it's highly dependent on the element + event combination in question. And to make matters
+even more confusing, sometimes there is no default action at all!</p>
+<p>Let's begin with a very simple example to understand. What do you expect to happen when you click a
+link on a web page? Obviously, you expect the browser to navigate to the URL specified by that link.
+In this case, the element is an anchor tag and the event is a click event. That combination (<code>&lt;a&gt;</code> +
+<code>click</code>) has a &quot;default action&quot; of navigating to the link's href. What if you wanted to <em>prevent</em>
+the browser from performing that default action? That is, suppose you want to prevent the browser
+from navigating to the URL specified by the <code>&lt;a&gt;</code> element's <code>href</code> attribute? This is what
+<code>preventDefault()</code> will do for you. Consider this example:</p>
+<web-copy-code><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>avett<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://www.theavettbrothers.com/welcome<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>The Avett Brothers<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span></code></pre>
+</web-copy-code><web-copy-code><pre class="language-js"><code class="language-js">document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'avett'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><br>  <span class="token string">'click'</span><span class="token punctuation">,</span><br>  <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    e<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Maybe we should just play some of their music right here instead?'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><span class="token punctuation">,</span><br>  <span class="token boolean">false</span><span class="token punctuation">,</span><br><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>You can interactively play with this in the live demo below. Click the link <em>The Avett Brothers</em>
+and observe the console output (and the fact that you are not redirected to the Avett Brothers website).</p>
+<div style="height: 620px; width: 100%;">
+  <iframe src="https://silicon-brawny-cardinal.glitch.me/prevent-default.html" loading="lazy" style="height: 100%; width: 100%; border: 0;"></iframe>
+</div>
+<p>Normally, clicking the link labelled The Avett Brothers would result in browsing to
+<code>www.theavettbrothers.com</code>. In this case though, we've wired up a click event handler to the <code>&lt;a&gt;</code>
+element and specified that the default action should be prevented. Thus, when a user clicks this
+link, they won't be navigated anywhere, and instead the console will simply log &quot;Maybe we should
+just play some of their music right here instead?&quot;</p>
+<p>What other element/event combinations allow you to prevent the default action? I cannot possibly
+list them all, and sometimes you have to just experiment to see. But briefly, here are a few:</p>
+<ul>
+<li>
+<p><code>&lt;form&gt;</code> element + &quot;submit&quot; event: <code>preventDefault()</code> for this combination will prevent a form
+from submitting. This is useful if you want to perform validation and should something fail, you
+can conditionally call preventDefault to stop the form from submitting.</p>
+</li>
+<li>
+<p><code>&lt;a&gt;</code> element + &quot;click&quot; event: <code>preventDefault()</code> for this combination prevents the browser from
+navigating to the URL specified in the <code>&lt;a&gt;</code> element's href attribute.</p>
+</li>
+<li>
+<p><code>document</code> + &quot;mousewheel&quot; event: <code>preventDefault()</code> for this combination prevents page scrolling
+with the mousewheel (scrolling with keyboard would still work though). <br> <small>↜ This requires
+calling <code>addEventListener()</code> with <code>{ passive: false }</code></small>.</p>
+</li>
+<li>
+<p><code>document</code> + &quot;keydown&quot; event: <code>preventDefault()</code> for this combination is lethal. It renders the
+page largely useless, preventing keyboard scrolling, tabbing, and keyboard highlighting.</p>
+</li>
+<li>
+<p><code>document</code> + &quot;mousedown&quot; event: <code>preventDefault()</code> for this combination will prevent text
+highlighting with the mouse and any other &quot;default&quot; action that one would invoke with a mouse
+down.</p>
+</li>
+<li>
+<p><code>&lt;input&gt;</code> element + &quot;keypress&quot; event: <code>preventDefault()</code> for this combination will prevent
+characters typed by the user from reaching the input element (but don't do this; there is
+rarely, if ever, a valid reason for it).</p>
+</li>
+<li>
+<p><code>document</code> + &quot;contextmenu&quot; event: <code>preventDefault()</code> for this combination prevents the native
+browser context menu from appearing when a user right-clicks or long-presses (or any other way in
+which a context menu might appear).</p>
+</li>
+</ul>
+<p>This is not an exhaustive list by any means, but hopefully it gives you a good idea of how
+<code>preventDefault()</code> can be used.</p>
+<h2 id="a-fun-practical-joke">A fun practical joke? <a class="w-headline-link" href="#a-fun-practical-joke">#</a></h2>
+<p>What happens if you <code>stopPropagation()</code> <em>and</em> <code>preventDefault()</code> in the capturing phase, starting at
+the document? Hilarity ensues! The following code snippet will render any web page just about
+completely useless:</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">function</span> <span class="token function">preventEverything</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  e<span class="token punctuation">.</span><span class="token function">preventDefault</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  e<span class="token punctuation">.</span><span class="token function">stopPropagation</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  e<span class="token punctuation">.</span><span class="token function">stopImmediatePropagation</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><br><br>document<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> preventEverything<span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>document<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'keydown'</span><span class="token punctuation">,</span> preventEverything<span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>document<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'mousedown'</span><span class="token punctuation">,</span> preventEverything<span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>document<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'contextmenu'</span><span class="token punctuation">,</span> preventEverything<span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>document<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'mousewheel'</span><span class="token punctuation">,</span> preventEverything<span class="token punctuation">,</span> <span class="token punctuation">{</span> capture<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> passive<span class="token operator">:</span> <span class="token boolean">false</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>I don't really know why you'd ever want to do this (except maybe to play a joke on someone), but it
+is useful to think about what's happening here, and realize why it creates the situation it does.</p>
+<p>All events originate at <code>window</code>, so in this snippet, we're stopping, dead in their tracks, all
+<code>click</code>, <code>keydown</code>, <code>mousedown</code>, <code>contextmenu</code>, and <code>mousewheel</code> events from ever getting to any
+elements that might be listening for them. We also call <code>stopImmediatePropagation</code> so that any
+handlers wired up to the document after this one, will be thwarted as well.</p>
+<p>Note that <code>stopPropagation()</code> and <code>stopImmediatePropagation()</code> aren't (at least not mostly) what
+render the page useless. They simply prevent events from getting where they would otherwise go.</p>
+<p>But we also call <code>preventDefault()</code>, which you'll recall prevents the default <em>action</em>. So any
+default actions (like mousewheel scroll, keyboard scroll or highlight or tabbing, link clicking,
+context menu display, etc.) are all prevented, thus leaving the page in a fairly useless state.</p>
+<h2 id="live-demos">Live demos <a class="w-headline-link" href="#live-demos">#</a></h2>
+<p>To explore all the examples from this article again in one place, check out the embedded demo
+below.</p>
+<div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
+  <iframe
+    allow="camera; clipboard-read; clipboard-write; encrypted-media; geolocation; microphone; midi"
+    loading="lazy"
+    src="https://glitch.com/embed/#!/embed/silicon-brawny-cardinal?attributionHidden=true&sidebarCollapsed=true&previewSize=100"
+    style="height: 100%; width: 100%; border: 0;"
+    title="silicon-brawny-cardinal on Glitch"
+  ></iframe>
+</div>
+<h2 id="acknowledgements">Acknowledgements <a class="w-headline-link" href="#acknowledgements">#</a></h2>
+<p>Hero image by <a href="https://unsplash.com/@pastorthomasbwilson" rel="noopener">Tom Wilson</a> on
+<a href="https://unsplash.com/photos/Em2hPK55o8g" rel="noopener">Unsplash</a>.</p>
+
+
+      
+
+      <div class="cluster gutter-base flow-space-size-2" role="list" aria-label="tags">
+        
+          
+        
+          
+        
+      </div>
+
+      <div class="text-size-0 color-mid-text">
+        <span>
+          
+          Last updated: <time>Sep 10, 2021</time>
+          
+        </span>
+        —
+        <a
+          href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/en/blog/eventing-deepdive/index.md"
+        >
+          Improve article
+        </a>
+      </div>
+
+      
+
+      
+        
+        
+      
+
+      
+        <div class="flow-space-size-2">
+          <a href="/blog" class="button" data-type="secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+
+            <span>Return to all articles</span>
+          </a>
+        </div>
+      
+      <div class="docked-actions flow flow-space-base">    
+        <div>
+          <share-action class="gc-analytics-event fab"
+            authors="Stephen Stchur | @tomayac"
+            data-category="web.dev"
+            data-label="share"
+            data-action="click"
+            data-type="primary"
+            data-icon="share"
+            tabindex="0"
+            role="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z" fill="currentColor"/></svg>
+ 
+            <span class="fab__label">Share</span>
+          </share-action>
+        </div>
+        
+      </div>
+    </article>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer" role="contentinfo">
+  <nav class="site-footer__primary-nav auto-grid" aria-label="footer navigation">
+    <div>
+      <h3 class="text-size-2 color-mid-text">Contribute</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            File a bug
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/googlechrome/web.dev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            View source
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Related content</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+          <li>
+          <a href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            developer.chrome.com
+          </a>
+        </li>
+        <li>
+          <a href="https://blog.chromium.org/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Chrome updates
+          </a>
+        </li>
+        <li>
+          <a href="https://developers.google.com/web/fundamentals"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            Web Fundamentals
+          </a>
+        </li>
+        <li>
+          <a href="/tags/case-study/"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+            Case studies
+          </a>
+        </li>
+        <li>
+          <a href="/podcasts/"
+            data-category="Podcasts" data-label="Footer Link (index 5)">
+            Podcasts
+          </a>
+        </li>
+        <li>
+          <a href="/shows/"
+            data-category="Shows" data-label="Footer Link (index 6)">
+            Shows
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-size-2 color-mid-text">Connect</h3>
+      <ul class="w-footer__linkbox-list" role="list">
+        <li>
+          <a href="https://www.twitter.com/ChromiumDev"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+            Twitter
+          </a>
+        </li>
+        <li>
+          <a href="https://www.youtube.com/user/ChromeDevelopers"
+            data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+            YouTube
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <nav class="site-footer__brand-nav repel" aria-label="Google developers">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://developers.google.com/" data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+          <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+            alt="Google Developers" />
+        </a>
+      </li>
+      <li>
+        <a href="https://developer.chrome.com/"
+          data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+          Chrome
+        </a>
+      </li>
+      <li>
+        <a href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Firebase Link">
+          Firebase
+        </a>
+      </li>
+      <li>
+        <a href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Google Cloud Platform Link">
+          Google Cloud Platform
+        </a>
+      </li>
+      <li>
+        <a href="https://developers.google.com/products"
+          data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+          All products
+        </a>
+      </li>
+    </ul>
+    <web-language-select current="en"></web-language-select>
+  </nav>
+  <nav class="site-footer__misc-links" aria-label="terms and policies">
+    <ul class="cluster" role="list">
+      <li>
+        <a href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+          data-label="Footer Terms and Privacy link">
+          Terms &amp; Privacy
+        </a>
+      </li>
+      <li>
+        <a href="/community-guidelines/" data-category="Site-Wide Custom Events"
+          data-label="Footer Community Guidelines link">
+          Community Guidelines
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="gap-top-size-2 text-size-0">
+    Except as otherwise noted, the content of this page is licensed
+    under the
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+    Creative Commons Attribution 4.0 License</a>,
+    and code samples are licensed under the
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    Apache 2.0 License</a>. For details, see the
+    <a href="https://developers.google.com/terms/site-policies">
+    Google Developers Site Policies</a>.
+  </p>
+</footer>
+
+
+  </body>
+</html>

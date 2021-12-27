@@ -1,0 +1,718 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=6473db3b02d17">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>Um guia para permitir o isolamento da origem cruzada</title>
+<meta name="description" content="O isolamento da origem cruzada permite que uma página web use recursos poderosos, como SharedArrayBuffer. Este artigo explica como habilitar o isolamento da origem cruzada no seu site." />
+
+<link rel="canonical" href="https://web.dev/i18n/pt/cross-origin-isolation-guide/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/cross-origin-isolation-guide/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/cross-origin-isolation-guide/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/cross-origin-isolation-guide/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/cross-origin-isolation-guide/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/cross-origin-isolation-guide/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/cross-origin-isolation-guide/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/cross-origin-isolation-guide/" />
+<meta itemprop="name" content="Um guia para permitir o isolamento da origem cruzada" />
+<meta itemprop="description" content="O isolamento da origem cruzada permite que uma página web use recursos poderosos, como SharedArrayBuffer. Este artigo explica como habilitar o isolamento da origem cruzada no seu site." />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="pt_BR" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/pt/cross-origin-isolation-guide/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="Um guia para permitir o isolamento da origem cruzada" />
+<meta property="og:description" content="O isolamento da origem cruzada permite que uma página web use recursos poderosos, como SharedArrayBuffer. Este artigo explica como habilitar o isolamento da origem cruzada no seu site." />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="security" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Um guia para permitir o isolamento da origem cruzada" />
+<meta name="twitter:description" content="O isolamento da origem cruzada permite que uma página web use recursos poderosos, como SharedArrayBuffer. Este artigo explica como habilitar o isolamento da origem cruzada no seu site." />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=cfe868db4b2cd', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=89669245fae8b', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="Abrir menu">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">Abrir menu</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        Aprender
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        Medir
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        Blog
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        Sobre
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="Fechar"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">Fechar</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        Aprender
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        Medir
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        Blog
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        Sobre
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#um-guia-para-permitir-o-isolamento-da-origem-cruzada" class="w-toc__header--link">
+        Um guia para permitir o isolamento da origem cruzada
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#usando-chrome-devtools">Usando Chrome DevTools</a></li><li><a href="#analysis">Analise o impacto do isolamento de origem cruzada</a></li><li><a href="#(avancado)-usando-deprecation-reporting">(Avançado) Usando Deprecation Reporting</a></li><li><a href="#mitigacao-do-impacto-do-isolamento-de-origem-cruzada">Mitigação do impacto do isolamento de origem cruzada</a></li><li><a href="#ativacao-do-isolamento-de-origem-cruzada">Ativação do isolamento de origem cruzada</a></li><li><a href="#recursos">Recursos</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@agektmr"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>Compartilhar</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="um-guia-para-permitir-o-isolamento-da-origem-cruzada" class="w-article-header__headline">Um guia para permitir o isolamento da origem cruzada</h1>
+      
+        <p class="w-article-header__subhead w-mb--non">
+          O isolamento da origem cruzada permite que uma página web use recursos poderosos, como SharedArrayBuffer. Este artigo explica como habilitar o isolamento da origem cruzada no seu site.
+        </p>
+      
+
+      
+        <div class="w-author__published">
+          <time>Feb 9, 2021</time>
+           <span class="w-author__separator">•</span> Atualizado <time>Aug 5, 2021</time> 
+        </div>
+      
+
+      
+      
+      <div class="w-layout-container--narrow w-post-signpost">
+        <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/cross-origin-isolation-guide/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/cross-origin-isolation-guide/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/cross-origin-isolation-guide/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/cross-origin-isolation-guide/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="zh"
+        href="/i18n/zh/cross-origin-isolation-guide/">
+      中文</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/cross-origin-isolation-guide/">
+      English</a></span>
+      </div>
+      
+
+      
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/agektmr/"><img     alt="Eiji Kitamura"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/Mh9DRmQhjlroJM9JDqsu.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/agektmr/">Eiji Kitamura</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/agektmr"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/agektmr">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://blog.agektmr.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <p>Este guia mostra como habilitar o isolamento de origem cruzada. O isolamento de origem cruzada é necessário se você deseja usar <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer" rel="noopener"><code>SharedArrayBuffer</code></a>, <a href="/monitor-total-page-memory-usage/"><code>performance.measureUserAgentSpecificMemory()</code></a>, <a href="https://developer.chrome.com/blog/cross-origin-isolated-hr-timers/" rel="noopener">cronômetro de alta resolução com melhor precisão</a> ou a API JS Self-Profiling.</p>
+<p>Se você pretende ativar o isolamento de origem cruzada, avalie o impacto que isso terá em outros recursos de origem cruzada em seu site, como canais de anúncios.</p>
+<details class="w-details" >
+ <summary class="w-details__summary">
+  <h2 class="w-details__header">
+    Determine onde o <code>SharedArrayBuffer</code> é usado em seu site
+  </h2>
+  <p class="w-details__preview"> A partir do Chrome 92, as funcionalidades que usam <code>SharedArrayBuffer</code> não funcionarão mais sem o isolamento de origem cruzada. Se você acessou esta página devido a uma <code>SharedArrayBuffer</code>, é provável que seu site ou um dos recursos incorporados a ele esteja usando <code>SharedArrayBuffer</code>. Para garantir que nada seja interrompido em seu site devido à suspensão do uso, comece identificando onde ele é usado.</p>
+</summary>
+<div class="w-aside w-aside--objective">
+<p><strong>Objetivo</strong>:</p>
+<ul>
+<li>Ative o isolamento de origem cruzada para continuar usando <code>SharedArrayBuffer</code>.</li>
+<li>Se você depende de código de terceiros que usa <code>SharedArrayBuffer</code>, notifique o provedor de terceiros para tomar providências. </div></li>
+</ul>
+<p>Se você não tiver certeza de onde em seu site um <code>SharedArrayBuffer</code> é usado, há duas maneiras de descobrir:</p>
+<ul>
+<li>Usando Chrome DevTools</li>
+<li>(Avançado) Usando Deprecation Reporting</li>
+</ul>
+<p>Se você já sabe onde está usando <code>SharedArrayBuffer</code>, vá para <a href="#analysis">Analisar o impacto do isolamento de origem cruzada</a> .</p>
+<h3 id="usando-chrome-devtools">Usando Chrome DevTools <a class="w-headline-link" href="#usando-chrome-devtools">#</a></h3>
+<p><a href="https://developers.google.com/web/tools/chrome-devtools/open" rel="noopener">O Chrome DevTools</a> permite que os desenvolvedores inspecionem sites.</p>
+<ol>
+<li><a href="https://developers.google.com/web/tools/chrome-devtools/open" rel="noopener">Abra o Chrome DevTools</a> na página que você suspeita estar usando <code>SharedArrayBuffer</code>.</li>
+<li>Selecione o painel <strong>Console.</strong></li>
+<li>Se a página estiver usando <code>SharedArrayBuffer</code>, a seguinte mensagem será exibida:<web-copy-code><pre class="language-text"><code class="language-text">[Deprecation] SharedArrayBuffer will require cross-origin isolation as of M92, around May 2021. See https://developer.chrome.com/blog/enabling-shared-array-buffer/ for more details. common-bundle.js:535</code></pre>
+</web-copy-code></li>
+<li>O nome do arquivo e o número da linha no final da mensagem (por exemplo, <code>common-bundle.js:535</code>) indicam de onde o <code>SharedArrayBuffer</code> está vindo. Se for uma biblioteca de terceiros, entre em contato com o desenvolvedor para corrigir o problema. Se for implementado como parte do seu site, siga o guia abaixo para habilitar o isolamento de origem cruzada.</li>
+</ol>
+<figure class="w-figure"><img     alt="Aviso do console DevToools quando SharedArrayBuffer é usado sem isolamento de origem cruzada"     class="w-screenshot"     decoding="async"     height="163"          loading="lazy"     sizes="(min-width: 800px) 800px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format"     srcset="https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=200 200w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=228 228w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=260 260w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=296 296w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=338 338w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=385 385w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=439 439w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=500 500w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=571 571w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=650 650w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=741 741w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=845 845w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=964 964w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=1098 1098w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=1252 1252w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=1428 1428w,     https://web-dev.imgix.net/image/YLflGBAPWecgtKJLqCJHSzHqe2J2/GOgkyjAabePTc8AG22F7.png?auto=format&w=1600 1600w"          width="800"   /><figcaption> Aviso do console DevToools quando SharedArrayBuffer é usado sem isolamento de origem cruzada.</figcaption></figure>
+<h3 id="(avancado)-usando-deprecation-reporting">(Avançado) Usando Deprecation Reporting <a class="w-headline-link" href="#(avancado)-usando-deprecation-reporting">#</a></h3>
+<p>Alguns navegadores têm <a href="https://wicg.github.io/deprecation-reporting/" rel="noopener">uma funcionalidade que relata APIs deprecadas</a> para um determinado endpoint.</p>
+<ol>
+<li><a href="/coop-coep/#set-up-reporting-endpoint">Configure um servidor de relatório de deprecação e obtenha a URL do relatório</a>. Você pode conseguir isto usando um serviço público ou instalando um você mesmo.</li>
+<li>Usando a URL, defina o seguinte cabeçalho HTTP para páginas que estão potencialmente servindo <code>SharedArrayBuffer</code>.<web-copy-code><pre class="language-http"><code class="language-http"><span class="token header-name keyword">Report-To:</span> {"group":"default","max_age":86400,"endpoints":[{"url":"THE_DEPRECATION_ENDPOINT_URL"}]}</code></pre>
+</web-copy-code></li>
+<li>Assim que o cabeçalho começar a se propagar, o endpoint no qual você se registrou deve começar a coletar relatórios de deprecação.</li>
+</ol>
+<p>Veja um exemplo de implementação aqui: <a href="https://first-party-test.glitch.me" rel="noopener">https://first-party-test.glitch.me</a> .</p>
+</details>
+<h2 id="analysis">Analise o impacto do isolamento de origem cruzada <a class="w-headline-link" href="#analysis">#</a></h2>
+<p>Não seria ótimo se você pudesse avaliar o impacto que a ativação do isolamento de origem cruzada teria em seu site sem realmente quebrar nada? Os cabeçalhos HTTP <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy" rel="noopener"><code>Cross-Origin-Opener-Policy-Report-Only</code></a> e <a href="https://developer.mozilla.org/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy" rel="noopener"><code>Cross-Origin-Embedder-Policy-Report-Only</code></a> permitem que você faça exatamente isso.</p>
+<ol>
+<li>Defina <a href="/coop-coep/#1.-set-the-cross-origin-opener-policy:-same-origin-header-on-the-top-level-document"><code>Cross-Origin-Opener-Policy-Report-Only: same-origin</code></a> em seu documento de nível superior. Como o nome indica, este cabeçalho apenas envia relatórios sobre o impacto que <code>COOP: same-origin</code> <strong>teria</strong> em seu site - ele não desabilitará a comunicação com janelas pop-up.</li>
+<li>Configure relatórios e configure um servidor web para receber e salvar os relatórios.</li>
+<li>Defina <a href="/coop-coep/#3.-use-the-coep-report-only-http-header-to-assess-embedded-resources"><code>Cross-Origin-Embedder-Policy-Report-Only: require-corp</code></a> em seu documento de nível superior. Novamente, este cabeçalho permite que você veja o impacto de habilitar <code>COEP: require-corp</code> sem realmente afetar o funcionamento do seu site ainda. Você pode configurar este cabeçalho para enviar relatórios ao mesmo servidor de relatórios que configurou na etapa anterior.</li>
+</ol>
+<div class="w-aside w-aside--note">
+<p>Você também pode <a href="https://developers.google.com/web/tools/chrome-devtools/network#information" rel="noopener">ativar a coluna <strong>Domínio</strong></a> <strong>no painel Rede do</strong> Chrome DevTools para obter uma visão geral de quais recursos seriam afetados. </div></p>
+<div class="w-aside w-aside--caution">
+<p><strong>Cuidado</strong>:</p>
+<p>Habilitar o isolamento de origem cruzada bloqueará o carregamento de recursos de origem cruzada que você não ativou explicitamente e impedirá que seu documento de nível superior seja capaz de se comunicar com janelas pop-up.</p>
+<p>Temos explorado maneiras de implantar a <code>Cross-Origin-Resource-Policy</code> em escala, já que o isolamento de origem cruzada requer que todos os sub-recursos optem por isso explicitamente. Então tivemos a ideia de ir na direção oposta: <a href="https://github.com/mikewest/credentiallessness/" rel="noopener">um novo modo COEP &quot;credentialess&quot;</a> que permite carregar recursos sem o cabeçalho CORP removendo todas as suas credenciais. Estamos descobrindo os detalhes de como isso deve funcionar, mas esperamos que isto alivie seu fardo de garantir que os sub-recursos estejam enviando o cabeçalho <code>Cross-Origin-Resource-Policy</code></p>
+<p>Além disso, sabe-se que o cabeçalho <code>Cross-Origin-Opener-Policy: same-origin</code> quebrará integrações que requerem interações de janela de origem cruzada, como OAuth e pagamentos. Para atenuar esse problema, estamos explorando o <a href="https://github.com/whatwg/html/issues/6364" rel="noopener">relaxamento da condição</a> para permitir o isolamento de origem <code>Cross-Origin-Opener-Policy: same-origin-allow-popups</code>. Desta forma, a comunicação com a janela aberta por ela mesma será possível.</p>
+<p>Se você deseja habilitar o isolamento de origem cruzada, mas está impedido por esses desafios, recomendamos <a href="https://developer.chrome.com/blog/enabling-shared-array-buffer/#origin-trial" rel="noopener">registrar-se para um teste de origem</a> e aguardar até que os novos modos estejam disponíveis. Não planejamos encerrar o teste de origem até que esses novos modos estejam disponíveis.</p>
+</div>
+<h2 id="mitigacao-do-impacto-do-isolamento-de-origem-cruzada">Mitigação do impacto do isolamento de origem cruzada <a class="w-headline-link" href="#mitigacao-do-impacto-do-isolamento-de-origem-cruzada">#</a></h2>
+<p>Depois de determinar quais recursos serão afetados pelo isolamento de origem cruzada, aqui estão as diretrizes gerais de como você ativa esses recursos de origem cruzada:</p>
+<ol>
+<li>Em recursos de origem cruzada, como imagens, scripts, folhas de estilo, iframes e outros, defina o cabeçalho <a href="https://resourcepolicy.fyi/#cross-origin" rel="noopener"><code>Cross-Origin-Resource-Policy: cross-origin</code></a> Em recursos do mesmo site, defina o cabeçalho <a href="https://resourcepolicy.fyi/#same-origin" rel="noopener"><code>Cross-Origin-Resource-Policy: same-site</code></a>.</li>
+<li>Defina o atributo <code>crossorigin</code> na tag HTML no documento de nível superior se o recurso for servido com <a href="/cross-origin-resource-sharing/">CORS</a> (por exemplo, <code>&lt;img src=&quot;example.jpg&quot; crossorigin&gt;</code> ).</li>
+<li>Se os recursos de origem cruzada carregados em iframes envolverem outra camada de iframes, aplique recursivamente as etapas descritas nesta seção antes de prosseguir.</li>
+<li>Depois de confirmar que todos os recursos de origem cruzada estão incluídos, defina o cabeçalho <code>Cross-Origin-Embedder-Policy: require-corp</code> nos recursos de origem cruzada carregados em iframes.</li>
+<li>Certifique-se de que não haja janelas pop-up de origem cruzada que exijam comunicação por meio de <code>postMessage()</code>. Não há como mantê-los funcionando quando o isolamento de origem cruzada está habilitado. Você pode mover a comunicação para outro documento que não tenha isolamento de origem cruzada ou usar um método de comunicação diferente (por exemplo, solicitações HTTP).</li>
+</ol>
+<h2 id="ativacao-do-isolamento-de-origem-cruzada">Ativação do isolamento de origem cruzada <a class="w-headline-link" href="#ativacao-do-isolamento-de-origem-cruzada">#</a></h2>
+<p>Depois de ter mitigado o impacto através do isolamento de origem cruzada, aqui estão as diretrizes gerais para permitir o isolamento de origem cruzada:</p>
+<ol>
+<li>Defina o cabeçalho <code>Cross-Origin-Opener-Policy: same-origin</code> em seu documento de nível superior. Se você configurou <code>Cross-Origin-Opener-Policy-Report-Only: same-origin</code>, substitua-o. Isto bloqueia a comunicação entre o documento de nível superior e suas janelas pop-up.</li>
+<li>Defina o cabeçalho <code>Cross-Origin-Embedder-Policy: require-corp</code> em seu documento de nível superior. Se você configurou <code>Cross-Origin-Embedder-Policy-Report-Only: require-corp</code> , substitua-o. Isto bloqueará o carregamento de recursos de origem cruzada que não estejam ativados.</li>
+<li>Verifique se <code>self.crossOriginIsolated</code> retorna <code>true</code> no console para verificar se sua página tem isolamento de origem cruzada.</li>
+</ol>
+<div class="w-aside w-aside--gotchas"><strong>Pegadinhas!</strong>
+<p>Habilitar o isolamento de origem cruzada em um servidor local pode ser doloroso, pois servidores simples não suportam o envio de cabeçalhos. Você pode iniciar o Chrome com um sinalizador de linha de comando <code>--enable-features=SharedArrayBuffer</code> para habilitar <code>SharedArrayBuffer</code> sem habilitar o isolamento de origem cruzada. Aprenda <a href="https://www.chromium.org/developers/how-tos/run-chromium-with-flags" rel="noopener">a executar o Chrome com um sinalizador de linha de comando nas respectivas plataformas</a>.</p>
+</div>
+<h2 id="recursos">Recursos <a class="w-headline-link" href="#recursos">#</a></h2>
+<ul>
+<li><a href="/coop-coep/">Deixando seu site com &quot;isolamento de origem cruzada&quot; usando COOP e COEP</a></li>
+<li><a href="https://developer.chrome.com/blog/enabling-shared-array-buffer/" rel="noopener">Atualizações de SharedArrayBuffer no Android Chrome 88 e Desktop Chrome 92</a></li>
+</ul>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/security/">Segurança</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Aug 5, 2021</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/pt/secure/cross-origin-isolation-guide/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/secure"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Registrar um bug
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Visualizar código-fonte
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Conteúdo relacionado</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Atualizações do Chrome
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              Web Fundamentals
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              Estudos de caso
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              Podcasts
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              Shows
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Conectar</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            Todos os produtos
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="pt"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            Termos e privacidade
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            Diretrizes da comunidade
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>

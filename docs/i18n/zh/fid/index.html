@@ -1,0 +1,766 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  
+    
+    <link rel="stylesheet" href="/css/main.css?v=d5eff7156ba68">
+  
+
+  <link rel="preload" as="font" crossorigin href="/fonts/material-icons/regular.woff2">
+
+
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/regular/latin.woff2">
+<link rel="preload" as="font" crossorigin href="/fonts/google-sans/bold/latin.woff2">
+
+<meta name="theme-color" content="#fff"/>
+
+
+
+
+<title>First Input Delay 首次输入延迟 (FID)</title>
+<meta name="description" content="这篇文章介绍了首次输入延迟 (FID) 指标并说明了该指标的测量方式" />
+
+<link rel="canonical" href="https://web.dev/i18n/zh/fid/" />
+<link rel="alternate" hreflang="es" href="https://web.dev/i18n/es/fid/" />
+<link rel="alternate" hreflang="ja" href="https://web.dev/i18n/ja/fid/" />
+<link rel="alternate" hreflang="ko" href="https://web.dev/i18n/ko/fid/" />
+<link rel="alternate" hreflang="pt" href="https://web.dev/i18n/pt/fid/" />
+<link rel="alternate" hreflang="ru" href="https://web.dev/i18n/ru/fid/" />
+<link rel="alternate" hreflang="zh" href="https://web.dev/i18n/zh/fid/" />
+<link rel="alternate" hreflang="en" href="https://web.dev/fid/" />
+<meta itemprop="name" content="First Input Delay 首次输入延迟 (FID)" />
+<meta itemprop="description" content="这篇文章介绍了首次输入延迟 (FID) 指标并说明了该指标的测量方式" />
+<meta itemprop="image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:locale" content="zh_CN" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://web.dev/i18n/zh/fid/" />
+<meta property="og:site_name" content="web.dev" />
+<meta property="og:title" content="First Input Delay 首次输入延迟 (FID)" />
+<meta property="og:description" content="这篇文章介绍了首次输入延迟 (FID) 指标并说明了该指标的测量方式" />
+<meta property="og:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<meta property="og:image:alt" content="" />
+<meta property="tag" content="performance" />
+<meta property="tag" content="metrics" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="First Input Delay 首次输入延迟 (FID)" />
+<meta name="twitter:description" content="这篇文章介绍了首次输入延迟 (FID) 指标并说明了该指标的测量方式" />
+<meta name="twitter:image" content="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/vU99HKzIf5EUPnzGVPf1.png?auto=format&fit=max&w=1200&fm=auto" />
+<link
+  rel="alternate"
+  href="/feed.xml"
+  type="application/atom+xml"
+  data-title="web.dev feed"
+/>
+
+<link rel="manifest" href="/manifest.webmanifest" />
+
+<link rel="shortcut icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="mask-icon" color="#0054ff" href="/images/safari-pinned-tab.svg">
+
+
+
+<script>
+window.ga =
+  window.ga ||
+  function () {
+    (ga.q = ga.q || []).push(arguments);
+  };
+ga.l = +new Date();
+ga('create', 'UA-126406676-2');
+ga('set', 'transport', 'beacon');
+ga('set', 'anonymizeIp', true);
+ga('set', 'page', window.location.pathname);
+ga('set', 'dimension5', '4');
+ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+<script>
+function loadScript(url, type) {
+  const s = document.createElement('script');
+  s.src = url;
+  if (type) {
+    s.type = type;
+  }
+  if (type === 'module') {
+    s.async = false; // Preserve load order.
+    const pre = document.createElement('link');
+    pre.rel = 'modulepreload';
+    pre.href = url;
+    document.head.append(pre);
+    // We use DOMContentLoaded as the loader script is running sync, and inserting a module script here doesn't defer. This brings back normal type="module" behavior.
+    window.addEventListener('DOMContentLoaded', () => {
+      document.head.append(s);
+    });
+  } else {
+    document.head.append(s);
+  }
+}
+loadScript('/js/app.js?v=244000ef8426d', 'module');
+
+
+
+
+  loadScript('/js/content.js?v=fd84061857127', 'module');
+
+
+  loadScript('https://www.google-analytics.com/analytics.js', null);
+
+</script>
+
+  </head>
+  <body class="unresolved">
+    
+    <web-snackbar-container></web-snackbar-container>
+
+    
+
+
+
+<web-header class="header-default" role="navigation">
+  <button data-open-drawer-button class="w-button--svg w-button--round" aria-label="打开菜单">
+    
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+
+
+    <span class="w-tooltip w-tooltip--left">打开菜单</span>
+  </button>
+
+  <a
+    href="/"
+    class="header-default__logo-link gc-analytics-event"
+    data-category="Site-Wide Custom Events"
+    data-label="Site logo"
+  >
+    <img class="header-default__logo" width="125" height="23" src="/images/lockup.svg" alt="web.dev" />
+  </a>
+
+  <div class="header-default__middle">
+    <div class="header-default__links">
+      <a
+        href="/learn/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Learn"
+      >
+        学习
+      </a>
+
+      <a
+        href="/measure/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Measure"
+      >
+        衡量
+      </a>
+
+      <a
+        href="/blog/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: Blog"
+      >
+        博客
+      </a>
+
+      <a
+        href="/about/"
+        class="header-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="Tab: About"
+      >
+        关于
+      </a>
+    </div>
+    <web-search results-id="search-main-results" i18n="{&quot;search&quot;:{&quot;en&quot;:&quot;Search&quot;},&quot;open_search&quot;:{&quot;en&quot;:&quot;Open search&quot;},&quot;all_articles&quot;:{&quot;en&quot;:&quot;All articles&quot;},&quot;close_search&quot;:{&quot;en&quot;:&quot;Close search&quot;}}"></web-search>
+    <web-search-results id="search-main-results"></web-search-results>
+  </div>
+
+  <web-profile-switcher-container></web-profile-switcher-container>
+</web-header>
+
+
+
+<web-navigation-drawer class="drawer-default" type="modal">
+  <nav data-drawer-container>
+    <div class="drawer-default__contents">
+      <div class="drawer-default__header">
+        <button
+          data-drawer-close-button
+          class="drawer-default__hide w-button--svg w-button--round"
+          aria-label="关闭"
+        >
+          
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <svg class="icon " role="img" aria-label="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+
+          <span class="w-tooltip">关闭</span>
+        </button>
+        <a
+          href="/"
+          class="gc-analytics-event"
+          data-category="Site-Wide Custom Events"
+          data-label="Site logo"
+        >
+          <img
+            width="125"
+            height="30"
+            class="drawer-default__logo"
+            src="/images/lockup.svg"
+            alt="web.dev"
+          />
+        </a>
+      </div>
+      <a
+        href="/learn/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Learn"
+      >
+        学习
+      </a>
+      <a
+        href="/measure/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Measure"
+      >
+        衡量
+      </a>
+      <a
+        href="/blog/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: Blog"
+      >
+        博客
+      </a>
+      <a
+        href="/about/"
+        class="drawer-default__link gc-analytics-event"
+        data-category="Site-Wide Custom Events"
+        data-label="SideNav: About"
+      >
+        关于
+      </a>
+    </div>
+  </nav>
+</web-navigation-drawer>
+
+<main>
+  <div id="content">
+    
+      
+    
+    
+
+
+<div class="guide-landing-page">
+  
+    
+    
+    
+  
+  
+
+  
+
+  <web-table-of-contents>
+    <h2 class="w-toc__header">
+      <a href="#first-input-delay-(fid)" class="w-toc__header--link">
+        First Input Delay 首次输入延迟 (FID)
+      </a>
+    </h2>
+    <div class="w-toc__list">
+        <ul><li><a href="#fid">什么是 FID？</a><ol><li><a href="#fid-2">怎样算是良好的 FID 分数？</a></li></ol></li><li><a href="#fid-3">FID 详情</a><ol><li><a href="#-2">为什么只考虑首次输入？</a></li><li><a href="#-3">哪些算是首次输入？</a></li><li><a href="#-4">如果用户始终没有与您的网站进行交互怎么办？</a></li><li><a href="#-5">为什么只考虑输入延迟？</a></li></ol></li><li><a href="#fid-4">如何测量 FID</a><ol><li><a href="#-6">实测工具</a></li><li><a href="#javascript-fid">在 JavaScript 中测量 FID</a></li><li><a href="#fid-5">分析和报告 FID 数据</a></li></ol></li><li><a href="#fid-6">如何改进 FID</a></li><li><a href="#changelog">CHANGELOG</a></li></ul></div>
+  </web-table-of-contents>
+  <web-table-of-contents-button></web-table-of-contents-button>
+
+  
+  <div class="w-actions">
+    <share-action authors="@philwalton"
+      class="gc-analytics-event w-actions__fab w-actions__fab--share"
+      data-category="web.dev"
+      data-label="share"
+      data-action="click"
+      data-icon="share"
+      tabindex="0"
+      role="button"
+    >
+      <span>分享</span>
+    </share-action>
+    
+    
+  </div>
+
+  <div class="w-layout-container--narrow w-post-content">
+    <header class="w-article-header">
+      
+
+      <h1 id="first-input-delay-(fid)" class="w-article-header__headline">First Input Delay 首次输入延迟 (FID)</h1>
+      
+
+      
+        <div class="w-author__published">
+          <time>Nov 7, 2019</time>
+           <span class="w-author__separator">•</span> 更新日期 <time>Jun 19, 2020</time> 
+        </div>
+      
+
+      
+      
+      <div class="w-layout-container--narrow w-post-signpost">
+        <span class="w-post-signpost__title">Available in:
+    <a class="w-post-signpost__link"
+        translate="no"
+        lang="es"
+        href="/i18n/es/fid/">
+      Español</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ja"
+        href="/i18n/ja/fid/">
+      日本語</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ko"
+        href="/i18n/ko/fid/">
+      한국어</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="pt"
+        href="/i18n/pt/fid/">
+      Português</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="ru"
+        href="/i18n/ru/fid/">
+      Русский</a>, <a class="w-post-signpost__link"
+        translate="no"
+        lang="en"
+        href="/i18n/en/fid/">
+      English</a></span>
+      </div>
+      
+
+      <div class="w-layout-container--narrow w-post-signpost">
+  <span class="w-post-signpost__title">
+    Appears in:
+  </span>
+  <a
+          class="w-post-signpost__link"
+          href="/learn-web-vitals"
+          >Web Vitals</a
+        ><span class="w-post-signpost__divider">|</span><a
+          class="w-post-signpost__link"
+          href="/metrics"
+          >指标</a
+        >
+</div>
+
+      
+        <div class="w-authors w-mt--xl w-pt--sm">
+          
+            <div class="w-author">
+  <a href="/authors/philipwalton/"><img     alt="Philip Walton"     class="w-author__image"     decoding="async"     height="64"          loading="lazy"     sizes="(min-width: 64px) 64px, calc(100vw - 48px)"     src="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?auto=format&fit=crop&h=64&w=64"     srcset="https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=1&q=75 1x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=2&q=50 2x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=3&q=35 3x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=4&q=23 4x,     https://web-dev.imgix.net/image/admin/ovBM8MF9rYDxVVHUVlcG.jpg?fit=crop&h=64&w=64&auto=format&dpr=5&q=20 5x"          width="64"   /></a>
+  <div
+    class="w-author__info"
+    style="display: flex; flex-direction: column; justify-content: center;"
+  >
+    <cite class="w-author__name">
+      <a class="w-author__name-link" href="/authors/philipwalton/">Philip Walton</a>
+    </cite>
+    <ul class="w-author__link-list">
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://twitter.com/philwalton"
+          >Twitter</a
+        >
+      </li>
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://github.com/philipwalton">GitHub</a>
+      </li>
+      
+      <li class="w-author__link-listitem">
+        <a class="w-author__link" href="https://philipwalton.com">Blog</a>
+      </li>
+    </ul>
+  </div>
+</div>
+          
+        </div>
+      
+    </header>
+
+    
+
+    <div class="w-aside w-aside--note">
+<p>首次输入延迟 (FID) 是测量<a href="/user-centric-performance-metrics/#types-of-metrics">加载响应度</a>的一个以用户为中心的重要指标，因为该项指标将用户尝试与无响应页面进行交互时的体验进行了量化，低 FID 有助于让用户确信页面是<a href="/user-centric-performance-metrics/#questions">有效的</a>。 </div></p>
+<p>我们都知道给人留下良好的第一印象是多么重要。这不仅对于结识新朋友十分重要，在网络上塑造体验时也同样重要。</p>
+<p>在网络上，良好的第一印象能够决定人们会成为忠实用户，还是从此一去不回头。问题在于，什么样的体验能留下良好印象，而您又要如何衡量您给用户留下了怎样的印象？</p>
+<p>在网络上，第一印象可以有很多不同的形式，我们会对网站的设计和视觉吸引力形成第一印象，也会对网站的速度和响应度形成第一印象。</p>
+<p>虽然很难通过网页 API 来衡量用户对网站设计的喜爱程度，但网页 API 却可以轻松测量网站速度和响应度！</p>
+<p>用户对您的网站加载速度的第一印象可以通过<a href="/fcp/">First Contentful Paint 首次内容绘制 (FCP)</a>进行测量。但是，您的网站在屏幕上绘制像素的速度只是其中一部分，同样重要的还有当用户试图与这些像素进行交互时，您的网站响应度有多高！</p>
+<p>首次输入延迟 (FID) 指标有助于衡量您的用户对网站交互性和响应度的第一印象。</p>
+<h2 id="fid">什么是 FID？ <a class="w-headline-link" href="#fid">#</a></h2>
+<p>FID 测量从用户第一次与页面交互（例如当他们单击链接、点按按钮或使用由 JavaScript 驱动的自定义控件）直到浏览器对交互作出响应，并实际能够开始处理事件处理程序所经过的时间。</p>
+<picture>
+  <source srcset="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/eXyvkqRHQZ5iG38Axh1Z.svg" media="(min-width: 640px)" width="400", height="100">
+  <img     alt="好的 fid 值为 2.5 秒，差的值大于 4.0 秒，中间的任何值都需要改进"     class="w-screenshot w-screenshot--filled width-full"     decoding="async"     height="300"          loading="lazy"          src="https://web-dev.imgix.net/image/tcFciHGuF3MxnTr1y5ue01OGLBn2/Se4TiXIdp8jtLJVScWed.svg"               width="400"   />
+</picture>
+<h3 id="fid-2">怎样算是良好的 FID 分数？ <a class="w-headline-link" href="#fid-2">#</a></h3>
+<p>为了提供良好的用户体验，网站应该努力将首次输入延迟设控制在<strong>100 毫秒</strong>或以内。为了确保您能够在大部分用户的访问期间达成建议目标值，一个良好的测量阈值为页面加载的<strong>第 75 个百分位数</strong>，且该阈值同时适用于移动和桌面设备。</p>
+<div class="w-aside w-aside--note">
+<p>如需详细了解这些建议值背后的研究和方法论，请参阅：<a href="/defining-core-web-vitals-thresholds/">定义核心 Web 指标的指标阈值</a> </div></p>
+<h2 id="fid-3">FID 详情 <a class="w-headline-link" href="#fid-3">#</a></h2>
+<p>作为编写事件响应代码的开发者，我们通常会假定代码会在事件发生时立即运行。但作为用户，我们都常常面临相反的情况，当我们在手机上加载了一个网页并试图与网页交互，接着却因为网页没有任何反应而感到沮丧。</p>
+<p>一般来说，发生输入延迟（又称输入延时）是因为浏览器的主线程正忙着执行其他工作，所以（还）不能响应用户。可能导致这种情况发生的一种常见原因是浏览器正忙于解析和执行由您的应用程序加载的大型 JavaScript 文件。在此过程中，浏览器不能运行任何事件侦听器，因为正在加载的 JavaScript 可能会让浏览器去执行其他工作。</p>
+<div class="w-aside w-aside--gotchas"><strong>问题!</strong>
+<p>FID 只测量事件处理过程中的&quot;延迟&quot;。FID 既不测量事件处理本身所花费的时间，也不测量浏览器在运行事件处理程序后更新用户界面所花费的时间。虽然这些时间确实会影响用户体验，但如果将其作为 FID 的一部分，则会激励开发者对事件进行异步响应，这么做虽然能够改善指标，但多半会使体验变得更糟糕。请参阅下方的<a href="#why-only-consider-the-input-delay">为什么只考虑输入延迟</a>获取更多详情。 </div></p>
+<p>请看以下这条典型的网页加载时间轴：</p>
+<p><a href="https://web-dev.imgix.net/image/admin/9tm3f6pwlHMqNKuFvaP0.svg"><img      alt="示例页面加载跟踪"            decoding="async"      height="260"            loading="lazy"            src="https://web-dev.imgix.net/image/admin/9tm3f6pwlHMqNKuFvaP0.svg"                  width="800"    /></a></p>
+<p>上方的可视化图表中显示的是一个页面，该页面正在发出数个网络请求来获取资源（多为 CSS 和 JS 文件），这些资源下载完毕后，会在主线程上进行处理。</p>
+<p>这就导致主线程会阶段性地处于忙碌状态（在图中表示为米黄色<a href="https://html.spec.whatwg.org/multipage/webappapis.html#concept-task" rel="noopener">任务</a>块）。</p>
+<p>较长的首次输入延迟通常发生在<a href="/fcp/">首次内容绘制 (FCP)</a>和<a href="/tti/">Time to Interactive 可交互时间 (TTI)</a>之间，因为在此期间，页面已经渲染出部分内容，但交互性还尚不可靠。为了说明这种情况的发生缘由，我们在时间轴中加入了 FCP 和 TTI：</p>
+<p><a href="https://web-dev.imgix.net/image/admin/24Y3T5sWNuZD9fKhkuER.svg"><img      alt="带有 FCP 和 TTI 的示例页面加载跟踪"            decoding="async"      height="340"            loading="lazy"            src="https://web-dev.imgix.net/image/admin/24Y3T5sWNuZD9fKhkuER.svg"                  width="800"    /></a></p>
+<p>您可能已经注意到 FCP 和 TTI 之间有相当长的一段时间（包括三段<a href="/custom-metrics/#long-tasks-api">长任务</a>），如果用户在这段时间内尝试与页面进行交互（例如单击一个链接），那么从浏览器接收到单击直至主线程能够响应之前就会有一段延迟。</p>
+<p>请看如果用户在最长的任务刚开始时就尝试与页面进行交互会发生什么：</p>
+<p><a href="https://web-dev.imgix.net/image/admin/krOoeuQ4TWCbt9t6v5Wf.svg"><img      alt="带有 FCP、TTI 和 FID 的示例页面加载跟踪"            decoding="async"      height="380"            loading="lazy"            src="https://web-dev.imgix.net/image/admin/krOoeuQ4TWCbt9t6v5Wf.svg"                  width="800"    /></a></p>
+<p>因为输入发生在浏览器正在运行任务的过程中，所以浏览器必须等到任务完成后才能对输入作出响应。浏览器必须等待的这段时间就是这位用户在该页面上体验到的 FID 值。</p>
+<div class="w-aside w-aside--note">
+<p>在这个示例中，用户恰好在主线程刚进入最繁忙的时段时与页面进行了交互。如果用户稍微提早一点（在空闲期间）与页面进行交互，那么浏览器就会立即响应。输入延迟上的这种差异强调了在报告指标时查看 FID 值分布的重要性。您可以阅读下方有关 FID 数据分析和报告的部分内容来了解更多相关信息。 </div></p>
+<h3 id="">如果交互没有事件侦听器怎么办？ <a class="w-headline-link" href="#">#</a></h3>
+<p>FID 测量接收到输入事件的时间点与主线程下一次空闲的时间点之间的差值。这就意味着**即使在尚未注册事件侦听器的情况下，**FID 也会得到测量。这是因为许多用户交互的执行并不需要事件侦听器，但<em>一定</em>需要主线程处于空闲期。</p>
+<p>例如，在对用户交互进行响应前，以下所有 HTML 元素都需要等待主线程上正在进行的任务完成运行：</p>
+<ul>
+<li>文本字段、复选框和单选按钮 (<code>&lt;input&gt;</code> 、 <code>&lt;textarea&gt;</code>)</li>
+<li>下拉选择列表（<code>&lt;select&gt;</code>）</li>
+<li>链接 (<code>&lt;a&gt;</code>)</li>
+</ul>
+<h3 id="-2">为什么只考虑首次输入？ <a class="w-headline-link" href="#-2">#</a></h3>
+<p>虽然任何输入延迟都可能导致糟糕的用户体验，但我们主要建议您测量首次输入延迟，原因如下：</p>
+<ul>
+<li>首次输入延迟将会是用户对您网站响应度的第一印象，而第一印象对于塑造我们对网站质量和可靠性的整体印象至关重要。</li>
+<li>我们现如今在网络上看到的最大的交互性问题发生在页面加载期间。因此，我们认为首先侧重于改善网站的首次用户交互将对改善网络的整体交互性产生最大的影响。</li>
+<li>我们推荐网站针对较高的首次输入延迟采取的解决方案（代码拆分、减少 JavaScript 的预先加载量等）不一定与针对页面加载后输入延迟缓慢的解决方案相同。通过分离这些指标，我们将能够为网页开发者提供更确切的性能指南。</li>
+</ul>
+<h3 id="-3">哪些算是首次输入？ <a class="w-headline-link" href="#-3">#</a></h3>
+<p>FID 是测量页面加载期间响应度的指标。因此，FID 只关注不连续操作对应的输入事件，如点击、轻触和按键。</p>
+<p>其他诸如滚动和缩放之类的交互属于连续操作，具有完全不同的性能约束（而且，浏览器通常能够通过在单独的线程上执行这些操作来隐藏延迟）。</p>
+<p>换句话说，FID 侧重于<a href="https://developers.google.com/web/fundamentals/performance/rail" rel="noopener">RAIL 性能模型</a>中的 R（响应度），而滚动和缩放与 A（动画）更为相关，因此这些操作的性能质量应该单独进行评估。</p>
+<h3 id="-4">如果用户始终没有与您的网站进行交互怎么办？ <a class="w-headline-link" href="#-4">#</a></h3>
+<p>并非所有用户都会在每次访问您的网站时进行交互。而且也并不是所有交互都与 FID 相关（如上一节所述）。此外，一些用户的首次交互会处于不利的时间段内（当主线程长时间处于繁忙时），而另一些用户的首次交互会处于有利的时间段内（当主线程完全空闲时）。</p>
+<p>这意味着有些用户将没有 FID 值，有些用户的 FID 值较低，而有些用户的 FID 值可能较高。</p>
+<p>您对 FID 的跟踪、报告和分析方式可能与您惯常使用的其他指标十分不同。下一节将说明相应的最佳做法。</p>
+<h3 id="-5">为什么只考虑输入延迟？ <a class="w-headline-link" href="#-5">#</a></h3>
+<p>如上所述，FID 只测量事件处理过程中的&quot;延迟&quot;。FID 既不测量事件处理本身所花费的时间，也不测量浏览器在运行事件处理程序后更新用户界面所花费的时间。</p>
+<p>虽然这些时间对用户来说非常重要，也<em>确实</em>会影响用户体验，但这些时间并不包括在该项指标内，因为这样的做法可能会激励开发者加入变通方案，并因此导致体验变得更加糟糕，这里的意思是说，开发者可以将事件处理程序逻辑封装在一个异步回调中（通过<code>setTimeout()</code>或<code>requestAnimationFrame()</code>），从而将逻辑与事件关联的任务分离。最终的结果虽然能够提升指标分数，但会使用户感知到的响应速度变慢。</p>
+<p>不过，虽然 FID 只测量事件延时的&quot;延迟&quot;部分，但想要对事件生命周期进行更多跟踪的开发者可以使用<a href="https://wicg.github.io/event-timing/" rel="noopener">事件计时 API</a>来实现这一想法。如需更多详情，请参阅<a href="/custom-metrics/#event-timing-api">自定义指标</a>的相关指导。</p>
+<h2 id="fid-4">如何测量 FID <a class="w-headline-link" href="#fid-4">#</a></h2>
+<p>FID 是一个只能进行<a href="/user-centric-performance-metrics/#in-the-field">实际</a>测量的指标，因为该项指标需要真实用户与您的页面进行交互。您可以使用以下工具测量 FID。</p>
+<div class="w-aside w-aside--note">
+<p>FID 需要真实用户，因此无法在实验室中进行测量。但是，<a href="/tbt/">Total Blocking Time 总阻塞时间 (TBT)</a>指标不仅可以进行实验室测量，还与实际的 FID 关联性强，而且可以捕获影响交互性的问题。能够在实验室中改进 TBT 的优化也应该能为您的用户改进 FID。 </div></p>
+<h3 id="-6">实测工具 <a class="w-headline-link" href="#-6">#</a></h3>
+<ul>
+<li><a href="https://developers.google.com/web/tools/chrome-user-experience-report" rel="noopener">Chrome 用户体验报告</a></li>
+<li><a href="https://developers.google.com/speed/pagespeed/insights/" rel="noopener">PageSpeed Insights 网页速度测量工具</a></li>
+<li><a href="https://support.google.com/webmasters/answer/9205520" rel="noopener">搜索控制台（核心 Web 指标报告）</a></li>
+<li><a href="https://github.com/GoogleChrome/web-vitals" rel="noopener"><code>web-vitals</code> JavaScript 库</a></li>
+</ul>
+<h3 id="javascript-fid">在 JavaScript 中测量 FID <a class="w-headline-link" href="#javascript-fid">#</a></h3>
+<p>要在 JavaScript 中测量 FID，您可以使用<a href="https://wicg.github.io/event-timing" rel="noopener">事件计时 API</a>。以下示例说明了如何创建一个<a href="https://developer.mozilla.org/docs/Web/API/PerformanceObserver" rel="noopener"><code>PerformanceObserver</code></a>来侦听<a href="https://wicg.github.io/event-timing/#sec-performance-event-timing" rel="noopener"><code>first-input</code></a>条目并记录在控制台中：</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">new</span> <span class="token class-name">PerformanceObserver</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">entryList</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">const</span> entry <span class="token keyword">of</span> entryList<span class="token punctuation">.</span><span class="token function">getEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token keyword">const</span> delay <span class="token operator">=</span> entry<span class="token punctuation">.</span>processingStart <span class="token operator">-</span> entry<span class="token punctuation">.</span>startTime<span class="token punctuation">;</span><br>    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'FID candidate:'</span><span class="token punctuation">,</span> delay<span class="token punctuation">,</span> entry<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span><span class="token punctuation">{</span>type<span class="token operator">:</span> <span class="token string">'first-input'</span><span class="token punctuation">,</span> buffered<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><div class="w-aside w-aside--warning">
+<p><strong>警告</strong>:  上述代码说明了如何将<code>first-input</code>条目记录在控制台中并计算延迟。但是，在 JavaScript 中测量 FID 要更为复杂。详情请见下文：</div></p>
+<p>在上方的示例中，<code>first-input</code>条目的延迟值是通过获取条目的<code>startTime</code>和<code>processingStart</code>时间戳之间的差值来测量的。在大多数情况下，这个差值就是 FID 值，然而，并非所有<code>first-input</code>条目都能够用来测量 FID。</p>
+<p>以下部分列出了 API 报告的内容与指标计算方式之间的差异。</p>
+<h4 id="api">指标和 API 之间的差异 <a class="w-headline-link" href="#api">#</a></h4>
+<ul>
+<li>API 会为在后台选项卡中加载的页面分发<code>first-input</code>条目，但在计算 FID 时应忽略这些页面。</li>
+<li>如果页面在首次输入发生前转移到后台，API 也会分发<code>first-input</code>条目，但在计算 FID 时仍应忽略这些页面（只有当页面始终处于前台时才考虑输入）。</li>
+<li>当页面通过<a href="/bfcache/#impact-on-core-web-vitals">往返缓存</a>恢复时，API 不会报告<code>first-input</code>条目，但在这些情况下应该测量 FID，因为这对用户来说是多次不同的页面访问体验。</li>
+<li>API 不会报告 iframe 中的输入，但要想正确测量 FID，您应该考虑这些输入。子框架可以使用 API 将这些输入的<code>first-input</code>条目报告给父框架来进行聚合。</li>
+</ul>
+<p>开发者不必记住所有这些细微差异，而是可以使用<a href="https://github.com/GoogleChrome/web-vitals" rel="noopener"><code>web-vitals</code> JavaScript 库</a>来测量 FID，库会自行处理这些差异（在可能的情况下）：</p>
+<web-copy-code><pre class="language-js"><code class="language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span>getFID<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'web-vitals'</span><span class="token punctuation">;</span><br><br><span class="token comment">// 当 FID 可用时立即进行测量和记录。</span><br><span class="token function">getFID</span><span class="token punctuation">(</span>console<span class="token punctuation">.</span>log<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</web-copy-code><p>您可以参考<a href="https://github.com/GoogleChrome/web-vitals/blob/master/src/getFID.ts" rel="noopener"><code>getFID)</code>的源代码</a>，了解如何在 JavaScript 中测量 FID 的完整示例。</p>
+<div class="w-aside w-aside--note">
+<p>在某些情况下（例如跨域 iframe），FID 无法在 JavaScript 中进行测量。详情请参阅<code>web-vitals</code>库的<a href="https://github.com/GoogleChrome/web-vitals#limitations" rel="noopener">局限性</a>部分。 </div></p>
+<h3 id="fid-5">分析和报告 FID 数据 <a class="w-headline-link" href="#fid-5">#</a></h3>
+<p>由于 FID 值的预期差异，您必须在报告 FID 时查看值的分布并关注较高的百分位数，这一点至关重要。</p>
+<p>虽然所有核心 Web 指标阈值的<a href="/defining-core-web-vitals-thresholds/#choice-of-percentile">优选百分位数</a>是第 75 个百分位数，但具体到 FID，我们仍然强烈建议您将阈值设置在第 95-99 个百分位数，因为这些百分位数对应于用户在您网站上经历的特别糟糕的首次体验，因而也能够让您获知最需要进行改进的地方。</p>
+<p>即使您按设备类别或类型对报告进行细分，也应该这样做。例如，如果您分别对桌面端和移动端进行报告，那么您最应该关注的桌面端 FID 值应该是桌面端用户的第 95-99 个百分位数，而您最应该关注的移动端 FID 值应该是移动端用户的第 95-99 个百分位数。</p>
+<h2 id="fid-6">如何改进 FID <a class="w-headline-link" href="#fid-6">#</a></h2>
+<p>要了解如何改进某个特定网站的 FID，您可以运行一次灯塔性能审计，并留心查看审计建议的各种具体<a href="/lighthouse-performance/#opportunities">机会</a>。</p>
+<p>虽然 FID 是一项实际指标（而灯塔是一个实验室指标工具），但改进 FID 的指导方向与改进<a href="/tbt/">总阻塞时间 (TBT)</a>这项实验室指标的指导方向相同。</p>
+<p>如需深入了解如何改进 FID，请参阅<a href="/optimize-fid/">优化 FID</a>。有关其他能够改进 FID 的单个性能技巧的进一步指导，请参阅：</p>
+<ul>
+<li><a href="/third-party-summary/">减少第三方代码的影响</a></li>
+<li><a href="/bootup-time/">减少 JavaScript 执行时间</a></li>
+<li><a href="/mainthread-work-breakdown/">最小化主线程工作</a></li>
+<li><a href="/resource-summary/">保持较低的请求数和较小的传输大小</a></li>
+</ul>
+<h2 id="changelog">CHANGELOG <a class="w-headline-link" href="#changelog">#</a></h2>
+<p>Occasionally, bugs are discovered in the APIs used to measure metrics, and
+sometimes in the definitions of the metrics themselves. As a result, changes
+must sometimes be made, and these changes can show up as improvements or
+regressions in your internal reports and dashboards.</p>
+<p>To help you manage this, all changes to either the implementation or definition
+of these metrics will be surfaced in this
+<a href="http://bit.ly/chrome-speed-metrics-changelog" rel="noopener">CHANGELOG</a>.</p>
+
+
+    
+
+    
+  <div class="w-chips ">
+    
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/performance/">性能</a>
+      
+    
+      
+        
+        <a class="w-chip" href="/tags/metrics/">指标</a>
+      
+    
+  </div>
+
+
+    <div class="w-post-github-link w-mt--l w-mb--l">
+      <span class="w-mr--sm">
+        
+        Last updated: <time>Jun 19, 2020</time>
+        
+      </span>
+      <a
+        href="https://github.com/GoogleChrome/web.dev/blob/main/src/site/content/zh/metrics/fid/index.md"
+      >
+        Improve article
+      </a>
+       
+    </div>
+
+    
+  </div>
+
+  
+    
+    <nav class="w-article-navigation">
+  <a
+    class="w-article-navigation__link w-article-navigation__link--back
+      w-article-navigation__link--single gc-analytics-event"
+    data-category="web.dev"
+    data-label="navigation, go back"
+    data-action="click"
+    href="/learn-web-vitals"
+  >
+    Return to all articles
+  </a>
+</nav>
+  
+</div>
+
+
+  </div>
+</main>
+<footer class="w-footer">
+  <nav class="w-footer__linkboxes">
+    <ul class="w-footer__linkboxes-list">
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">Contribute</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/GoogleChrome/web.dev/issues/new?assignees=&labels=bug&template=bug_report.md&title="
+              class="w-footer__linkbox-link" data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              提交错误
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://github.com/googlechrome/web.dev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              查看源代码
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">相关内容</h3>
+        <ul class="w-footer__linkbox-list">
+         <li class="w-footer__linkbox-item">
+            <a href="https://developer.chrome.com/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              developer.chrome.com
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://blog.chromium.org/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Chrome 动态
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/fundamentals" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              网站开发基础
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://developers.google.com/web/showcase/" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 3)">
+              案例研究
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/podcasts/" class="w-footer__linkbox-link"
+              data-category="Podcasts" data-label="Footer Link (index 5)">
+              播客
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="/shows/" class="w-footer__linkbox-link"
+              data-category="Shows" data-label="Footer Link (index 6)">
+              节目
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="w-footer__linkbox">
+        <h3 class="w-footer__linkbox-heading">连接</h3>
+        <ul class="w-footer__linkbox-list">
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.twitter.com/ChromiumDev" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 1)">
+              Twitter
+            </a>
+          </li>
+          <li class="w-footer__linkbox-item">
+            <a href="https://www.youtube.com/user/ChromeDevelopers" class="w-footer__linkbox-link"
+              data-category="Site-Wide Custom Events" data-label="Footer Link (index 2)">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="w-footer__utility">
+    <nav class="w-footer__utility-nav">
+      <a href="https://developers.google.com/" class="w-footer__utility-logo-link"
+        data-category="Site-Wide Custom Events" data-label="Footer Google Developers Link">
+        <img loading="lazy" width="185" height="33" class="w-footer__utility-logo" src="/images/lockup-color.png"
+          alt="Google Developers" />
+      </a>
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developer.chrome.com/"
+            data-category="Site-Wide Custom Events" data-label="Footer Chrome Link">
+            Chrome
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://firebase.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Firebase Link">
+            Firebase
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://cloud.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Google Cloud Platform Link">
+            Google Cloud Platform
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://developers.google.com/products"
+            data-category="Site-Wide Custom Events" data-label="Footer All products Link">
+            所有产品
+          </a>
+        </li>
+      </ul>
+      <web-language-select current="zh"></web-language-select>
+    </nav>
+    <nav class="w-footer__utility-nav">
+      <ul class="w-footer__utility-list">
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="https://policies.google.com/" data-category="Site-Wide Custom Events"
+            data-label="Footer Terms and Privacy link">
+            条款和隐私权
+          </a>
+        </li>
+        <li class="w-footer__utility-item">
+          <a class="w-footer__utility-link" href="/community-guidelines/" data-category="Site-Wide Custom Events"
+            data-label="Footer Community Guidelines link">
+            社区准则
+          </a>
+        </li>
+      </ul>
+      <div class="w-footer__license">
+        <p>
+          Except as otherwise noted, the content of this page is licensed
+          under the
+          <a href="https://creativecommons.org/licenses/by/4.0/">
+          Creative Commons Attribution 4.0 License</a>,
+          and code samples are licensed under the
+          <a href="https://www.apache.org/licenses/LICENSE-2.0">
+          Apache 2.0 License</a>. For details, see the
+          <a href="https://developers.google.com/terms/site-policies">
+          Google Developers Site Policies</a>.
+        </p>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+  </body>
+</html>
